@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam by Valve - Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(45deg, #0f1419, #1b2838, #2a475e, #171a21);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(102, 192, 244, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(164, 215, 244, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(66, 165, 245, 0.1) 0%, transparent 50%);
+            animation: float 12s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateX(100px) scale(0.9);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            display: flex;
+        }
+
+        .slide.prev {
+            opacity: 0;
+            transform: translateX(-100px) scale(0.9);
+        }
+
+        .slide h1 {
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            color: #66c0f4;
+            text-shadow: 0 0 20px rgba(102, 192, 244, 0.5), 2px 2px 4px rgba(0,0,0,0.5);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .slide h2 {
+            font-size: 2.8rem;
+            margin-bottom: 40px;
+            color: #66c0f4;
+            text-shadow: 0 0 15px rgba(102, 192, 244, 0.4), 2px 2px 4px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(102, 192, 244, 0.5), 2px 2px 4px rgba(0,0,0,0.5); }
+            100% { text-shadow: 0 0 30px rgba(102, 192, 244, 0.8), 2px 2px 4px rgba(0,0,0,0.5); }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide h3 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #a4d7f4;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-width: 900px;
+        }
+
+        .slide ul {
+            text-align: left;
+            max-width: 800px;
+        }
+
+        .slide li {
+            margin-bottom: 15px;
+            padding-left: 10px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out both;
+            transition: all 0.3s ease;
+        }
+
+        .slide li:nth-child(1) { animation-delay: 0.5s; }
+        .slide li:nth-child(2) { animation-delay: 0.7s; }
+        .slide li:nth-child(3) { animation-delay: 0.9s; }
+        .slide li:nth-child(4) { animation-delay: 1.1s; }
+        .slide li:nth-child(5) { animation-delay: 1.3s; }
+        .slide li:nth-child(6) { animation-delay: 1.5s; }
+
+        .slide li:hover {
+            color: #66c0f4;
+            transform: translateX(10px) scale(1.02);
+            text-shadow: 0 0 10px rgba(102, 192, 244, 0.3);
+        }
+
+        .steam-logo {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            animation: logoGlow 3s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        .steam-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5)) drop-shadow(0 0 50px rgba(102, 192, 244, 0.2));
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 50px rgba(102, 192, 244, 0.3), inset 0 0 20px rgba(255,255,255,0.2); }
+            100% { box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 80px rgba(102, 192, 244, 0.6), inset 0 0 30px rgba(255,255,255,0.3); }
+        }
+
+        @keyframes logoShine {
+            0% { transform: rotate(0deg) translateX(-100%); }
+            100% { transform: rotate(0deg) translateX(100%); }
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #66c0f4, #42a5f5);
+            color: #1b2838;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 5px 15px rgba(102, 192, 244, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #a4d7f4, #66c0f4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 192, 244, 0.5);
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .nav-btn:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 30px;
+            max-width: 800px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(102, 192, 244, 0.2);
+            transition: all 0.4s ease;
+            animation: fadeInScale 0.8s ease-out both;
+            cursor: pointer;
+        }
+
+        .stat-box:nth-child(1) { animation-delay: 0.5s; }
+        .stat-box:nth-child(2) { animation-delay: 0.7s; }
+        .stat-box:nth-child(3) { animation-delay: 0.9s; }
+        .stat-box:nth-child(4) { animation-delay: 1.1s; }
+
+        .stat-box:hover {
+            transform: translateY(-10px) scale(1.05);
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 15px 30px rgba(102, 192, 244, 0.3);
+            border-color: rgba(102, 192, 244, 0.5);
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            color: #66c0f4;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+            max-width: 900px;
+        }
+
+        .feature-box {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: left;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            color: #66c0f4;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin-top: 30px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timeline-year {
+            font-size: 1.5rem;
+            color: #66c0f4;
+            font-weight: bold;
+            margin-right: 20px;
+            min-width: 80px;
+        }
+
+        .valve-logo {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            animation: valvePulse 4s ease-in-out infinite;
+        }
+
+        .valve-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.3)) drop-shadow(0 0 40px rgba(247, 119, 55, 0.3));
+        }
+
+        @keyframes valvePulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3), 0 0 40px rgba(247, 119, 55, 0.3);
+            }
+            50% { 
+                transform: scale(1.1);
+                box-shadow: 0 12px 35px rgba(0,0,0,0.4), 0 0 60px rgba(247, 119, 55, 0.5);
+            }
+        }
+
+        @keyframes valveRotate {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <div class="slide-counter">
+            <span id="current-slide">1</span> / <span id="total-slides">12</span>
+        </div>
+
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="steam-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Steam_Logo.png" alt="Steam Logo" />
+            </div>
+            <h1>Steam Platform</h1>
+            <p style="font-size: 1.8rem; color: #a4d7f4;">The Digital Gaming Revolution by Valve Corporation</p>
+            <p style="font-size: 1.2rem; margin-top: 30px; opacity: 0.8;">A comprehensive overview of the world's largest PC gaming platform</p>
+        </div>
+
+        <!-- Slide 2: What is Steam? -->
+        <div class="slide">
+            <h2>What is Steam?</h2>
+            <ul>
+                <li><strong>Digital Distribution Platform:</strong> Online marketplace for PC games and software</li>
+                <li><strong>Gaming Ecosystem:</strong> Complete platform for buying, playing, and socializing</li>
+                <li><strong>Industry Leader:</strong> Dominant force in PC gaming since 2003</li>
+                <li><strong>Multi-Platform:</strong> Available on Windows, macOS, and Linux</li>
+            </ul>
+            <p style="margin-top: 40px; font-style: italic;">Steam transformed how we buy, play, and experience games</p>
+        </div>
+
+        <!-- Slide 3: Valve Corporation -->
+        <div class="slide">
+            <div class="valve-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Valve_logo.svg/1200px-Valve_logo.svg.png" alt="Valve Logo" />
+            </div>
+            <h2>Valve Corporation</h2>
+            <ul>
+                <li><strong>Founded:</strong> 1996 by Gabe Newell and Mike Harrington</li>
+                <li><strong>Headquarters:</strong> Bellevue, Washington, USA</li>
+                <li><strong>Known For:</strong> Half-Life, Portal, Counter-Strike, Dota 2</li>
+                <li><strong>Philosophy:</strong> Flat organizational structure, employee freedom</li>
+                <li><strong>Innovation:</strong> Pioneers in digital distribution and VR gaming</li>
+            </ul>
+        </div>
+
+        <!-- Slide 4: Key Statistics -->
+        <div class="slide">
+            <h2>Steam by the Numbers</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">130M+</div>
+                    <div>Monthly Active Users</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">50K+</div>
+                    <div>Games Available</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">$30B+</div>
+                    <div>Annual Revenue (Est.)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">75%</div>
+                    <div>PC Gaming Market Share</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Core Features -->
+        <div class="slide">
+            <h2>Core Platform Features</h2>
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <div class="feature-title">Game Library</div>
+                    <div>Digital game collection and management</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Store</div>
+                    <div>Marketplace with sales and recommendations</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Community Hub</div>
+                    <div>Reviews, guides, and user-generated content</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Social Features</div>
+                    <div>Friends, groups, and communication tools</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Steam Store -->
+        <div class="slide">
+            <h2>Steam Store</h2>
+            <ul>
+                <li><strong>Massive Catalog:</strong> Over 50,000 games from indie to AAA</li>
+                <li><strong>Dynamic Pricing:</strong> Regular sales and seasonal events</li>
+                <li><strong>Discovery Tools:</strong> Personalized recommendations and curation</li>
+                <li><strong>Early Access:</strong> Play games during development</li>
+                <li><strong>Free-to-Play:</strong> Extensive collection of free games</li>
+                <li><strong>DLC & Add-ons:</strong> Comprehensive content expansion support</li>
+            </ul>
+        </div>
+
+        <!-- Slide 7: Community Features -->
+        <div class="slide">
+            <h2>Community & Social</h2>
+            <ul>
+                <li><strong>User Reviews:</strong> Community-driven game evaluation system</li>
+                <li><strong>Steam Workshop:</strong> User-generated content and mods</li>
+                <li><strong>Discussion Forums:</strong> Game-specific community discussions</li>
+                <li><strong>Steam Groups:</strong> Communities around games and interests</li>
+                <li><strong>Friends System:</strong> Social networking for gamers</li>
+                <li><strong>Achievements:</strong> Gaming accomplishments and progress tracking</li>
+            </ul>
+        </div>
+
+        <!-- Slide 8: Technical Components -->
+        <div class="slide">
+            <h2>Technical Infrastructure</h2>
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <div class="feature-title">Steam Client</div>
+                    <div>Desktop application for game management</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Cloud Saves</div>
+                    <div>Automatic game progress synchronization</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Auto-Updates</div>
+                    <div>Seamless game and client updates</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-title">Offline Mode</div>
+                    <div>Play games without internet connection</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Developer Tools -->
+        <div class="slide">
+            <h2>Developer & Publisher Tools</h2>
+            <ul>
+                <li><strong>Steamworks SDK:</strong> Complete development toolkit</li>
+                <li><strong>Revenue Share:</strong> 70/30 split (developer/Valve)</li>
+                <li><strong>Analytics:</strong> Detailed sales and player data</li>
+                <li><strong>Marketing Tools:</strong> Wishlists, announcements, and visibility</li>
+                <li><strong>Steam Direct:</strong> Streamlined game submission process</li>
+                <li><strong>Regional Pricing:</strong> Global market optimization</li>
+            </ul>
+        </div>
+
+        <!-- Slide 10: Evolution Timeline -->
+        <div class="slide">
+            <h2>Steam Evolution</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">2003</div>
+                    <div>Steam launches as update platform for Valve games</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2005</div>
+                    <div>Third-party games added to platform</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2010</div>
+                    <div>Mac support and Free-to-Play games introduced</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2012</div>
+                    <div>Steam Workshop and Greenlight launched</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2019</div>
+                    <div>Steam Remote Play and enhanced social features</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Impact & Competition -->
+        <div class="slide">
+            <h2>Market Impact</h2>
+            <ul>
+                <li><strong>Industry Transformation:</strong> Shifted gaming from physical to digital</li>
+                <li><strong>Indie Game Revolution:</strong> Democratized game publishing</li>
+                <li><strong>PC Gaming Revival:</strong> Renewed focus on PC as gaming platform</li>
+                <li><strong>Competition:</strong> Epic Games Store, GOG, Microsoft Store</li>
+                <li><strong>Global Reach:</strong> Localized for over 25 languages</li>
+                <li><strong>Economic Impact:</strong> Generated billions in revenue for developers</li>
+            </ul>
+        </div>
+
+        <!-- Slide 12: Conclusion -->
+        <div class="slide">
+            <div class="steam-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Steam_Logo.png" alt="Steam Logo" />
+            </div>
+            <h2>Steam's Legacy</h2>
+            <ul>
+                <li><strong>Market Leader:</strong> Dominant force in PC gaming distribution</li>
+                <li><strong>Innovation Driver:</strong> Continues to shape gaming industry</li>
+                <li><strong>Community Platform:</strong> More than just a store - it's an ecosystem</li>
+                <li><strong>Future Focus:</strong> Steam Deck, VR, and emerging technologies</li>
+            </ul>
+            <p style="margin-top: 40px; font-size: 1.6rem; color: #66c0f4; font-weight: bold;">
+                "Steam didn't just change how we buy games - it transformed gaming culture itself"
+            </p>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prev-btn" onclick="changeSlide(-1)">Previous</button>
+            <button class="nav-btn" id="next-btn" onclick="changeSlide(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function updateSlideVisibility() {
+            const slides = document.querySelectorAll('.slide');
+            
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                
+                if (index === currentSlide - 1) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide - 1) {
+                    slide.classList.add('prev');
+                }
+            });
+            
+            document.getElementById('current-slide').textContent = currentSlide;
+            document.getElementById('prev-btn').disabled = currentSlide === 1;
+            document.getElementById('next-btn').disabled = currentSlide === totalSlides;
+        }
+
+        function changeSlide(direction) {
+            const newSlide = currentSlide + direction;
+            if (newSlide >= 1 && newSlide <= totalSlides) {
+                currentSlide = newSlide;
+                updateSlideVisibility();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        updateSlideVisibility();
+    </script>
+</body>
+</html>
