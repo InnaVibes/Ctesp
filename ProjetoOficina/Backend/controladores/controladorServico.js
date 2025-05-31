@@ -247,3 +247,73 @@ exports.getHistoricoVeiculo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.addServico = async (req, res) => {
+    try {
+        const novoServico = new Servico({
+            ...req.body,
+            userId: req.user.id
+        });
+        
+        await novoServico.save();
+        await novoServico.populate('userId', 'name email');
+        await novoServico.populate('veiculoId', 'make model licensePlate');
+        
+        res.status(201).json(novoServico);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getServicoById = async (req, res) => {
+    try {
+        const servico = await Servico.findById(req.params.id)
+            .populate('userId', 'name email')
+            .populate('veiculoId', 'make model licensePlate');
+        
+        if (!servico) {
+            return res.status(404).json({ message: 'Serviço não encontrado' });
+        }
+        
+        // Verificar permissão
+        if (req.user.role !== 'admin' && servico.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Não autorizado' });
+        }
+        
+        res.json(servico);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateServico = async (req, res) => {
+    try {
+        const servico = await Servico.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        
+        if (!servico) {
+            return res.status(404).json({ message: 'Serviço não encontrado' });
+        }
+        
+        res.json(servico);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.deleteServico = async (req, res) => {
+    try {
+        const servico = await Servico.findByIdAndDelete(req.params.id);
+        
+        if (!servico) {
+            return res.status(404).json({ message: 'Serviço não encontrado' });
+        }
+        
+        res.json({ message: 'Serviço removido com sucesso' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

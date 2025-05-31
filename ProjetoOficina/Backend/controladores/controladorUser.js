@@ -1,4 +1,8 @@
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../modelos/User');
+const { sendEmail } = require('../utils/notificacao');
 
 // Alterar password
 exports.changePassword = async (req, res) => {
@@ -95,3 +99,100 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.register = async (req, res) => {
+    try {
+        const { name, email, password, phone, role } = req.body;
+        
+        // Verificar se usuário já existe
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email já cadastrado' });
+        }
+        
+        // Hash da senha
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            role: role || 'client'
+        });
+        
+        await user.save();
+        
+        res.status(201).json({ message: 'Usuário criado com sucesso' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'Credenciais inválidas' });
+        }
+        
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Credenciais inválidas' });
+        }
+        
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRATION }
+        );
+        
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const { name, phone } = req.body;
+        
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { name, phone },
+            { new: true }
+        ).select('-password');
+        
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
