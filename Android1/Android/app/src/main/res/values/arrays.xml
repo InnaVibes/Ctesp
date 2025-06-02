@@ -1,8 +1,8 @@
 <resources>
     <string-array name="language_options">
-        <item>Inglês</item>
+        <item>English</item>
         <item>Português</item>
-        <item>Espanhol</item>
+        <item>Español</item>
     </string-array>
 
     <string-array name="language_values">
@@ -12,14 +12,30 @@
     </string-array>
 
     <string-array name="theme_options">
-        <item>Claro</item>
-        <item>Escuro</item>
-        <item>Sistema</item>
+        <item>Light</item>
+        <item>Dark</item>
+        <item>Follow System</item>
     </string-array>
 
     <string-array name="theme_values">
         <item>light</item>
         <item>dark</item>
         <item>system</item>
+    </string-array>
+
+    <string-array name="cache_duration_options">
+        <item>1 Hour</item>
+        <item>6 Hours</item>
+        <item>12 Hours</item>
+        <item>24 Hours</item>
+        <item>1 Week</item>
+    </string-array>
+
+    <string-array name="cache_duration_values">
+        <item>1</item>
+        <item>6</item>
+        <item>12</item>
+        <item>24</item>
+        <item>168</item>
     </string-array>
 </resources>

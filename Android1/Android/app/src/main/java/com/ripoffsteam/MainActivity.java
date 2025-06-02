@@ -1,6 +1,7 @@
 package com.ripoffsteam;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,12 +9,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.preference.PreferenceManager;
 import com.google.android.material.navigation.NavigationView;
 import com.ripoffsteam.DataBase.AppDatabase;
 import com.ripoffsteam.fragments.BrowseFragment;
@@ -32,13 +35,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // APLICAR TEMA ANTES DE CHAMAR super.onCreate()
+        applyThemeFromPreferences();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initializeServices();
 
+        initializeServices();
+        loadInitialData();
+        setupUI();
+        handleIncomingIntent();
+
+        if (savedInstanceState == null) {
+            loadFragment(new HomeFragment(), false);
+        }
+    }
+
+    /**
+     * Aplica o tema baseado nas preferências salvas
+     */
+    private void applyThemeFromPreferences() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String theme = prefs.getString(getString(R.string.pref_theme_key), "system");
+
+        switch (theme) {
+            case "light":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "dark":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case "system":
+            default:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+        }
+    }
+
+    /**
+     * Carrega dados iniciais da aplicação
+     */
+    private void loadInitialData() {
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
-
 
             List<Game> existingGames = db.gameDao().getAll();
             if (existingGames.isEmpty()) {
@@ -48,14 +87,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-
-        setupUI();
-
-        if (savedInstanceState == null) {
-            loadFragment(new HomeFragment(), false);
-        }
     }
 
+    /**
+     * Configura a interface de usuário
+     */
     private void setupUI() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -71,7 +107,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
     }
 
-    // CORREÇÃO: Melhorar pesquisa com threading adequado
+    /**
+     * Lida com intents vindos de outras activities (ex: filtros)
+     */
+    private void handleIncomingIntent() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            String targetFragment = intent.getStringExtra("target_fragment");
+            if ("browse".equals(targetFragment)) {
+                BrowseFragment browseFragment = new BrowseFragment();
+
+                // Passa filtros se existirem
+                Bundle args = new Bundle();
+                String filterType = intent.getStringExtra("filter_type");
+                String filterValue = intent.getStringExtra("filter_value");
+                if (filterType != null && filterValue != null) {
+                    args.putString("filter_type", filterType);
+                    args.putString("filter_value", filterValue);
+                    browseFragment.setArguments(args);
+                }
+
+                loadFragment(browseFragment, false);
+            }
+        }
+    }
+
+    /**
+     * Pesquisa por jogo e navega para detalhe
+     */
     private void searchGameAndNavigate(String gameName) {
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
@@ -146,10 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (fragment != null) {
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, fragment);
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
+            loadFragment(fragment, true);
         }
 
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
@@ -167,6 +227,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Carrega um fragmento no container principal
+     */
     private void loadFragment(Fragment fragment, boolean addToBackStack) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
@@ -176,11 +239,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         transaction.commit();
-    }private void initializeServices() {
+    }
+
+    /**
+     * Inicializa serviços da aplicação
+     */
+    private void initializeServices() {
         // Initialize WishlistManager
         WishlistManager.getInstance(this);
 
-        // Schedule daily notifications
-        NotificationScheduler.scheduleDailyNotification(this);
+        // Schedule daily notifications se estiver habilitado
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean notificationsEnabled = prefs.getBoolean(getString(R.string.pref_notification_key), true);
+
+        if (notificationsEnabled) {
+            NotificationScheduler.scheduleDailyNotification(this);
+        }
+    }
+
+    /**
+     * Método público para partilhar um jogo (chamado de outras activities)
+     */
+    public static void shareGame(AppCompatActivity activity, Game game) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out this game!");
+        shareIntent.putExtra(Intent.EXTRA_TEXT,
+                "I found this amazing game: " + game.getName() +
+                        " by " + game.getStudio() +
+                        ". Rating: " + game.getRating() + "/5.0" +
+                        "\n\n" + game.getDescription());
+
+        activity.startActivity(Intent.createChooser(shareIntent, "Share game via..."));
     }
 }

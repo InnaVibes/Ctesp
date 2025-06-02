@@ -2,44 +2,80 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Notification Preference -->
-    <CheckBoxPreference
-        android:key="@string/pref_notification_key"
-        android:title="@string/pref_notification_title"
-        android:summary="@string/pref_notification_summary"
-        android:defaultValue="false"/>
+    <!-- Configurações de Notificação -->
+    <PreferenceCategory android:title="Notifications">
+        <CheckBoxPreference
+            android:key="@string/pref_notification_key"
+            android:title="@string/pref_notification_title"
+            android:summary="@string/pref_notification_summary"
+            android:defaultValue="true"/>
 
-    <!-- Username Switch -->
-    <SwitchPreferenceCompat
-        android:key="@string/pref_username_key"
-        android:title="@string/pref_username_title"
-        android:summary="@string/pref_username_summary"
-        android:defaultValue="false"/>
+        <EditTextPreference
+            android:key="@string/pref_notification_time_key"
+            android:title="@string/pref_notification_time_title"
+            android:summary="@string/pref_notification_time_summary"
+            android:dialogTitle="Enter time (HH:MM)"
+            android:defaultValue="09:00"
+            android:dependency="@string/pref_notification_key"/>
+    </PreferenceCategory>
 
-    <!-- Custom Username Input -->
-    <EditTextPreference
-        android:key="@string/pref_set_username_key"
-        android:title="@string/pref_set_username_title"
-        android:summary="@string/pref_set_username_summary"
-        android:dialogTitle="Enter your username"
-        android:defaultValue=""/>
+    <!-- Configurações de Usuario -->
+    <PreferenceCategory android:title="User Settings">
+        <SwitchPreferenceCompat
+            android:key="@string/pref_username_key"
+            android:title="@string/pref_username_title"
+            android:summary="@string/pref_username_summary"
+            android:defaultValue="false"/>
 
-    <!-- Language Selection -->
-    <ListPreference
-        android:key="@string/pref_language_key"
-        android:title="@string/pref_language_title"
-        android:summary="@string/pref_language_summary"
-        android:entries="@array/language_options"
-        android:entryValues="@array/language_values"
-        android:defaultValue="en"/>
+        <!-- CORREÇÃO: Key corrigida -->
+        <EditTextPreference
+            android:key="@string/pref_set_username_key"
+            android:title="@string/pref_set_username_title"
+            android:summary="@string/pref_set_username_summary"
+            android:dialogTitle="Enter your username"
+            android:defaultValue="@string/pref_username_default"
+            android:dependency="@string/pref_username_key"/>
+    </PreferenceCategory>
 
-    <!-- Theme Selection -->
-    <ListPreference
-        android:key="@string/pref_theme_key"
-        android:title="@string/pref_theme_title"
-        android:summary="@string/pref_theme_summary"
-        android:entries="@array/theme_options"
-        android:entryValues="@array/theme_values"
-        android:defaultValue="system"/>
+    <!-- Configurações de Aparência -->
+    <PreferenceCategory android:title="Appearance">
+        <!-- Theme Selection -->
+        <ListPreference
+            android:key="@string/pref_theme_key"
+            android:title="@string/pref_theme_title"
+            android:summary="@string/pref_theme_summary"
+            android:entries="@array/theme_options"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="system"/>
+
+        <!-- Language Selection -->
+        <ListPreference
+            android:key="@string/pref_language_key"
+            android:title="@string/pref_language_title"
+            android:summary="@string/pref_language_summary"
+            android:entries="@array/language_options"
+            android:entryValues="@array/language_values"
+            android:defaultValue="en"/>
+    </PreferenceCategory>
+
+    <!-- Configurações de Dados -->
+    <PreferenceCategory android:title="Data Settings">
+        <SeekBarPreference
+            android:key="@string/pref_page_size_key"
+            android:title="@string/pref_page_size_title"
+            android:summary="@string/pref_page_size_summary"
+            android:max="50"
+            android:min="5"
+            android:defaultValue="20"
+            app:showSeekBarValue="true"/>
+
+        <ListPreference
+            android:key="@string/pref_cache_duration_key"
+            android:title="@string/pref_cache_duration_title"
+            android:summary="@string/pref_cache_duration_summary"
+            android:entries="@array/cache_duration_options"
+            android:entryValues="@array/cache_duration_values"
+            android:defaultValue="24"/>
+    </PreferenceCategory>
 
 </PreferenceScreen>
