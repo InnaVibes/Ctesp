@@ -24,30 +24,64 @@
     <string name="nav_close_drawer">Close Drawer</string>
     <string name="action_settings">Settings</string>
     <string name="share_game">Share this game</string>
+
+    <!-- USER INFO -->
+    <string name="default_username">Game Explorer</string>
+    <string name="user_email">user@example.com</string>
+
+    <!-- PREFERENCE CATEGORIES -->
+    <string name="pref_category_notifications">Notifications</string>
+    <string name="pref_category_user">User Settings</string>
+    <string name="pref_category_appearance">Appearance</string>
+    <string name="pref_category_data">Data Settings</string>
+
+    <!-- NOTIFICATION PREFERENCES -->
     <string name="pref_notification_key">notifications</string>
-    <string name="pref_notification_title">Notifications</string>
-    <string name="pref_notification_summary">Enable or disable notifications</string>
+    <string name="pref_notification_title">Enable Notifications</string>
+    <string name="pref_notification_summary">Receive daily game recommendations</string>
+
+    <string name="pref_notification_time_key">notification_time</string>
+    <string name="pref_notification_time_title">Notification Time</string>
+    <string name="pref_notification_time_summary">When to receive daily game suggestions</string>
+
+    <!-- USER PREFERENCES -->
     <string name="pref_username_key">username_enabled</string>
-    <string name="pref_username_title">Username</string>
-    <string name="pref_username_summary">Enable username display</string>
+    <string name="pref_username_title">Show Username</string>
+    <string name="pref_username_summary">Display username in navigation drawer</string>
+
     <string name="pref_set_username_key">set_username</string>
-    <string name="pref_set_username_title">Set Username</string>
-    <string name="pref_set_username_summary">Choose your display name</string>
-    <string name="pref_username_default">user@example.com</string>
+    <string name="pref_set_username_title">Username</string>
+    <string name="pref_set_username_summary">Enter your display name</string>
+
+    <!-- APPEARANCE PREFERENCES -->
+    <string name="pref_theme_key">app_theme</string>
+    <string name="pref_theme_title">Theme</string>
+    <string name="pref_theme_summary">Choose app appearance</string>
+
     <string name="pref_language_key">app_language</string>
     <string name="pref_language_title">Language</string>
     <string name="pref_language_summary">Select app language</string>
-    <string name="pref_theme_key">app_theme</string>
-    <string name="pref_theme_title">Theme</string>
-    <string name="pref_theme_summary">Select app theme</string>
+
+    <!-- DATA PREFERENCES -->
     <string name="pref_page_size_key">page_size</string>
-    <string name="pref_page_size_title">Games per page</string>
+    <string name="pref_page_size_title">Games per Page</string>
     <string name="pref_page_size_summary">Number of games to load per request</string>
-    <string name="pref_notification_time_key">notification_time</string>
-    <string name="pref_notification_time_title">Daily notification time</string>
-    <string name="pref_notification_time_summary">When to receive daily game suggestions</string>
+
     <string name="pref_cache_duration_key">cache_duration</string>
-    <string name="pref_cache_duration_title">Cache duration</string>
+    <string name="pref_cache_duration_title">Cache Duration</string>
     <string name="pref_cache_duration_summary">How long to keep cached data</string>
 
+    <!-- PREFERENCE STATES -->
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="not_set">Not set</string>
+    <string name="none_selected">None selected</string>
+
+    <!-- TOAST MESSAGES -->
+    <string name="username_updated">Username updated: %1$s</string>
+    <string name="theme_changed">Theme changed</string>
+    <string name="notifications_enabled">Notifications enabled</string>
+    <string name="notifications_disabled">Notifications disabled</string>
+    <string name="language_changed">Language changed to: %1$s</string>
+    <string name="restart_required">App restart required for some changes</string>
 </resources>

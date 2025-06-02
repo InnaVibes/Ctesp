@@ -11,7 +11,8 @@
     <ImageView
         android:layout_width="72dp"
         android:layout_height="72dp"
-        android:src="@drawable/ic_game_controller"/>
+        android:src="@drawable/ic_game_controller"
+        android:contentDescription="App icon"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -19,11 +20,18 @@
         android:layout_marginTop="8dp"
         android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@android:color/white"/>
+        android:textColor="@android:color/white"
+        android:textStyle="bold"/>
 
+    <!-- CORRIGIDO: Mostra o email por padrão, será atualizado dinamicamente -->
     <TextView
+        android:id="@+id/nav_header_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pref_set_username_key"
-        android:textColor="@android:color/white"/>
+        android:layout_marginTop="4dp"
+        android:text="@string/user_email"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:alpha="0.8"/>
+
 </LinearLayout>
