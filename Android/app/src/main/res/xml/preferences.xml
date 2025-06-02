@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Notification Preference -->
+    <CheckBoxPreference
+        android:key="@string/pref_notification_key"
+        android:title="@string/pref_notification_title"
+        android:summary="@string/pref_notification_summary"
+        android:defaultValue="false"/>
+
+    <!-- Username Switch -->
+    <SwitchPreferenceCompat
+        android:key="@string/pref_username_key"
+        android:title="@string/pref_username_title"
+        android:summary="@string/pref_username_summary"
+        android:defaultValue="false"/>
+
+    <!-- Custom Username Input -->
+    <EditTextPreference
+        android:key="@string/pref_set_username_key"
+        android:title="@string/pref_set_username_title"
+        android:summary="@string/pref_set_username_summary"
+        android:dialogTitle="Enter your username"
+        android:defaultValue=""/>
+
+    <!-- Language Selection -->
+    <ListPreference
+        android:key="@string/pref_language_key"
+        android:title="@string/pref_language_title"
+        android:summary="@string/pref_language_summary"
+        android:entries="@array/language_options"
+        android:entryValues="@array/language_values"
+        android:defaultValue="en"/>
+
+    <!-- Theme Selection -->
+    <ListPreference
+        android:key="@string/pref_theme_key"
+        android:title="@string/pref_theme_title"
+        android:summary="@string/pref_theme_summary"
+        android:entries="@array/theme_options"
+        android:entryValues="@array/theme_values"
+        android:defaultValue="system"/>
+
+</PreferenceScreen>

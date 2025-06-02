@@ -1,0 +1,25 @@
+<resources>
+    <string-array name="language_options">
+        <item>Inglês</item>
+        <item>Português</item>
+        <item>Espanhol</item>
+    </string-array>
+
+    <string-array name="language_values">
+        <item>en</item>
+        <item>pt</item>
+        <item>es</item>
+    </string-array>
+
+    <string-array name="theme_options">
+        <item>Claro</item>
+        <item>Escuro</item>
+        <item>Sistema</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>light</item>
+        <item>dark</item>
+        <item>system</item>
+    </string-array>
+</resources>

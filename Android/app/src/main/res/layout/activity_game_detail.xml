@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Edge-to-edge Toolbar -->
+    <include layout="@layout/toolbar"/>
+
+    <!-- Padded content area -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:padding="16dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Game Cover Image -->
+            <ImageView
+                android:id="@+id/game_image"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_game_placeholder"
+                android:contentDescription="@string/game_cover"/>
+
+            <!-- Basic Info Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:id="@+id/game_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+
+                <TextView
+                    android:id="@+id/game_studio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/purple_700"/>
+
+                <RatingBar
+                    android:id="@+id/game_rating_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:isIndicator="true"
+                    android:rating="4.5"
+                    android:numStars="5"
+                    android:stepSize="0.5"/>
+            </LinearLayout>
+
+            <!-- Platforms Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/platforms"
+                android:textSize="18sp"
+                android:layout_marginTop="24dp"/>
+
+            <LinearLayout
+                android:id="@+id/platforms_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:padding="4dp">
+                <!-- Platforms will be added programmatically -->
+            </LinearLayout>
+
+            <!-- Genres Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/genres"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"/>
+
+            <LinearLayout
+                android:id="@+id/genres_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:padding="4dp">
+                <!-- Genres will be added programmatically -->
+            </LinearLayout>
+
+            <!-- Description -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/description"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"/>
+
+            <TextView
+                android:id="@+id/game_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"/>
+
+            <!-- Wishlist Button -->
+            <Button
+                android:id="@+id/wishlist_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/add_to_wishlist"
+                android:drawableLeft="@drawable/ic_favorite_border"
+                android:background="@drawable/button_purple"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
