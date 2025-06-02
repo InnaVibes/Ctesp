@@ -22,11 +22,10 @@ import com.ripoffsteam.fragments.PreferencesFragment;
 import com.ripoffsteam.fragments.WishlistFragment;
 import com.ripoffsteam.modelos.Game;
 import com.ripoffsteam.utils.JsonLoader;
+import com.ripoffsteam.utils.WishlistManager;
+
 import java.util.List;
 import java.util.concurrent.Executors;
- //Atividade principal que serve como container para os fragmentos
- //Implementa a interface NavigationView.OnNavigationItemSelectedListener
- //para lidar com eventos do menu de navegação
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -35,47 +34,66 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Carrega os jogos do ficheiro JSON para a base de dados
-        // usando uma thread separada para não bloquear a UI
+        // CORREÇÃO: Usar ExecutorService em vez de thread manual
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
-            List<Game> games = JsonLoader.loadGames(this);
-            if (games != null && games.size() > 0) {
-                db.gameDao().insertAll(games); // Insere todos os jogos na BD
+
+            // Verificar se a base de dados já tem dados
+            List<Game> existingGames = db.gameDao().getAll();
+            if (existingGames.isEmpty()) {
+                List<Game> games = JsonLoader.loadGames(this);
+                if (games != null && !games.isEmpty()) {
+                    db.gameDao().insertAll(games);
+                }
             }
         });
 
-        // Configuração da Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setupUI();
 
-        // Configuração do Navigation Drawer
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this,
-                drawerLayout,
-                toolbar,
-                R.string.nav_open_drawer,
-                R.string.nav_close_drawer
-        );
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        // Configura o listener para os itens do menu de navegação
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        // Carrega o fragmento inicial (HomeFragment)
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment(), false);
         }
+    }
+
+    private void setupUI() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar,
+                R.string.nav_open_drawer, R.string.nav_close_drawer);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    // CORREÇÃO: Melhorar pesquisa com threading adequado
+    private void searchGameAndNavigate(String gameName) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(this);
+            Game foundGame = db.gameDao().findGameByName("%" + gameName + "%");
+
+            runOnUiThread(() -> {
+                if (foundGame != null) {
+                    Intent intent = new Intent(MainActivity.this, GameDetailActivity.class);
+                    intent.putExtra("GAME_ID", foundGame.getId());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "Jogo não encontrado: " + gameName,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
 
-        // Configura a funcionalidade de pesquisa
         MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) searchItem.getActionView();
 
@@ -83,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchGameAndNavigate(query);
-                // Fecha a view de pesquisa após submissão
                 searchItem.collapseActionView();
                 return true;
             }
@@ -97,36 +114,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-
-     //Pesquisa um jogo pelo nome e navega para os seus detalhes
-
-    private void searchGameAndNavigate(String gameName) {
-        // Pesquisa na base de dados numa thread separada
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            Game foundGame = db.gameDao().findGameByName(gameName);
-
-            runOnUiThread(() -> {
-                if (foundGame != null) {
-                    // Navega para a atividade de detalhe do jogo
-                    Intent intent = new Intent(MainActivity.this, GameDetailActivity.class);
-                    intent.putExtra("GAME_ID", foundGame.getId());
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Jogo não encontrado: " + gameName,
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).start();
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
-            // Navega para o fragmento de preferências
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new PreferencesFragment())
                     .addToBackStack(null)
@@ -142,7 +134,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Fragment fragment = null;
         int id = item.getItemId();
 
-        // Determina qual fragmento carregar com base no item selecionado
         if (id == R.id.nav_home) {
             fragment = new HomeFragment();
         } else if (id == R.id.nav_browse) {
@@ -154,14 +145,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (fragment != null) {
-            // Substitui o fragmento atual
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             fragmentTransaction.replace(R.id.fragment_container, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         }
 
-        // Fecha o menu de navegação
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
@@ -169,12 +158,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onBackPressed() {
-        // Verifica se o menu de navegação está aberto
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START); // Fecha o menu
+            drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed(); // Comportamento padrão
+            super.onBackPressed();
         }
     }
 
@@ -187,5 +175,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         transaction.commit();
+    }private void initializeServices() {
+        // Initialize WishlistManager
+        WishlistManager.getInstance(this);
+
+        // Schedule daily notifications
+        com.ripoffsteam.notifications.NotificationScheduler.scheduleDailyNotification(this);
     }
 }

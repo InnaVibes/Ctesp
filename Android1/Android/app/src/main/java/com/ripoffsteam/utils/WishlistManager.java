@@ -1,66 +1,80 @@
 package com.ripoffsteam.utils;
 
+import android.content.Context;
+import com.ripoffsteam.DataBase.AppDatabase;
 import com.ripoffsteam.modelos.Game;
+import com.ripoffsteam.modelos.WishlistItem;
+
 import java.util.ArrayList;
 import java.util.List;
-
-
- //Classe responsável por gerir a lista de desejos (wishlist) de jogos.
+import java.util.concurrent.Executors;
 
 public class WishlistManager {
-    // Instância única da classe (padrão Singleton)
     private static WishlistManager instance;
-
-    // Lista que armazena os jogos da lista de desejos
+    private Context context;
     private List<Game> wishlistGames = new ArrayList<>();
 
+    private WishlistManager(Context context) {
+        this.context = context.getApplicationContext();
+        loadWishlistFromDatabase();
+    }
 
-     //Obtém a instância única do WishlistManager
-
-    public static WishlistManager getInstance() {
+    public static WishlistManager getInstance(Context context) {
         if (instance == null) {
-            instance = new WishlistManager();
+            instance = new WishlistManager(context);
         }
         return instance;
     }
 
-
-     //Verifica se um jogo já está na lista de desejos
-    //true se o jogo estiver na lista, false caso contrário
-
-    public boolean isInWishlist(Game game) {
-        for (Game wishlistGame : wishlistGames) {
-            if (wishlistGame.getId().equals(game.getId())) {
-                return true;
-            }
+    public static WishlistManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("WishlistManager not initialized. Call getInstance(Context) first.");
         }
-        return false;
+        return instance;
     }
 
+    private void loadWishlistFromDatabase() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            List<Game> games = db.wishlistDao().getWishlistGames();
+            wishlistGames.clear();
+            wishlistGames.addAll(games);
+        });
+    }
 
-     //Adiciona um jogo à lista de desejos, se ainda não estiver presente
+    public boolean isInWishlist(Game game) {
+        return wishlistGames.stream()
+                .anyMatch(g -> g.getId().equals(game.getId()));
+    }
+
     public void addToWishlist(Game game) {
         if (!isInWishlist(game)) {
             wishlistGames.add(game);
+
+            // Save to database
+            Executors.newSingleThreadExecutor().execute(() -> {
+                AppDatabase db = AppDatabase.getInstance(context);
+                WishlistItem item = new WishlistItem(game.getId(), System.currentTimeMillis());
+                db.wishlistDao().addToWishlist(item);
+            });
         }
     }
 
-
-     //Remove um jogo da lista de desejos
     public void removeFromWishlist(Game game) {
-        for (int i = 0; i < wishlistGames.size(); i++) {
-            if (wishlistGames.get(i).getId().equals(game.getId())) {
-                wishlistGames.remove(i);
-                break; // Sai do loop após encontrar e remover o jogo
-            }
-        }
+        wishlistGames.removeIf(g -> g.getId().equals(game.getId()));
+
+        // Remove from database
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            db.wishlistDao().removeByGameId(game.getId());
+        });
     }
-
-
-    //Obtém uma cópia da lista atual de desejos
 
     public List<Game> getWishlist() {
-        // Retorna uma cópia da lista de desejos
         return new ArrayList<>(wishlistGames);
+    }
+
+    public void refreshFromDatabase() {
+        loadWishlistFromDatabase();
     }
 }

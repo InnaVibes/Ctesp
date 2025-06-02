@@ -1,111 +1,156 @@
 package com.ripoffsteam.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
 import com.ripoffsteam.DA0.GameDao;
 import com.ripoffsteam.DataBase.AppDatabase;
 import com.ripoffsteam.GameDetailActivity;
 import com.ripoffsteam.R;
 import com.ripoffsteam.adapters.NewReleasesAdapter;
 import com.ripoffsteam.modelos.Game;
+import com.ripoffsteam.utils.ShakeDetector;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Executors;
 
+public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListener {
 
- // Fragmento principal que mostra as secções de jogos recomendados, novos lançamentos e jogos populares
-
-public class HomeFragment extends Fragment {
+    // Existing fields
     private List<Game> recommendedGames = new ArrayList<>();
     private List<Game> newReleasesGames = new ArrayList<>();
     private List<Game> popularGames = new ArrayList<>();
-
-    // Adaptadores para cada RecyclerView
     private NewReleasesAdapter recommendedAdapter;
     private NewReleasesAdapter newReleasesAdapter;
     private NewReleasesAdapter popularAdapter;
+
+    // Sensor fields
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private ShakeDetector mShakeDetector;
+    private List<Game> allGames = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Inicia as views
+        setupViews(view);
+        setupSensors();
+        loadGames();
+
+        return view;
+    }
+
+    private void setupViews(View view) {
         TextView greetingText = view.findViewById(R.id.greeting_text);
         RecyclerView recommendedRecycler = view.findViewById(R.id.recommended_recycler);
         RecyclerView newReleasesRecycler = view.findViewById(R.id.new_releases_recycler);
         RecyclerView popularRecycler = view.findViewById(R.id.popular_recycler);
 
-        // Define a mensagem de boas-vindas
-        greetingText.setText("Welcome to NotSteam!");
+        greetingText.setText("Welcome to RipoffSteam!");
 
-        // Inicializa os adaptadores com listas vazias
+        // Initialize adapters
         recommendedAdapter = new NewReleasesAdapter(recommendedGames);
         newReleasesAdapter = new NewReleasesAdapter(newReleasesGames);
         popularAdapter = new NewReleasesAdapter(popularGames);
 
-        // Configura a RecyclerView de jogos recomendados
-        recommendedRecycler.setAdapter(recommendedAdapter);
-        recommendedRecycler.setLayoutManager(new LinearLayoutManager(
+        // Setup RecyclerViews
+        setupRecyclerView(recommendedRecycler, recommendedAdapter);
+        setupRecyclerView(newReleasesRecycler, newReleasesAdapter);
+        setupRecyclerView(popularRecycler, popularAdapter);
+    }
+
+    private void setupRecyclerView(RecyclerView recyclerView, NewReleasesAdapter adapter) {
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(
                 getContext(), LinearLayoutManager.HORIZONTAL, false));
-        recommendedAdapter.setOnGameClickListener(this::openGameDetail);
+        adapter.setOnGameClickListener(this::openGameDetail);
+    }
 
-        // Configura a RecyclerView de novos lançamentos
-        newReleasesRecycler.setAdapter(newReleasesAdapter);
-        newReleasesRecycler.setLayoutManager(new LinearLayoutManager(
-                getContext(), LinearLayoutManager.HORIZONTAL, false));
-        newReleasesAdapter.setOnGameClickListener(this::openGameDetail);
-
-        // Configura a RecyclerView de jogos populares
-        popularRecycler.setAdapter(popularAdapter);
-        popularRecycler.setLayoutManager(new LinearLayoutManager(
-                getContext(), LinearLayoutManager.HORIZONTAL, false));
-        popularAdapter.setOnGameClickListener(this::openGameDetail);
-
-        // Carrega os jogos da base de dados
-        loadGames();
-
-        return view;
+    private void setupSensors() {
+        // Initialize sensor manager e detector
+        mSensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
+        mShakeDetector.setOnShakeListener(this);
     }
 
     private void loadGames() {
         AppDatabase db = AppDatabase.getInstance(requireContext());
         GameDao gameDao = db.gameDao();
 
-        new Thread(() -> {
-            // Obtém todos os jogos da base de dados
+        Executors.newSingleThreadExecutor().execute(() -> {
             List<Game> games = gameDao.getAll();
+            allGames.clear();
+            allGames.addAll(games);
 
-            // Atualiza a UI na thread principal
             requireActivity().runOnUiThread(() -> {
-                // Limpa as listas atuais
                 recommendedGames.clear();
                 newReleasesGames.clear();
                 popularGames.clear();
 
-                // Adiciona os jogos às listas
-                // Usamos os mesmos jogos para todas as secções para simplificar
-                recommendedGames.addAll(games);
-                newReleasesGames.addAll(games);
-                popularGames.addAll(games);
+                // Distribute games across sections
+                for (int i = 0; i < games.size(); i++) {
+                    if (i % 3 == 0) recommendedGames.add(games.get(i));
+                    else if (i % 3 == 1) newReleasesGames.add(games.get(i));
+                    else popularGames.add(games.get(i));
+                }
 
-                // Notifica os adaptadores sobre as mudanças
                 recommendedAdapter.notifyDataSetChanged();
                 newReleasesAdapter.notifyDataSetChanged();
                 popularAdapter.notifyDataSetChanged();
             });
-        }).start();
+        });
     }
 
+    @Override
+    public void onShake(int count) {
+        // Triggered when shake is detected
+        if (!allGames.isEmpty()) {
+            Random random = new Random();
+            Game randomGame = allGames.get(random.nextInt(allGames.size()));
 
-     //Abre a atividade de detalhe do jogo selecionado
+            Toast.makeText(getContext(),
+                    "Surprise! Random game: " + randomGame.getName(),
+                    Toast.LENGTH_LONG).show();
 
+            // Optionally open the game detail
+            openGameDetail(randomGame);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Register sensor listener
+        if (mSensorManager != null && mAccelerometer != null) {
+            mSensorManager.registerListener(mShakeDetector, mAccelerometer,
+                    SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister sensor listener to save battery
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(mShakeDetector);
+        }
+    }
 
     private void openGameDetail(Game game) {
         if (getActivity() == null) return;

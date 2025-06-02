@@ -3,32 +3,33 @@ package com.ripoffsteam.DataBase;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 import android.content.Context;
 
 import com.ripoffsteam.DA0.GameDao;
+import com.ripoffsteam.DA0.WishlistDao;
 import com.ripoffsteam.modelos.Game;
+import com.ripoffsteam.modelos.WishlistItem;
+import com.ripoffsteam.converters.Converters;
 
-
-@Database(entities = {Game.class}, version = 1)
+@Database(entities = {Game.class, WishlistItem.class}, version = 2)
+@TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
-    //Metodo abstrato para obter o DAO dos jogos.
-
 
     public abstract GameDao gameDao();
+    public abstract WishlistDao wishlistDao();
 
     private static volatile AppDatabase INSTANCE;
 
     public static AppDatabase getInstance(Context context) {
-        // Verificação dupla para thread safety
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    // Cria a base de dados com as configurações necessárias
                     INSTANCE = Room.databaseBuilder(
                                     context.getApplicationContext(),
                                     AppDatabase.class,
                                     "games_db")
-                            .allowMainThreadQueries() // Permite queries na thread principal (não recomendado tal como descrito nos slides)
+                            .fallbackToDestructiveMigration() // Para desenvolvimento
                             .build();
                 }
             }
