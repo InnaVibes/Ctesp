@@ -23,6 +23,7 @@ import com.ripoffsteam.fragments.WishlistFragment;
 import com.ripoffsteam.modelos.Game;
 import com.ripoffsteam.utils.JsonLoader;
 import com.ripoffsteam.utils.WishlistManager;
+import com.ripoffsteam.notifications.NotificationScheduler;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -33,12 +34,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initializeServices();
 
-        // CORREÇÃO: Usar ExecutorService em vez de thread manual
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
 
-            // Verificar se a base de dados já tem dados
+
             List<Game> existingGames = db.gameDao().getAll();
             if (existingGames.isEmpty()) {
                 List<Game> games = JsonLoader.loadGames(this);
@@ -180,6 +181,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         WishlistManager.getInstance(this);
 
         // Schedule daily notifications
-        com.ripoffsteam.notifications.NotificationScheduler.scheduleDailyNotification(this);
+        NotificationScheduler.scheduleDailyNotification(this);
     }
 }
