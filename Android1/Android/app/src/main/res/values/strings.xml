@@ -84,4 +84,10 @@
     <string name="notifications_disabled">Notifications disabled</string>
     <string name="language_changed">Language changed to: %1$s</string>
     <string name="restart_required">App restart required for some changes</string>
+
+    <string name="achievements">Conquistas</string>
+    <string name="achievements_unlocked">Conquistas Desbloqueadas</string>
+    <string name="games_viewed">Jogos Visualizados</string>
+    <string name="wishlist_peak">Pico da Wishlist</string>
+    <string name="shakes_used">Shakes Utilizados</string>
 </resources>

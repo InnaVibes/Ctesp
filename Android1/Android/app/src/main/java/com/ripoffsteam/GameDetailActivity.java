@@ -15,6 +15,7 @@ import com.ripoffsteam.DataBase.AppDatabase;
 import com.ripoffsteam.fragments.WishlistFragment;
 import com.ripoffsteam.modelos.Game;
 import com.ripoffsteam.utils.WishlistManager;
+import com.ripoffsteam.utils.AchievementManager;
 import android.widget.RatingBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -28,11 +29,15 @@ public class GameDetailActivity extends AppCompatActivity {
     private Game game; // Jogo atual sendo exibido
     private Button wishlistButton; // Botão da lista de jogos desejados
     private boolean isInWishlist = false; // Estado atual na lista de jogos desejados
+    private AchievementManager achievementManager; // Gestor de conquistas
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_detail);
+
+        // Inicializa o gestor de conquistas
+        achievementManager = new AchievementManager(this);
 
         // Inicializa o botão da lista de jogos desejados
         wishlistButton = findViewById(R.id.wishlist_button);
@@ -69,6 +74,9 @@ public class GameDetailActivity extends AppCompatActivity {
                     return;
                 }
                 setupUI(); // Configura a interface com os dados do jogo
+
+                // Registra visualização do jogo para conquistas
+                achievementManager.recordGameView(gameId);
             });
         }).start();
     }
@@ -102,21 +110,25 @@ public class GameDetailActivity extends AppCompatActivity {
         genresGroup.removeAllViews();
 
         // Adiciona botões para cada plataforma
-        for (String platform : game.getPlatforms()) {
-            Button platformButton = createFilterButton(platform);
-            platformButton.setOnClickListener(v -> {
-                navigateToBrowseWithFilter("platform", platform);
-            });
-            platformsGroup.addView(platformButton);
+        if (game.getPlatforms() != null) {
+            for (String platform : game.getPlatforms()) {
+                Button platformButton = createFilterButton(platform);
+                platformButton.setOnClickListener(v -> {
+                    navigateToBrowseWithFilter("platform", platform);
+                });
+                platformsGroup.addView(platformButton);
+            }
         }
 
         // Adiciona botões para cada género
-        for (String genre : game.getGenres()) {
-            Button genreButton = createFilterButton(genre);
-            genreButton.setOnClickListener(v -> {
-                navigateToBrowseWithFilter("genre", genre);
-            });
-            genresGroup.addView(genreButton);
+        if (game.getGenres() != null) {
+            for (String genre : game.getGenres()) {
+                Button genreButton = createFilterButton(genre);
+                genreButton.setOnClickListener(v -> {
+                    navigateToBrowseWithFilter("genre", genre);
+                });
+                genresGroup.addView(genreButton);
+            }
         }
 
         // Define a imagem do jogo (usando o drawable)
@@ -164,8 +176,13 @@ public class GameDetailActivity extends AppCompatActivity {
         } else {
             WishlistManager.getInstance().removeFromWishlist(game);
         }
+
         updateWishlistButton();
         notifyWishlistFragment();
+
+        // Verifica conquistas relacionadas à wishlist
+        int currentWishlistSize = WishlistManager.getInstance().getWishlist().size();
+        achievementManager.checkWishlistAchievements(currentWishlistSize);
     }
 
     /**
@@ -225,6 +242,9 @@ public class GameDetailActivity extends AppCompatActivity {
                         "\n\n" + game.getDescription());
 
         startActivity(Intent.createChooser(shareIntent, "Share game via..."));
+
+        // Registra partilha para conquistas
+        achievementManager.recordGameShare(game.getId());
     }
 
     @Override

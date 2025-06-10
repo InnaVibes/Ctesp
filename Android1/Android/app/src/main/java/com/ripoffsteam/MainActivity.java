@@ -26,12 +26,15 @@ import com.ripoffsteam.fragments.WishlistFragment;
 import com.ripoffsteam.modelos.Game;
 import com.ripoffsteam.utils.JsonLoader;
 import com.ripoffsteam.utils.WishlistManager;
+import com.ripoffsteam.utils.ApiManager;
 import com.ripoffsteam.notifications.NotificationScheduler;
 
 import java.util.List;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    private ApiManager apiManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,17 +79,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Carrega dados iniciais da aplicação
      */
     private void loadInitialData() {
+        // Inicializa o ApiManager
+        apiManager = new ApiManager(this);
+
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
-
             List<Game> existingGames = db.gameDao().getAll();
+
             if (existingGames.isEmpty()) {
+                // Se não há jogos na BD, carrega do JSON primeiro (dados de exemplo)
                 List<Game> games = JsonLoader.loadGames(this);
                 if (games != null && !games.isEmpty()) {
                     db.gameDao().insertAll(games);
                 }
+
+                // Depois tenta carregar da API RAWG
+                loadGamesFromApi();
+            } else {
+                // Se há jogos, verifica se precisa atualizar da API
+                loadGamesFromApi();
             }
         });
+    }
+
+    /**
+     * Carrega jogos da API RAWG
+     */
+    private void loadGamesFromApi() {
+        apiManager.loadGames(1, getPageSize(), null, null, new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                runOnUiThread(() -> {
+                    // Opcional: mostrar toast de sucesso
+                    // Toast.makeText(MainActivity.this, "Jogos atualizados", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    // Só mostra erro se não houver jogos em cache
+                    AppDatabase db = AppDatabase.getInstance(MainActivity.this);
+                    Executors.newSingleThreadExecutor().execute(() -> {
+                        List<Game> cachedGames = db.gameDao().getAll();
+                        if (cachedGames.isEmpty()) {
+                            runOnUiThread(() ->
+                                    Toast.makeText(MainActivity.this,
+                                            "Erro ao carregar jogos: " + error,
+                                            Toast.LENGTH_LONG).show());
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    /**
+     * Obtém o tamanho da página das configurações
+     */
+    private int getPageSize() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        return prefs.getInt(getString(R.string.pref_page_size_key), 20);
     }
 
     /**
@@ -133,24 +186,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Pesquisa por jogo e navega para detalhe
+     * Pesquisa por jogo usando API ou base de dados
      */
     private void searchGameAndNavigate(String gameName) {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            Game foundGame = db.gameDao().findGameByName("%" + gameName + "%");
+        apiManager.searchGames(gameName, new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                runOnUiThread(() -> {
+                    if (!games.isEmpty()) {
+                        Game foundGame = games.get(0); // Pega o primeiro resultado
+                        Intent intent = new Intent(MainActivity.this, GameDetailActivity.class);
+                        intent.putExtra("GAME_ID", foundGame.getId());
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(MainActivity.this,
+                                "Jogo não encontrado: " + gameName,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
 
-            runOnUiThread(() -> {
-                if (foundGame != null) {
-                    Intent intent = new Intent(MainActivity.this, GameDetailActivity.class);
-                    intent.putExtra("GAME_ID", foundGame.getId());
-                    startActivity(intent);
-                } else {
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this,
-                            "Jogo não encontrado: " + gameName,
+                            "Erro na pesquisa: " + error,
                             Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+            }
         });
     }
 
@@ -175,6 +238,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        // Adiciona item para forçar refresh
+        MenuItem refreshItem = menu.add(0, R.id.action_refresh, 0, "Atualizar");
+        refreshItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+
         return true;
     }
 
@@ -187,6 +254,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     .replace(R.id.fragment_container, new PreferencesFragment())
                     .addToBackStack(null)
                     .commit();
+            return true;
+        } else if (id == R.id.action_refresh) {
+            // Força refresh dos dados
+            apiManager.forceRefresh(new ApiManager.GameLoadCallback() {
+                @Override
+                public void onSuccess(List<Game> games) {
+                    runOnUiThread(() ->
+                            Toast.makeText(MainActivity.this,
+                                    "Dados atualizados (" + games.size() + " jogos)",
+                                    Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() ->
+                            Toast.makeText(MainActivity.this,
+                                    "Erro ao atualizar: " + error,
+                                    Toast.LENGTH_SHORT).show());
+                }
+            });
             return true;
         }
 
@@ -204,6 +291,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment = new BrowseFragment();
         } else if (id == R.id.nav_wishlist) {
             fragment = new WishlistFragment();
+        } else if (id == R.id.nav_achievements) {
+            // Adiciona navegação para conquistas
+            fragment = new com.ripoffsteam.fragments.AchievementsFragment();
         } else {
             fragment = new HomeFragment();
         }
@@ -271,5 +361,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         "\n\n" + game.getDescription());
 
         activity.startActivity(Intent.createChooser(shareIntent, "Share game via..."));
+    }
+
+    /**
+     * Obtém o ApiManager para uso em outros componentes
+     */
+    public ApiManager getApiManager() {
+        return apiManager;
     }
 }

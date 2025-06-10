@@ -14,5 +14,10 @@
             android:id="@+id/nav_wishlist"
             android:icon="@drawable/ic_wishlist"
             android:title="@string/wishlist"/>
+        <!-- ADICIONAR ESTA LINHA -->
+        <item
+            android:id="@+id/nav_achievements"
+            android:icon="@drawable/ic_game_controller"
+            android:title="Conquistas"/>
     </group>
 </menu>

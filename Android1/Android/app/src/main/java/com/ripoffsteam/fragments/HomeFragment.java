@@ -21,6 +21,7 @@ import com.ripoffsteam.R;
 import com.ripoffsteam.adapters.NewReleasesAdapter;
 import com.ripoffsteam.modelos.Game;
 import com.ripoffsteam.utils.ShakeDetector;
+import com.ripoffsteam.utils.AchievementManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,9 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
     private ShakeDetector mShakeDetector;
     private List<Game> allGames = new ArrayList<>();
 
+    // Achievement manager
+    private AchievementManager achievementManager;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -50,6 +54,7 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
 
         setupViews(view);
         setupSensors();
+        setupAchievements();
         loadGames();
 
         return view;
@@ -89,6 +94,16 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
         mShakeDetector.setOnShakeListener(this);
     }
 
+    /**
+     * Configura o sistema de conquistas
+     */
+    private void setupAchievements() {
+        achievementManager = new AchievementManager(requireContext());
+
+        // Verifica conquista de madrugador
+        achievementManager.checkEarlyBirdAchievement();
+    }
+
     private void loadGames() {
         AppDatabase db = AppDatabase.getInstance(requireContext());
         GameDao gameDao = db.gameDao();
@@ -113,8 +128,37 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
                 recommendedAdapter.notifyDataSetChanged();
                 newReleasesAdapter.notifyDataSetChanged();
                 popularAdapter.notifyDataSetChanged();
+
+                // Implementa "Descoberta de Hoje" (bonificação)
+                setupDailyDiscovery(games);
             });
         });
+    }
+
+    /**
+     * Implementa a funcionalidade "Descoberta de Hoje" (bonificação)
+     */
+    private void setupDailyDiscovery(List<Game> games) {
+        Game dailyGame = findUnviewedGame(games);
+        if (dailyGame != null) {
+            // Mostra uma notificação ou toast sobre o jogo do dia
+            Toast.makeText(getContext(),
+                    "🎯 Descoberta de hoje: " + dailyGame.getName(),
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Encontra um jogo ainda não visualizado para descoberta diária
+     */
+    private Game findUnviewedGame(List<Game> games) {
+        // Implementação simples: retorna um jogo aleatório
+        // Em produção, deveria verificar histórico de visualizações
+        if (!games.isEmpty()) {
+            Random random = new Random();
+            return games.get(random.nextInt(games.size()));
+        }
+        return null;
     }
 
     @Override
@@ -125,8 +169,11 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
             Game randomGame = allGames.get(random.nextInt(allGames.size()));
 
             Toast.makeText(getContext(),
-                    "Surprise! Random game: " + randomGame.getName(),
+                    "🎲 Surprise! Random game: " + randomGame.getName(),
                     Toast.LENGTH_LONG).show();
+
+            // Registra uso do shake para conquistas
+            achievementManager.recordShakeUsage();
 
             // Optionally open the game detail
             openGameDetail(randomGame);
@@ -140,6 +187,11 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
         if (mSensorManager != null && mAccelerometer != null) {
             mSensorManager.registerListener(mShakeDetector, mAccelerometer,
                     SensorManager.SENSOR_DELAY_UI);
+        }
+
+        // Verifica conquista de madrugador sempre que volta ao fragmento
+        if (achievementManager != null) {
+            achievementManager.checkEarlyBirdAchievement();
         }
     }
 
