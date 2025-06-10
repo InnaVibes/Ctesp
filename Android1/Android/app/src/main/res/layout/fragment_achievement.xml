@@ -6,18 +6,16 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🏆 Conquistas"
+        android:text="🏆 Achievements"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/purple_700"
         android:gravity="center"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Stats Section -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -88,7 +86,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pico\nWishlist"
+                        android:text="Máximo da\nWishlist"
                         android:textSize="12sp"
                         android:gravity="center"/>
                 </LinearLayout>
@@ -136,7 +134,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Conquistas\nDesbloqueadas"
+                        android:text="Achievements\nDesbloqueados"
                         android:textSize="12sp"
                         android:gravity="center"/>
                 </LinearLayout>

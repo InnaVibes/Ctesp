@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
-            // APLICAR TEMA ANTES DE CHAMAR super.onCreate()
+            // Aplica tema antes de chamar super.onCreate()
             applyThemeFromPreferences();
 
             super.onCreate(savedInstanceState);
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             initializeServices();
             setupUI();
 
-            // CARREGA JOGOS DA RAWG API PARA O DAO NO INÍCIO
+            // Carrega jogos da RAWG API para o DAO automaticamente
             loadApiGamesIntoDao();
 
             handleIncomingIntent();
@@ -59,15 +59,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (savedInstanceState == null) {
                 loadFragment(new HomeFragment(), false);
             }
+
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate", e);
             Toast.makeText(this, "Erro ao inicializar app", Toast.LENGTH_LONG).show();
         }
     }
 
-    /**
-     * Aplica o tema baseado nas preferências salvas
-     */
     private void applyThemeFromPreferences() {
         try {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -90,16 +88,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /**
-     * CARREGA JOGOS DA RAWG API DIRETAMENTE PARA O DAO NO INÍCIO DA APLICAÇÃO
-     */
     private void loadApiGamesIntoDao() {
-        if (isLoadingGames) {
-            Log.d(TAG, "⚠️ Já está carregando jogos, ignorando pedido duplicado");
-            return;
-        }
-
-        isLoadingGames = true;
+                isLoadingGames = true;
 
         try {
             // Inicializa o ApiManager para RAWG API
@@ -448,42 +438,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             int id = item.getItemId();
 
             if (id == R.id.action_settings) {
+                // Abre fragmento de configurações
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new PreferencesFragment())
                         .addToBackStack(null)
                         .commit();
                 return true;
-            } else if (id == R.id.action_refresh) {
-                // FORÇA NOVO CARREGAMENTO DA RAWG API PARA O DAO
-                if (!isLoadingGames) {
-                    Toast.makeText(this, "🔄 Atualizando jogos da RAWG API...", Toast.LENGTH_SHORT).show();
-                    loadApiGamesIntoDao();
-                } else {
-                    Toast.makeText(this, "⚠️ Já está carregando jogos...", Toast.LENGTH_SHORT).show();
-                }
-                return true;
-            } else if (id == R.id.action_test_api) {
-                testRawgApiConnection();
-                return true;
-            } else if (id == R.id.action_db_stats) {
-                showDatabaseStats();
-                return true;
-            } else if (id == R.id.action_load_popular) {
-                loadGamesByCategory("popular");
-                return true;
-            } else if (id == R.id.action_load_recent) {
-                loadGamesByCategory("recent");
-                return true;
-            } else if (id == R.id.action_load_action) {
-                loadGamesByCategory("action");
-                return true;
-            } else if (id == R.id.action_load_rpg) {
-                loadGamesByCategory("rpg");
-                return true;
-            } else if (id == R.id.action_load_pc) {
-                loadGamesByCategory("pc");
-                return true;
             }
+
         } catch (Exception e) {
             Log.e(TAG, "Error in onOptionsItemSelected", e);
         }
