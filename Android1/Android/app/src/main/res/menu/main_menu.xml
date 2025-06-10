@@ -10,11 +10,45 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always|collapseActionView"/>
 
-    <!-- Refresh Item - ADICIONADO -->
+    <!-- Refresh Item -->
     <item
         android:id="@+id/action_refresh"
-        android:title="Atualizar"
+        android:title="Atualizar da RAWG API"
         app:showAsAction="never"/>
+
+    <!-- NOVO: Test API Item -->
+    <item
+        android:id="@+id/action_test_api"
+        android:title="Testar RAWG API"
+        app:showAsAction="never"/>
+
+    <!-- NOVO: Database Stats Item -->
+    <item
+        android:id="@+id/action_db_stats"
+        android:title="Estatísticas BD"
+        app:showAsAction="never"/>
+
+    <!-- NOVO: Load Categories Submenu -->
+    <item
+        android:title="Carregar Categoria">
+        <menu>
+            <item
+                android:id="@+id/action_load_popular"
+                android:title="Jogos Populares"/>
+            <item
+                android:id="@+id/action_load_recent"
+                android:title="Jogos Recentes"/>
+            <item
+                android:id="@+id/action_load_action"
+                android:title="Jogos de Ação"/>
+            <item
+                android:id="@+id/action_load_rpg"
+                android:title="Jogos RPG"/>
+            <item
+                android:id="@+id/action_load_pc"
+                android:title="Jogos PC"/>
+        </menu>
+    </item>
 
     <!-- Settings Item -->
     <item

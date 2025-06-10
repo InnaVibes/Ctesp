@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             initializeServices();
             setupUI();
 
-            // CARREGA JOGOS DA API PARA O DAO NO INÍCIO
+            // CARREGA JOGOS DA RAWG API PARA O DAO NO INÍCIO
             loadApiGamesIntoDao();
 
             handleIncomingIntent();
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * CARREGA JOGOS DA API DIRETAMENTE PARA O DAO NO INÍCIO DA APLICAÇÃO
+     * CARREGA JOGOS DA RAWG API DIRETAMENTE PARA O DAO NO INÍCIO DA APLICAÇÃO
      */
     private void loadApiGamesIntoDao() {
         if (isLoadingGames) {
@@ -102,18 +102,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         isLoadingGames = true;
 
         try {
-            // Inicializa o ApiManager
+            // Inicializa o ApiManager para RAWG API
             apiManager = new ApiManager(this);
 
-            Log.d(TAG, "🚀 INICIANDO carregamento de jogos da API para o DAO...");
-            Toast.makeText(this, "🌐 Carregando jogos da API...", Toast.LENGTH_LONG).show();
+            // Verifica se a API key está configurada
+            if (!apiManager.isApiKeyConfigured()) {
+                Log.e(TAG, "❌ API Key da RAWG não configurada!");
+                Toast.makeText(this, "❌ Configure a API Key da RAWG no ApiManager", Toast.LENGTH_LONG).show();
+                isLoadingGames = false;
+                return;
+            }
+
+            Log.d(TAG, "🚀 INICIANDO carregamento de jogos da RAWG API para o DAO...");
+            Log.d(TAG, "🔑 API Key: " + apiManager.getMaskedApiKey());
+            Toast.makeText(this, "A carregar jogos", Toast.LENGTH_LONG).show();
 
             // Primeiro verifica se já há jogos no DAO
             checkDaoContentAndLoad();
 
         } catch (Exception e) {
             Log.e(TAG, "❌ Erro ao iniciar carregamento de jogos", e);
-            Toast.makeText(this, "Erro ao conectar com a API", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Erro ao conectar com a RAWG API", Toast.LENGTH_LONG).show();
             isLoadingGames = false;
         }
     }
@@ -132,10 +141,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     if (existingGames.size() < 20) {
                         // Se há poucos jogos, carrega múltiplas páginas da API
-                        Log.d(TAG, "📥 Poucos jogos no DAO, carregando 3 páginas da API...");
+                        Log.d(TAG, "📥 Poucos jogos no DAO, carregando da RAWG API...");
                         loadMultiplePagesFromApi();
                     } else {
-                        // Se já há jogos suficientes, apenas atualiza com uma página nova
+                        // Se já há jogos suficientes, apenas atualiza com conteúdo novo
                         Log.d(TAG, "🔄 DAO já populado, fazendo atualização incremental...");
                         loadIncrementalUpdate();
                     }
@@ -152,25 +161,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Carrega múltiplas páginas da API para popular o DAO
+     * Carrega múltiplas páginas da RAWG API para popular o DAO
      */
     private void loadMultiplePagesFromApi() {
-        Log.d(TAG, "📚 Carregando múltiplas páginas da API...");
+        Log.d(TAG, "📚 Carregando múltiplas páginas da RAWG API...");
 
         DaoPopulator populator = new DaoPopulator(this);
 
-        populator.populateDaoWithApiGames(3, new DaoPopulator.PopulationCallback() {
+        // Primeiro testa a conexão e depois carrega
+        populator.verifyAndPopulate(3, new DaoPopulator.PopulationCallback() {
             @Override
             public void onPopulationComplete(int totalGames) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "✅ SUCESSO: " + totalGames + " jogos carregados da API para o DAO");
+                    Log.d(TAG, "✅ SUCESSO: " + totalGames + " jogos carregados da RAWG API para o DAO");
                     Toast.makeText(MainActivity.this,
-                            "✅ " + totalGames + " jogos carregados da API!",
+                            "✅ " + totalGames + " jogos carregados da RAWG API!",
                             Toast.LENGTH_SHORT).show();
                     isLoadingGames = false;
 
-                    // Opcional: Carrega géneros específicos para mais variedade
-                    loadSpecificGenres();
+                    // Carrega conteúdo adicional variado
+                    loadMixedContent();
                 });
             }
 
@@ -205,10 +215,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Carrega apenas uma página da API (fallback)
+     * Carrega apenas uma página da RAWG API (fallback)
      */
     private void loadSinglePageFromApi() {
-        Log.d(TAG, "📄 Carregando uma página da API como fallback...");
+        Log.d(TAG, "📄 Carregando uma página da RAWG API como fallback...");
 
         apiManager.loadGames(1, 30, null, null, new ApiManager.GameLoadCallback() {
             @Override
@@ -277,34 +287,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Carrega géneros específicos para mais variedade (opcional)
+     * Carrega conteúdo misto para mais variedade
      */
-    private void loadSpecificGenres() {
-        Log.d(TAG, "🎯 Carregando géneros específicos para variedade...");
-
-        String[] genres = {"action", "adventure", "rpg", "indie", "strategy"};
+    private void loadMixedContent() {
+        Log.d(TAG, "🎲 Carregando conteúdo misto para variedade...");
 
         DaoPopulator populator = new DaoPopulator(this);
 
-        populator.populateDaoWithGenres(genres, new DaoPopulator.PopulationCallback() {
+        populator.populateWithMixedContent(new DaoPopulator.PopulationCallback() {
             @Override
             public void onPopulationComplete(int totalGames) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "🎮 Géneros específicos carregados: " + totalGames + " jogos");
+                    Log.d(TAG, "🎯 Conteúdo misto carregado: " + totalGames + " jogos adicionais");
                     Toast.makeText(MainActivity.this,
-                            "🎯 +" + totalGames + " jogos de géneros variados",
+                            "🎯 +" + totalGames + " jogos variados adicionados",
                             Toast.LENGTH_SHORT).show();
                 });
             }
 
             @Override
             public void onPopulationProgress(int current, int total, int loaded) {
-                Log.d(TAG, String.format("🎮 Género %d/%d (%d jogos)", current, total, loaded));
+                Log.d(TAG, String.format("🎲 Progresso misto: %d/%d (%d jogos)", current, total, loaded));
             }
 
             @Override
             public void onPopulationError(String error) {
-                Log.e(TAG, "❌ Erro nos géneros específicos: " + error);
+                Log.e(TAG, "❌ Erro no conteúdo misto: " + error);
+                // Não mostra erro para o usuário pois é conteúdo adicional
             }
         });
     }
@@ -360,12 +369,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Pesquisa por jogo (agora usa DAO populado)
+     * Pesquisa por jogo usando RAWG API
      */
     private void searchGameAndNavigate(String gameName) {
         try {
             if (apiManager != null) {
-                Toast.makeText(this, "🔍 Pesquisando: " + gameName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "🔍 Pesquisando na RAWG: " + gameName, Toast.LENGTH_SHORT).show();
 
                 apiManager.searchGames(gameName, new ApiManager.GameLoadCallback() {
                     @Override
@@ -445,13 +454,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         .commit();
                 return true;
             } else if (id == R.id.action_refresh) {
-                // FORÇA NOVO CARREGAMENTO DA API PARA O DAO
+                // FORÇA NOVO CARREGAMENTO DA RAWG API PARA O DAO
                 if (!isLoadingGames) {
-                    Toast.makeText(this, "🔄 Atualizando jogos da API...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "🔄 Atualizando jogos da RAWG API...", Toast.LENGTH_SHORT).show();
                     loadApiGamesIntoDao();
                 } else {
                     Toast.makeText(this, "⚠️ Já está carregando jogos...", Toast.LENGTH_SHORT).show();
                 }
+                return true;
+            } else if (id == R.id.action_test_api) {
+                testRawgApiConnection();
+                return true;
+            } else if (id == R.id.action_db_stats) {
+                showDatabaseStats();
+                return true;
+            } else if (id == R.id.action_load_popular) {
+                loadGamesByCategory("popular");
+                return true;
+            } else if (id == R.id.action_load_recent) {
+                loadGamesByCategory("recent");
+                return true;
+            } else if (id == R.id.action_load_action) {
+                loadGamesByCategory("action");
+                return true;
+            } else if (id == R.id.action_load_rpg) {
+                loadGamesByCategory("rpg");
+                return true;
+            } else if (id == R.id.action_load_pc) {
+                loadGamesByCategory("pc");
                 return true;
             }
         } catch (Exception e) {
@@ -459,6 +489,110 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Testa a conexão com a RAWG API
+     */
+    private void testRawgApiConnection() {
+        if (apiManager != null) {
+            Toast.makeText(this, "🔌 Testando conexão com RAWG API...", Toast.LENGTH_SHORT).show();
+
+            apiManager.testApiConnection(new ApiManager.TestCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this,
+                                "✅ RAWG API: " + message,
+                                Toast.LENGTH_SHORT).show();
+
+                        // Mostra informações de debug
+                        apiManager.getDebugInfo();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this,
+                                "❌ RAWG API: " + error,
+                                Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        } else {
+            Toast.makeText(this, "❌ ApiManager não inicializado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Obtém e mostra estatísticas da base de dados
+     */
+    private void showDatabaseStats() {
+        if (apiManager != null) {
+            apiManager.getDaoStats(new ApiManager.StatisticsCallback() {
+                @Override
+                public void onStatsLoaded(int totalGames) {
+                    runOnUiThread(() -> {
+                        String message = String.format("📊 Base de dados: %d jogos", totalGames);
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, message);
+                    });
+                }
+            });
+        } else {
+            Toast.makeText(this, "❌ ApiManager não inicializado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Carrega jogos por categoria específica
+     */
+    private void loadGamesByCategory(String category) {
+        if (apiManager == null) {
+            Toast.makeText(this, "❌ ApiManager não inicializado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "🎯 Carregando jogos de " + category + "...", Toast.LENGTH_SHORT).show();
+
+        ApiManager.GameLoadCallback callback = new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                runOnUiThread(() -> {
+                    String message = String.format("✅ Carregados %d jogos de %s", games.size(), category);
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, message);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this,
+                            "❌ Erro ao carregar " + category + ": " + error,
+                            Toast.LENGTH_SHORT).show();
+                });
+            }
+        };
+
+        switch (category.toLowerCase()) {
+            case "popular":
+                apiManager.loadPopularGames(20, callback);
+                break;
+            case "action":
+                apiManager.loadGamesByGenre("action", 20, callback);
+                break;
+            case "rpg":
+                apiManager.loadGamesByGenre("role-playing-games-rpg", 20, callback);
+                break;
+            case "pc":
+                apiManager.loadGamesByPlatform("pc", 20, callback);
+                break;
+            default:
+                apiManager.loadGames(1, 20, null, null, callback);
+                break;
+        }
     }
 
     @Override
