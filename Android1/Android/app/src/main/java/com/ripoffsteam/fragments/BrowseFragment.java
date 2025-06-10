@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Fragmento para navegar e filtrar jogos com paginação
@@ -237,12 +238,15 @@ public class BrowseFragment extends Fragment {
         new Thread(() -> {
             List<Game> filteredGames = gameDao.getFilteredGames(currentGenre, currentPlatform);
 
-            // Aplica filtro de loja se necessário
+            // Aplica filtro de loja se necessário (com verificação de API level)
             if (currentStore != null) {
-                filteredGames = filteredGames.stream()
-                        .filter(game -> game.getStores() != null &&
-                                game.getStores().contains(currentStore))
-                        .collect(java.util.stream.Collectors.toList());
+                List<Game> storeFilteredGames = new ArrayList<>();
+                for (Game game : filteredGames) {
+                    if (game.getStores() != null && game.getStores().contains(currentStore)) {
+                        storeFilteredGames.add(game);
+                    }
+                }
+                filteredGames = storeFilteredGames;
             }
 
             List<Game> finalFilteredGames = filteredGames;
@@ -370,6 +374,7 @@ public class BrowseFragment extends Fragment {
      * Define a seleção de um spinner
      */
     private void setSpinnerSelection(Spinner spinner, String value) {
+        @SuppressWarnings("unchecked")
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
         if (adapter != null) {
             int position = adapter.getPosition(value);

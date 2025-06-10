@@ -1,17 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Colors -->
     <color name="purple_500">#673AB7</color>
     <color name="purple_700">#512DA8</color>
     <color name="purple_200">#CE93D8</color>
+
+    <!-- Secondary Colors -->
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+
+    <!-- Base Colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="teal_200">#FF03DAC5</color>  <!-- Light Teal -->
-    <color name="teal_700">#FF018786</color>
-    <color name="rating_star_filled">#FFD700</color>  <!-- Gold -->
-    <color name="rating_star_empty">#B0B0B0</color>   <!-- Light gray -->
+    <color name="transparent">#00000000</color>
+
+    <!-- Gray Scale -->
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#EEEEEE</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#424242</color>
+    <color name="gray_900">#212121</color>
+
+    <!-- Text Colors for Light Theme -->
+    <color name="text_primary_light">#212121</color>
+    <color name="text_secondary_light">#757575</color>
+    <color name="text_disabled_light">#BDBDBD</color>
+
+    <!-- Text Colors for Dark Theme -->
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#B3FFFFFF</color>
+    <color name="text_disabled_dark">#61FFFFFF</color>
+
+    <!-- Surface Colors for Light Theme -->
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_variant_light">#F5F5F5</color>
+    <color name="background_light">#FAFAFA</color>
+
+    <!-- Surface Colors for Dark Theme -->
+    <color name="surface_dark">#121212</color>
+    <color name="surface_variant_dark">#1E1E1E</color>
+    <color name="background_dark">#000000</color>
+
+    <!-- Menu and Navigation Colors -->
+    <color name="menu_background_light">#FFFFFF</color>
+    <color name="menu_background_dark">#1E1E1E</color>
+    <color name="menu_text_light">#212121</color>
+    <color name="menu_text_dark">#FFFFFF</color>
+    <color name="menu_icon_light">#757575</color>
+    <color name="menu_icon_dark">#FFFFFF</color>
+
+    <!-- Card Colors -->
+    <color name="card_background_light">#FFFFFF</color>
+    <color name="card_background_dark">#1E1E1E</color>
+
+    <!-- Ripple Effect Colors -->
+    <color name="ripple_light">#1F000000</color>
+    <color name="ripple_dark">#33FFFFFF</color>
+
+    <!-- Status Bar Colors -->
+    <color name="status_bar_light">@color/purple_700</color>
+    <color name="status_bar_dark">@color/purple_700</color>
+
+    <!-- Spinner and Dropdown Colors -->
+    <color name="spinner_background_light">#FFFFFF</color>
+    <color name="spinner_background_dark">#2C2C2C</color>
+    <color name="spinner_text_light">#212121</color>
+    <color name="spinner_text_dark">#FFFFFF</color>
+
+    <!-- Button Colors -->
+    <color name="button_text_light">#FFFFFF</color>
+    <color name="button_text_dark">#FFFFFF</color>
+
+    <!-- Rating Colors -->
+    <color name="rating_star_filled">#FFD700</color>
+    <color name="rating_star_empty">#B0B0B0</color>
     <color name="rating_star_half">#E6C200</color>
+
+    <!-- Achievement Colors -->
+    <color name="achievement_unlocked">#4CAF50</color>
+    <color name="achievement_locked">#9E9E9E</color>
+
+    <!-- Legacy colors for compatibility -->
     <color name="gray">#808080</color>
     <color name="yellow">#FFD700</color>
     <color name="light_gray">#D3D3D3</color>
-    <color name="dark_gray">#A9A9A9</color><!-- Dark Teal -->
+    <color name="dark_gray">#424242</color>
 </resources>

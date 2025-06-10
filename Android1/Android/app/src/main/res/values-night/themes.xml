@@ -1,22 +1,66 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.RipoffSteam" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-
+    <!-- Dark Theme for Night Mode -->
+    <style name="Theme.RipoffSteam" parent="Theme.MaterialComponents.NoActionBar">
+        <!-- Primary Colors -->
         <item name="colorPrimary">@color/purple_200</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/black</item>
 
+        <!-- Secondary Colors -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
 
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Surface Colors -->
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="colorOnBackground">@color/text_primary_dark</item>
 
-        <item name="colorSurface">@color/dark_gray</item>
-        <item name="colorOnSurface">@color/white</item>
-        <item name="android:colorBackground">@color/black</item>
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@color/status_bar_dark</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
 
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:textColorSecondary">@color/light_gray</item>
+        <!-- Navigation Bar -->
+        <item name="android:navigationBarColor">@color/surface_dark</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
+
+        <!-- Text Colors -->
+        <item name="android:textColorPrimary">@color/text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+
+        <!-- Menu Colors -->
+        <item name="colorControlNormal">@color/menu_icon_dark</item>
+        <item name="colorControlActivated">@color/purple_200</item>
+        <item name="colorControlHighlight">@color/ripple_dark</item>
+
+        <!-- Popup Colors -->
+        <item name="popupMenuStyle">@style/PopupMenuStyle.Dark</item>
+        <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle.Dark</item>
+
+        <!-- Additional Dark Theme Properties -->
+        <item name="colorError">#CF6679</item>
+        <item name="colorOnError">@color/black</item>
+
+        <!-- Spinner Colors for Dark Theme -->
+        <item name="colorBackgroundFloating">@color/surface_dark</item>
     </style>
+
+    <!-- Popup Menu Styles for Dark Theme -->
+    <style name="PopupMenuStyle.Dark" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:popupBackground">@color/menu_background_dark</item>
+        <item name="android:textColor">@color/menu_text_dark</item>
+        <item name="android:textColorPrimary">@color/menu_text_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+    </style>
+
+    <!-- Overflow Menu Styles for Dark Theme -->
+    <style name="OverflowMenuStyle.Dark" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+        <item name="android:popupBackground">@color/menu_background_dark</item>
+        <item name="android:textColor">@color/menu_text_dark</item>
+        <item name="android:textColorPrimary">@color/menu_text_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+    </style>
+
 </resources>

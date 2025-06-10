@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "641595368707",
+    "project_id": "itssteamornot",
+    "storage_bucket": "itssteamornot.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:641595368707:android:37947f8bce6621bc56f536",
+        "android_client_info": {
+          "package_name": "com.ripoffsteam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1tFVvdWtzD14DMgL2aB1Ofl1uM2iH9ys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

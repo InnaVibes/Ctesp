@@ -32,24 +32,36 @@ android {
 }
 
 dependencies {
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Core Android
     implementation(libs.appcompat)
-    implementation("com.google.code.gson:gson:2.8.9")
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.crashlytics.buildtools)
+
+    // Database
     implementation("androidx.room:room-runtime:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
+
+    // Preferences
     implementation("androidx.preference:preference:1.2.1")
+
+    // Network & API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.google.code.gson:gson:2.8.9")
+
+    // Image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    // Background work
     implementation("androidx.work:work-runtime:2.9.0")
-    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // UI Components
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
