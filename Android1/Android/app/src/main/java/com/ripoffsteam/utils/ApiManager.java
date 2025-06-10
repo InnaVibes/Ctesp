@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 public class ApiManager {
     private static final String TAG = "ApiManager";
     private static final String BASE_URL = "https://api.rawg.io/api/";
-    private static final String API_KEY = "SUA_CHAVE_API_AQUI"; // Substitua pela sua chave
+    private static final String API_KEY = "c706cd3b99ae40e2b3fe089d19582ed6"; // Substitua pela sua chave
 
     private RawgApiService apiService;
     private Context context;
