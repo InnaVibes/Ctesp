@@ -729,7 +729,66 @@ public class ApiManager {
         return API_KEY.substring(0, 4) + "****" + API_KEY.substring(API_KEY.length() - 4);
     }
 
+    /**
+     * Testa conectividade com a API RAWG
+     */
+    public void testApiConnection(TestCallback callback) {
+        Log.d(TAG, "🔌 Testando conexão com RAWG API...");
 
+        if (!isApiKeyConfigured()) {
+            callback.onError("API Key não configurada corretamente");
+            return;
+        }
+
+        apiService.getGames(API_KEY, 1, 1, null, null).enqueue(new Callback<GameRawgResponse>() {
+            @Override
+            public void onResponse(Call<GameRawgResponse> call, Response<GameRawgResponse> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "✅ Conexão com RAWG API bem-sucedida");
+                    callback.onSuccess("Conexão OK - API respondendo normalmente");
+                } else {
+                    String errorMsg = "Erro HTTP: " + response.code();
+                    Log.e(TAG, "❌ " + errorMsg);
+
+                    // Mensagens de erro mais específicas
+                    switch (response.code()) {
+                        case 401:
+                            callback.onError("API Key inválida ou expirada");
+                            break;
+                        case 403:
+                            callback.onError("Acesso negado - verifique permissões da API Key");
+                            break;
+                        case 429:
+                            callback.onError("Limite de requisições excedido");
+                            break;
+                        case 500:
+                            callback.onError("Erro interno do servidor RAWG");
+                            break;
+                        default:
+                            callback.onError(errorMsg);
+                            break;
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GameRawgResponse> call, Throwable t) {
+                String errorMsg = "Falha de rede: " + t.getMessage();
+                Log.e(TAG, "❌ " + errorMsg);
+
+                // Diagnóstico mais detalhado da falha
+                if (t instanceof java.net.UnknownHostException) {
+                    callback.onError("Sem conexão à internet ou DNS falhou");
+                } else if (t instanceof java.net.SocketTimeoutException) {
+                    callback.onError("Timeout - servidor RAWG não respondeu");
+                } else if (t instanceof javax.net.ssl.SSLException) {
+                    callback.onError("Erro SSL/TLS na conexão");
+                } else {
+                    callback.onError(errorMsg);
+                }
+            }
+        });
+    }
 
     /**
      * Obtém informações de debug detalhadas da API

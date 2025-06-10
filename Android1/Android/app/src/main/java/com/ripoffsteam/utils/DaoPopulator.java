@@ -165,6 +165,31 @@ public class DaoPopulator {
         });
     }
 
+    /**
+     * Popula com jogos recentes
+     */
+    public void populateWithRecentGames(PopulationCallback callback) {
+        Log.d(TAG, "🆕 Populando com jogos recentes da RAWG...");
+
+        if (!apiManager.isApiKeyConfigured()) {
+            callback.onPopulationError("API Key não configurada");
+            return;
+        }
+
+        apiManager.loadRecentGames(40, new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                Log.d(TAG, "🆕 Jogos recentes carregados: " + games.size());
+                callback.onPopulationComplete(games.size());
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "❌ Erro ao carregar jogos recentes: " + error);
+                callback.onPopulationError(error);
+            }
+        });
+    }
 
     /**
      * Popula com uma mistura balanceada de jogos
@@ -183,6 +208,36 @@ public class DaoPopulator {
 
         // Jogos populares
         apiManager.loadPopularGames(20, new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                synchronized (allGames) {
+                    allGames.addAll(games);
+                    tasksCompleted[0]++;
+                    callback.onPopulationProgress(tasksCompleted[0], totalTasks, allGames.size());
+
+                    if (tasksCompleted[0] >= totalTasks) {
+                        callback.onPopulationComplete(allGames.size());
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                synchronized (allGames) {
+                    tasksCompleted[0]++;
+                    if (tasksCompleted[0] >= totalTasks) {
+                        if (!allGames.isEmpty()) {
+                            callback.onPopulationComplete(allGames.size());
+                        } else {
+                            callback.onPopulationError("Erro ao carregar conteúdo misto");
+                        }
+                    }
+                }
+            }
+        });
+
+        // Jogos recentes
+        apiManager.loadRecentGames(20, new ApiManager.GameLoadCallback() {
             @Override
             public void onSuccess(List<Game> games) {
                 synchronized (allGames) {
