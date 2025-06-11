@@ -6,7 +6,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ATUALIZADO: Permissão para notificações (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- NOVO: Permissão para notificações em tempo real -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Permissões opcionais para cache e armazenamento de imagens -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"

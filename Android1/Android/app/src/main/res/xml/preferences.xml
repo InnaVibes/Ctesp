@@ -20,6 +20,12 @@
             android:defaultValue="09:00"
             android:dependency="@string/pref_notification_key"/>
 
+        <!-- NOVO: Botão para testar notificação -->
+        <Preference
+            android:key="@string/pref_test_notification_key"
+            android:title="@string/pref_test_notification_title"
+            android:summary="@string/pref_test_notification_summary"/>
+
     </PreferenceCategory>
 
     <!-- CONFIGURAÇÕES DE USUÁRIO -->

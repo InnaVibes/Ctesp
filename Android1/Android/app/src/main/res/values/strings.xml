@@ -45,6 +45,11 @@
     <string name="pref_notification_time_title">Notification Time</string>
     <string name="pref_notification_time_summary">When to receive daily game suggestions</string>
 
+    <!-- NOVO: Teste de Notificação -->
+    <string name="pref_test_notification_key">test_notification</string>
+    <string name="pref_test_notification_title">Testar Notificação</string>
+    <string name="pref_test_notification_summary">Envia uma notificação de teste imediatamente</string>
+
     <!-- USER PREFERENCES -->
     <string name="pref_username_key">username_enabled</string>
     <string name="pref_username_title">Show Custom Profile</string>
@@ -95,6 +100,11 @@
     <string name="email_generated">Email generated: %1$s</string>
     <string name="invalid_email">Please enter a valid email address</string>
     <string name="username_too_short">Username must be at least 2 characters</string>
+
+    <!-- NOVO: Notificação de Teste -->
+    <string name="test_notification_sent">Notificação de teste enviada!</string>
+    <string name="test_notification_title">RipoffSteam - Descoberta Diária</string>
+    <string name="test_notification_message">Já descobriu um jogo novo hoje?</string>
 
     <!-- ACHIEVEMENTS -->
     <string name="achievements">Conquistas</string>

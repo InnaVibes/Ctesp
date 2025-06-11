@@ -14,6 +14,7 @@ import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import com.ripoffsteam.R;
 import com.ripoffsteam.notifications.NotificationScheduler;
+import com.ripoffsteam.utils.NotificationHelper;
 import com.google.android.material.navigation.NavigationView;
 import android.view.View;
 import android.widget.TextView;
@@ -22,12 +23,13 @@ import java.util.regex.Pattern;
 
 /**
  * Fragment para gerenciar as preferências da aplicação
- * VERSÃO COMPLETA - Com Username e Email separados
+ * VERSÃO ATUALIZADA - Com botão de teste de notificação
  */
 public class PreferencesFragment extends PreferenceFragmentCompat
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private SharedPreferences sharedPreferences;
+    private NotificationHelper notificationHelper;
 
     // Pattern para validação de email
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -41,6 +43,9 @@ public class PreferencesFragment extends PreferenceFragmentCompat
 
         // Obtém referência às SharedPreferences
         sharedPreferences = getPreferenceScreen().getSharedPreferences();
+
+        // Inicializa o NotificationHelper
+        notificationHelper = new NotificationHelper(requireContext());
 
         // Inicializa os summaries
         initSummaries();
@@ -68,6 +73,15 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             notificationPref.setOnPreferenceChangeListener((preference, newValue) -> {
                 boolean enabled = (Boolean) newValue;
                 handleNotificationToggle(enabled);
+                return true;
+            });
+        }
+
+        // NOVO: Listener para o botão de teste de notificação
+        Preference testNotificationPref = findPreference(getString(R.string.pref_test_notification_key));
+        if (testNotificationPref != null) {
+            testNotificationPref.setOnPreferenceClickListener(preference -> {
+                handleTestNotification();
                 return true;
             });
         }
@@ -124,6 +138,32 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 showToast("Tamanho da página alterado para: " + value);
                 return true;
             });
+        }
+    }
+
+    /**
+     * NOVO: Lida com o clique no botão de teste de notificação
+     */
+    private void handleTestNotification() {
+        try {
+            // Verifica se as notificações estão habilitadas no sistema
+            if (!notificationHelper.areNotificationsEnabled()) {
+                showToast("⚠️ Notificações estão desabilitadas nas configurações do sistema");
+                return;
+            }
+
+            // Envia a notificação de teste
+            notificationHelper.sendTestNotification();
+
+            // Mostra feedback para o usuário
+            showToast(getString(R.string.test_notification_sent));
+
+            // Log para debug
+            android.util.Log.d("PreferencesFragment", "✅ Notificação de teste enviada");
+
+        } catch (Exception e) {
+            android.util.Log.e("PreferencesFragment", "❌ Erro ao enviar notificação de teste: " + e.getMessage());
+            showToast("Erro ao enviar notificação de teste");
         }
     }
 
@@ -225,29 +265,6 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                     showToast("Username atualizado: " + username);
                     updateNavHeaderUsername(username);
                 }
-            }
-            else if (key.equals(getString(R.string.pref_set_email_key))) {
-                String email = prefs.getString(key, "");
-                if (!email.isEmpty()) {
-                    showToast("Email atualizado: " + email);
-                    updateNavHeaderEmail(email);
-                }
-            }
-            else if (key.equals(getString(R.string.pref_username_key))) {
-                updateNavHeaderBasedOnUserSettings();
-            }
-            else if (key.equals(getString(R.string.pref_theme_key))) {
-                String theme = prefs.getString(key, "system");
-                showToast("Tema alterado para: " + theme);
-            }
-            else if (key.equals(getString(R.string.pref_notification_key))) {
-                boolean enabled = prefs.getBoolean(key, true);
-                // Já tratado no listener específico
-            }
-            else if (key.equals(getString(R.string.pref_language_key))) {
-                String language = prefs.getString(key, "en");
-                showToast("Idioma alterado para: " + language);
-                showToast("Reinicie o app para aplicar as mudanças");
             }
             else if (key.equals(getString(R.string.pref_notification_time_key))) {
                 String time = prefs.getString(key, "09:00");
@@ -463,5 +480,8 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         if (sharedPreferences != null) {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         }
+
+        // Limpa referência do NotificationHelper
+        notificationHelper = null;
     }
 }
