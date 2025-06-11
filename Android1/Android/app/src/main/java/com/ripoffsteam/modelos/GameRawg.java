@@ -6,8 +6,7 @@ import java.util.ArrayList;
 
 /**
  * Modelo exclusivo para receber dados da API RAWG
- * ATUALIZADO: Agora usa description_raw para descrições completas
- * NÃO é usado no Room Database
+ * CORRIGIDO: Melhor processamento de developers/publishers
  */
 public class GameRawg {
 
@@ -20,11 +19,9 @@ public class GameRawg {
     @SerializedName("name_original")
     private String nameOriginal;
 
-    // PRINCIPAL MUDANÇA: Campo para descrição completa do jogo
     @SerializedName("description_raw")
     private String descriptionRaw;
 
-    // Fallback para descrição básica (caso description_raw não esteja disponível)
     @SerializedName("description")
     private String description;
 
@@ -147,66 +144,33 @@ public class GameRawg {
     public GameRawg() {}
 
     // Getters e Setters
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getNameOriginal() { return nameOriginal; }
+    public void setNameOriginal(String nameOriginal) { this.nameOriginal = nameOriginal; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getDescriptionRaw() { return descriptionRaw; }
+    public void setDescriptionRaw(String descriptionRaw) { this.descriptionRaw = descriptionRaw; }
 
-    public String getNameOriginal() {
-        return nameOriginal;
-    }
-
-    public void setNameOriginal(String nameOriginal) {
-        this.nameOriginal = nameOriginal;
-    }
-
-    /**
-     * MÉTODO PRINCIPAL: Obtém a descrição completa do jogo
-     * Prioriza description_raw, fallback para description
-     */
-    public String getDescriptionRaw() {
-        return descriptionRaw;
-    }
-
-    public void setDescriptionRaw(String descriptionRaw) {
-        this.descriptionRaw = descriptionRaw;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     /**
      * Obtém a melhor descrição disponível
-     * @return description_raw se disponível, senão description, senão texto padrão
      */
     public String getBestDescription() {
-        // Prioridade 1: description_raw (descrição completa)
         if (descriptionRaw != null && !descriptionRaw.trim().isEmpty()) {
             return descriptionRaw.trim();
         }
 
-        // Prioridade 2: description (descrição básica)
         if (description != null && !description.trim().isEmpty()) {
             return description.trim();
         }
 
-        // Fallback: Criar descrição básica com informações disponíveis
         StringBuilder fallbackDesc = new StringBuilder();
 
         if (name != null) {
@@ -229,201 +193,86 @@ public class GameRawg {
         return "Informações sobre este jogo não estão disponíveis no momento.";
     }
 
-    public float getRating() {
-        return rating;
-    }
+    public float getRating() { return rating; }
+    public void setRating(float rating) { this.rating = rating; }
 
-    public void setRating(float rating) {
-        this.rating = rating;
-    }
+    public float getRatingTop() { return ratingTop; }
+    public void setRatingTop(float ratingTop) { this.ratingTop = ratingTop; }
 
-    public float getRatingTop() {
-        return ratingTop;
-    }
+    public String getBackgroundImage() { return backgroundImage; }
+    public void setBackgroundImage(String backgroundImage) { this.backgroundImage = backgroundImage; }
 
-    public void setRatingTop(float ratingTop) {
-        this.ratingTop = ratingTop;
-    }
+    public String getBackgroundImageAdditional() { return backgroundImageAdditional; }
+    public void setBackgroundImageAdditional(String backgroundImageAdditional) { this.backgroundImageAdditional = backgroundImageAdditional; }
 
-    public String getBackgroundImage() {
-        return backgroundImage;
-    }
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
 
-    public void setBackgroundImage(String backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
+    public Integer getMetacritic() { return metacritic; }
+    public void setMetacritic(Integer metacritic) { this.metacritic = metacritic; }
 
-    public String getBackgroundImageAdditional() {
-        return backgroundImageAdditional;
-    }
+    public String getMetacriticUrl() { return metacriticUrl; }
+    public void setMetacriticUrl(String metacriticUrl) { this.metacriticUrl = metacriticUrl; }
 
-    public void setBackgroundImageAdditional(String backgroundImageAdditional) {
-        this.backgroundImageAdditional = backgroundImageAdditional;
-    }
+    public String getReleased() { return released; }
+    public void setReleased(String released) { this.released = released; }
 
-    public String getWebsite() {
-        return website;
-    }
+    public boolean isTba() { return tba; }
+    public void setTba(boolean tba) { this.tba = tba; }
 
-    public void setWebsite(String website) {
-        this.website = website;
-    }
+    public String getUpdated() { return updated; }
+    public void setUpdated(String updated) { this.updated = updated; }
 
-    public Integer getMetacritic() {
-        return metacritic;
-    }
+    public int getPlaytime() { return playtime; }
+    public void setPlaytime(int playtime) { this.playtime = playtime; }
 
-    public void setMetacritic(Integer metacritic) {
-        this.metacritic = metacritic;
-    }
+    public int getAchievementsCount() { return achievementsCount; }
+    public void setAchievementsCount(int achievementsCount) { this.achievementsCount = achievementsCount; }
 
-    public String getMetacriticUrl() {
-        return metacriticUrl;
-    }
+    public String getRedditUrl() { return redditUrl; }
+    public void setRedditUrl(String redditUrl) { this.redditUrl = redditUrl; }
 
-    public void setMetacriticUrl(String metacriticUrl) {
-        this.metacriticUrl = metacriticUrl;
-    }
+    public String getRedditName() { return redditName; }
+    public void setRedditName(String redditName) { this.redditName = redditName; }
 
-    public String getReleased() {
-        return released;
-    }
+    public String getRedditDescription() { return redditDescription; }
+    public void setRedditDescription(String redditDescription) { this.redditDescription = redditDescription; }
 
-    public void setReleased(String released) {
-        this.released = released;
-    }
+    public List<Platform> getPlatforms() { return platforms; }
+    public void setPlatforms(List<Platform> platforms) { this.platforms = platforms; }
 
-    public boolean isTba() {
-        return tba;
-    }
+    public List<Genre> getGenres() { return genres; }
+    public void setGenres(List<Genre> genres) { this.genres = genres; }
 
-    public void setTba(boolean tba) {
-        this.tba = tba;
-    }
+    public List<Store> getStores() { return stores; }
+    public void setStores(List<Store> stores) { this.stores = stores; }
 
-    public String getUpdated() {
-        return updated;
-    }
+    public List<Developer> getDevelopers() { return developers; }
+    public void setDevelopers(List<Developer> developers) { this.developers = developers; }
 
-    public void setUpdated(String updated) {
-        this.updated = updated;
-    }
+    public List<Publisher> getPublishers() { return publishers; }
+    public void setPublishers(List<Publisher> publishers) { this.publishers = publishers; }
 
-    public int getPlaytime() {
-        return playtime;
-    }
+    public List<Screenshot> getShortScreenshots() { return shortScreenshots; }
+    public void setShortScreenshots(List<Screenshot> shortScreenshots) { this.shortScreenshots = shortScreenshots; }
 
-    public void setPlaytime(int playtime) {
-        this.playtime = playtime;
-    }
+    public List<Tag> getTags() { return tags; }
+    public void setTags(List<Tag> tags) { this.tags = tags; }
 
-    public int getAchievementsCount() {
-        return achievementsCount;
-    }
-
-    public void setAchievementsCount(int achievementsCount) {
-        this.achievementsCount = achievementsCount;
-    }
-
-    public String getRedditUrl() {
-        return redditUrl;
-    }
-
-    public void setRedditUrl(String redditUrl) {
-        this.redditUrl = redditUrl;
-    }
-
-    public String getRedditName() {
-        return redditName;
-    }
-
-    public void setRedditName(String redditName) {
-        this.redditName = redditName;
-    }
-
-    public String getRedditDescription() {
-        return redditDescription;
-    }
-
-    public void setRedditDescription(String redditDescription) {
-        this.redditDescription = redditDescription;
-    }
-
-    public List<Platform> getPlatforms() {
-        return platforms;
-    }
-
-    public void setPlatforms(List<Platform> platforms) {
-        this.platforms = platforms;
-    }
-
-    public List<Genre> getGenres() {
-        return genres;
-    }
-
-    public void setGenres(List<Genre> genres) {
-        this.genres = genres;
-    }
-
-    public List<Store> getStores() {
-        return stores;
-    }
-
-    public void setStores(List<Store> stores) {
-        this.stores = stores;
-    }
-
-    public List<Developer> getDevelopers() {
-        return developers;
-    }
-
-    public void setDevelopers(List<Developer> developers) {
-        this.developers = developers;
-    }
-
-    public List<Publisher> getPublishers() {
-        return publishers;
-    }
-
-    public void setPublishers(List<Publisher> publishers) {
-        this.publishers = publishers;
-    }
-
-    public List<Screenshot> getShortScreenshots() {
-        return shortScreenshots;
-    }
-
-    public void setShortScreenshots(List<Screenshot> shortScreenshots) {
-        this.shortScreenshots = shortScreenshots;
-    }
-
-    public List<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
-    }
-
-    public EsrbRating getEsrbRating() {
-        return esrbRating;
-    }
-
-    public void setEsrbRating(EsrbRating esrbRating) {
-        this.esrbRating = esrbRating;
-    }
+    public EsrbRating getEsrbRating() { return esrbRating; }
+    public void setEsrbRating(EsrbRating esrbRating) { this.esrbRating = esrbRating; }
 
     /**
-     * MÉTODO ATUALIZADO: Converte GameRawg para Game (modelo do Room)
-     * Agora usa a descrição completa da API
+     * MÉTODO CORRIGIDO: Converte GameRawg para Game (modelo do Room)
+     * CORREÇÃO: Melhor priorização de developer/publisher
      */
     public Game toGame() {
         // Processa plataformas
         List<String> platformNames = new ArrayList<>();
         if (platforms != null) {
             for (Platform platform : platforms) {
-                if (platform != null && platform.getName() != null) {
-                    platformNames.add(platform.getName());
+                if (platform != null && platform.getName() != null && !platform.getName().trim().isEmpty()) {
+                    platformNames.add(platform.getName().trim());
                 }
             }
         }
@@ -432,8 +281,8 @@ public class GameRawg {
         List<String> genreNames = new ArrayList<>();
         if (genres != null) {
             for (Genre genre : genres) {
-                if (genre != null && genre.getName() != null) {
-                    genreNames.add(genre.getName());
+                if (genre != null && genre.getName() != null && !genre.getName().trim().isEmpty()) {
+                    genreNames.add(genre.getName().trim());
                 }
             }
         }
@@ -442,8 +291,8 @@ public class GameRawg {
         List<String> storeNames = new ArrayList<>();
         if (stores != null) {
             for (Store store : stores) {
-                if (store != null && store.getName() != null) {
-                    storeNames.add(store.getName());
+                if (store != null && store.getName() != null && !store.getName().trim().isEmpty()) {
+                    storeNames.add(store.getName().trim());
                 }
             }
         }
@@ -452,35 +301,24 @@ public class GameRawg {
         List<String> screenshotUrls = new ArrayList<>();
         if (shortScreenshots != null) {
             for (Screenshot screenshot : shortScreenshots) {
-                if (screenshot != null && screenshot.getImage() != null) {
-                    screenshotUrls.add(screenshot.getImage());
+                if (screenshot != null && screenshot.getImage() != null && !screenshot.getImage().trim().isEmpty()) {
+                    screenshotUrls.add(screenshot.getImage().trim());
                 }
             }
         }
 
-        // Processa developer (studio) - Prioriza publisher se disponível
-        String studio = "Unknown Developer";
-        if (publishers != null && !publishers.isEmpty()) {
-            Publisher firstPublisher = publishers.get(0);
-            if (firstPublisher != null && firstPublisher.getName() != null) {
-                studio = firstPublisher.getName();
-            }
-        } else if (developers != null && !developers.isEmpty()) {
-            Developer firstDev = developers.get(0);
-            if (firstDev != null && firstDev.getName() != null) {
-                studio = firstDev.getName();
-            }
-        }
+        // CORREÇÃO PRINCIPAL: Melhor processamento do developer/studio
+        String studio = determineStudio();
 
-        // PRINCIPAL MUDANÇA: Usa a descrição completa
+        // Usa a descrição completa
         String processedDescription = getBestDescription();
 
-        // Limita tamanho se necessário (para evitar problemas de performance)
+        // Limita tamanho se necessário
         if (processedDescription.length() > 2000) {
             processedDescription = processedDescription.substring(0, 1997) + "...";
         }
 
-        // BONUS: Adiciona informações extras se a descrição for muito curta
+        // Adiciona informações extras se a descrição for muito curta
         if (processedDescription.length() < 100) {
             StringBuilder enhancedDesc = new StringBuilder(processedDescription);
 
@@ -502,15 +340,87 @@ public class GameRawg {
         // Cria Game para Room
         return new Game(
                 String.valueOf(id),
-                name != null ? name : "Unknown Game",
+                name != null ? name.trim() : "Unknown Game",
                 processedDescription,
                 studio,
                 platformNames,
                 genreNames,
                 storeNames,
                 rating,
-                backgroundImage != null ? backgroundImage : "",
+                backgroundImage != null ? backgroundImage.trim() : "",
                 screenshotUrls
         );
+    }
+
+    /**
+     * NOVO MÉTODO: Determina o melhor studio/developer disponível
+     */
+    private String determineStudio() {
+        // Prioridade 1: Developers (geralmente mais preciso)
+        if (developers != null && !developers.isEmpty()) {
+            for (Developer dev : developers) {
+                if (dev != null && dev.getName() != null && !dev.getName().trim().isEmpty()) {
+                    String devName = dev.getName().trim();
+                    if (!isGenericDeveloperName(devName)) {
+                        return devName;
+                    }
+                }
+            }
+        }
+
+        // Prioridade 2: Publishers (se developers não disponível ou genérico)
+        if (publishers != null && !publishers.isEmpty()) {
+            for (Publisher pub : publishers) {
+                if (pub != null && pub.getName() != null && !pub.getName().trim().isEmpty()) {
+                    String pubName = pub.getName().trim();
+                    if (!isGenericDeveloperName(pubName)) {
+                        return pubName;
+                    }
+                }
+            }
+        }
+
+        // Prioridade 3: Primeiro developer mesmo que genérico
+        if (developers != null && !developers.isEmpty()) {
+            Developer firstDev = developers.get(0);
+            if (firstDev != null && firstDev.getName() != null && !firstDev.getName().trim().isEmpty()) {
+                return firstDev.getName().trim();
+            }
+        }
+
+        // Prioridade 4: Primeiro publisher mesmo que genérico
+        if (publishers != null && !publishers.isEmpty()) {
+            Publisher firstPub = publishers.get(0);
+            if (firstPub != null && firstPub.getName() != null && !firstPub.getName().trim().isEmpty()) {
+                return firstPub.getName().trim();
+            }
+        }
+
+        // Fallback: Unknown Developer
+        return "Unknown Developer";
+    }
+
+    /**
+     * NOVO MÉTODO: Verifica se o nome do developer é genérico demais
+     */
+    private boolean isGenericDeveloperName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return true;
+        }
+
+        String lowerName = name.toLowerCase().trim();
+
+        return lowerName.equals("unknown") ||
+                lowerName.equals("unknown developer") ||
+                lowerName.equals("unknown publisher") ||
+                lowerName.equals("n/a") ||
+                lowerName.equals("na") ||
+                lowerName.equals("tbd") ||
+                lowerName.equals("to be determined") ||
+                lowerName.equals("various") ||
+                lowerName.equals("multiple") ||
+                lowerName.equals("independent") ||
+                lowerName.equals("indie") ||
+                lowerName.length() < 2;
     }
 }

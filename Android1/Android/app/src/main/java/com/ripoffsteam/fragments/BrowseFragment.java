@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,12 +25,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Fragmento para navegar e filtrar jogos com paginação
- */
 public class BrowseFragment extends Fragment {
+
     private RecyclerView gamesRecyclerView;
     private Spinner genreSpinner, platformSpinner, storeSpinner;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -40,16 +38,15 @@ public class BrowseFragment extends Fragment {
     private AppDatabase db;
     private ApiManager apiManager;
 
-    // Controle de paginação
     private int currentPage = 1;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private List<Game> allGames = new ArrayList<>();
 
-    // Filtros atuais
     private String currentGenre = null;
     private String currentPlatform = null;
     private String currentStore = null;
+    private Random random = new Random();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,7 +54,6 @@ public class BrowseFragment extends Fragment {
         db = AppDatabase.getInstance(requireContext());
         gameDao = db.gameDao();
 
-        // Obtém ApiManager da MainActivity
         if (getActivity() instanceof MainActivity) {
             apiManager = ((MainActivity) getActivity()).getApiManager();
         }
@@ -78,9 +74,6 @@ public class BrowseFragment extends Fragment {
         return view;
     }
 
-    /**
-     * Inicializa as views do layout
-     */
     private void initializeViews(View view) {
         gamesRecyclerView = view.findViewById(R.id.games_recycler);
         genreSpinner = view.findViewById(R.id.genre_spinner);
@@ -89,9 +82,6 @@ public class BrowseFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
     }
 
-    /**
-     * Configura o RecyclerView com scroll infinito
-     */
     private void setupRecyclerView() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         gamesRecyclerView.setLayoutManager(layoutManager);
@@ -103,7 +93,6 @@ public class BrowseFragment extends Fragment {
         });
         gamesRecyclerView.setAdapter(gameAdapter);
 
-        // Adiciona scroll listener para paginação
         gamesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -123,23 +112,218 @@ public class BrowseFragment extends Fragment {
         });
     }
 
-    /**
-     * Configura o SwipeRefreshLayout
-     */
     private void setupSwipeRefresh() {
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            refreshGames();
+            refreshWithDifferentGames();
         });
+
         swipeRefreshLayout.setColorSchemeResources(
                 R.color.purple_500,
                 R.color.purple_700,
                 R.color.teal_200
         );
+
+        swipeRefreshLayout.setDistanceToTriggerSync(300);
+        swipeRefreshLayout.setProgressViewOffset(false, 0, 100);
     }
 
-    /**
-     * Carrega jogos e configura os spinners de filtro
-     */
+    private void refreshWithDifferentGames() {
+        if (apiManager == null) {
+            refreshWithLocalGames();
+            return;
+        }
+
+        loadRandomPageRefresh();
+    }
+
+    private void loadRandomPageRefresh() {
+        int randomPage = random.nextInt(50) + 1;
+
+        apiManager.loadGames(randomPage, 20, null, null, new ApiManager.GameLoadCallback() {
+            @Override
+            public void onSuccess(List<Game> games) {
+                requireActivity().runOnUiThread(() -> {
+                    if (games != null && !games.isEmpty()) {
+                        enrichGamesWithDeveloperInfo(games, enrichedGames -> {
+                            handleRefreshSuccess(enrichedGames);
+                        });
+                    } else {
+                        handleRefreshSuccess(games);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                requireActivity().runOnUiThread(() -> {
+                    handleRefreshError();
+                });
+            }
+        });
+    }
+
+    private void enrichGamesWithDeveloperInfo(List<Game> games, GameEnrichmentCallback callback) {
+        if (games == null || games.isEmpty() || apiManager == null) {
+            callback.onComplete(games);
+            return;
+        }
+
+        List<Game> enrichedGames = new ArrayList<>(games);
+        AtomicInteger completedRequests = new AtomicInteger(0);
+        int totalGames = games.size();
+        int maxConcurrentRequests = Math.min(5, totalGames);
+
+        for (int i = 0; i < maxConcurrentRequests; i++) {
+            final int index = i;
+            final Game game = games.get(index);
+
+            if (needsDeveloperInfo(game)) {
+                enrichSingleGame(game, index, enrichedGames, completedRequests, totalGames, callback);
+            } else {
+                if (completedRequests.incrementAndGet() >= totalGames) {
+                    callback.onComplete(enrichedGames);
+                }
+            }
+        }
+
+        for (int i = maxConcurrentRequests; i < totalGames; i++) {
+            if (completedRequests.incrementAndGet() >= totalGames) {
+                callback.onComplete(enrichedGames);
+                break;
+            }
+        }
+    }
+
+    private void enrichSingleGame(Game game, int index, List<Game> enrichedGames,
+                                  AtomicInteger completedRequests, int totalGames,
+                                  GameEnrichmentCallback callback) {
+        try {
+            int gameId = Integer.parseInt(game.getId());
+
+            apiManager.getGameDetails(gameId, new ApiManager.GameLoadCallback() {
+                @Override
+                public void onSuccess(List<Game> detailedGames) {
+                    if (!detailedGames.isEmpty()) {
+                        Game detailedGame = detailedGames.get(0);
+
+                        Game updatedGame = new Game(
+                                game.getId(),
+                                game.getName(),
+                                detailedGame.getDescription().isEmpty() ? game.getDescription() : detailedGame.getDescription(),
+                                detailedGame.getStudio(),
+                                game.getPlatforms(),
+                                game.getGenres(),
+                                game.getStores(),
+                                game.getRating(),
+                                game.getImageUrl(),
+                                game.getScreenshots()
+                        );
+
+                        synchronized (enrichedGames) {
+                            if (index < enrichedGames.size()) {
+                                enrichedGames.set(index, updatedGame);
+                            }
+                        }
+
+                        saveGameToDao(updatedGame);
+                    }
+
+                    if (completedRequests.incrementAndGet() >= totalGames) {
+                        requireActivity().runOnUiThread(() -> {
+                            callback.onComplete(enrichedGames);
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    if (completedRequests.incrementAndGet() >= totalGames) {
+                        requireActivity().runOnUiThread(() -> {
+                            callback.onComplete(enrichedGames);
+                        });
+                    }
+                }
+            });
+        } catch (NumberFormatException e) {
+            if (completedRequests.incrementAndGet() >= totalGames) {
+                requireActivity().runOnUiThread(() -> {
+                    callback.onComplete(enrichedGames);
+                });
+            }
+        }
+    }
+
+    private boolean needsDeveloperInfo(Game game) {
+        String studio = game.getStudio();
+        return studio == null ||
+                studio.trim().isEmpty() ||
+                studio.equals("Unknown Developer") ||
+                studio.toLowerCase().contains("unknown");
+    }
+
+    private void saveGameToDao(Game game) {
+        new Thread(() -> {
+            try {
+                db.gameDao().update(game);
+            } catch (Exception e) {
+                // Silent fail
+            }
+        }).start();
+    }
+
+    private interface GameEnrichmentCallback {
+        void onComplete(List<Game> enrichedGames);
+    }
+
+    private void refreshWithLocalGames() {
+        new Thread(() -> {
+            try {
+                List<Game> allLocalGames = gameDao.getAll();
+
+                if (!allLocalGames.isEmpty()) {
+                    List<Game> shuffledGames = new ArrayList<>(allLocalGames);
+                    java.util.Collections.shuffle(shuffledGames, random);
+
+                    int sampleSize = Math.min(20, shuffledGames.size());
+                    List<Game> sampleGames = shuffledGames.subList(0, sampleSize);
+
+                    requireActivity().runOnUiThread(() -> {
+                        handleRefreshSuccess(sampleGames);
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() -> {
+                        handleRefreshError();
+                    });
+                }
+
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() -> {
+                    handleRefreshError();
+                });
+            }
+        }).start();
+    }
+
+    private void handleRefreshSuccess(List<Game> newGames) {
+        swipeRefreshLayout.setRefreshing(false);
+
+        if (newGames != null && !newGames.isEmpty()) {
+            allGames.clear();
+            allGames.addAll(newGames);
+            gameAdapter.notifyDataSetChanged();
+
+            currentPage = 1;
+            isLastPage = false;
+
+            gamesRecyclerView.smoothScrollToPosition(0);
+        }
+    }
+
+    private void handleRefreshError() {
+        swipeRefreshLayout.setRefreshing(false);
+        refreshWithLocalGames();
+    }
+
     private void loadGamesAndSetupSpinners() {
         new Thread(() -> {
             List<Game> games = gameDao.getAll();
@@ -173,9 +357,6 @@ public class BrowseFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * Configura um spinner com a lista fornecida
-     */
     private void setupSpinner(Spinner spinner, List<String> items) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
@@ -186,9 +367,6 @@ public class BrowseFragment extends Fragment {
         spinner.setAdapter(adapter);
     }
 
-    /**
-     * Configura os listeners dos spinners
-     */
     private void setupSpinnerListeners() {
         AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
             @Override
@@ -206,9 +384,6 @@ public class BrowseFragment extends Fragment {
         storeSpinner.setOnItemSelectedListener(listener);
     }
 
-    /**
-     * Atualiza os filtros atuais baseado nas seleções dos spinners
-     */
     private void updateCurrentFilters() {
         String selectedGenre = genreSpinner.getSelectedItem().toString();
         String selectedPlatform = platformSpinner.getSelectedItem().toString();
@@ -219,9 +394,6 @@ public class BrowseFragment extends Fragment {
         currentStore = selectedStore.startsWith("Todas") ? null : selectedStore;
     }
 
-    /**
-     * Reseta a paginação e aplica filtros
-     */
     private void resetAndApplyFilters() {
         currentPage = 1;
         isLastPage = false;
@@ -231,14 +403,10 @@ public class BrowseFragment extends Fragment {
         applyFilters();
     }
 
-    /**
-     * Aplica os filtros selecionados
-     */
     private void applyFilters() {
         new Thread(() -> {
             List<Game> filteredGames = gameDao.getFilteredGames(currentGenre, currentPlatform);
 
-            // Aplica filtro de loja se necessário (com verificação de API level)
             if (currentStore != null) {
                 List<Game> storeFilteredGames = new ArrayList<>();
                 for (Game game : filteredGames) {
@@ -258,9 +426,6 @@ public class BrowseFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * Carrega mais jogos para paginação
-     */
     private void loadMoreGames() {
         if (isLoading || apiManager == null) return;
 
@@ -288,56 +453,12 @@ public class BrowseFragment extends Fragment {
                     public void onError(String error) {
                         requireActivity().runOnUiThread(() -> {
                             isLoading = false;
-                            currentPage--; // Reverte a página em caso de erro
-                            Toast.makeText(getContext(),
-                                    "Erro ao carregar mais jogos: " + error,
-                                    Toast.LENGTH_SHORT).show();
+                            currentPage--;
                         });
                     }
                 });
     }
 
-    /**
-     * Atualiza a lista de jogos (pull-to-refresh)
-     */
-    private void refreshGames() {
-        if (apiManager == null) {
-            swipeRefreshLayout.setRefreshing(false);
-            return;
-        }
-
-        apiManager.forceRefresh(new ApiManager.GameLoadCallback() {
-            @Override
-            public void onSuccess(List<Game> games) {
-                requireActivity().runOnUiThread(() -> {
-                    swipeRefreshLayout.setRefreshing(false);
-                    currentPage = 1;
-                    isLastPage = false;
-
-                    // Recarrega spinners e aplicar filtros
-                    loadGamesAndSetupSpinners();
-
-                    Toast.makeText(getContext(),
-                            "Lista atualizada",
-                            Toast.LENGTH_SHORT).show();
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                requireActivity().runOnUiThread(() -> {
-                    swipeRefreshLayout.setRefreshing(false);
-                    Toast.makeText(getContext(),
-                            "Erro ao atualizar: " + error,
-                            Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
-
-    /**
-     * Verifica se há filtros vindos de outras activities
-     */
     private void checkForIncomingFilters() {
         Bundle args = getArguments();
         if (args != null) {
@@ -350,11 +471,7 @@ public class BrowseFragment extends Fragment {
         }
     }
 
-    /**
-     * Aplica filtro vindo de outra activity
-     */
     private void applyIncomingFilter(String filterType, String filterValue) {
-        // Aguarda os spinners serem configurados
         gamesRecyclerView.post(() -> {
             switch (filterType) {
                 case "genre":
@@ -370,9 +487,6 @@ public class BrowseFragment extends Fragment {
         });
     }
 
-    /**
-     * Define a seleção de um spinner
-     */
     private void setSpinnerSelection(Spinner spinner, String value) {
         @SuppressWarnings("unchecked")
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
@@ -381,6 +495,14 @@ public class BrowseFragment extends Fragment {
             if (position >= 0) {
                 spinner.setSelection(position);
             }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 }
