@@ -127,7 +127,6 @@ public class DaoPopulator {
         apiManager.loadGames(1, 40, null, null, new ApiManager.GameLoadCallback() {
             @Override
             public void onSuccess(List<Game> games) {
-                Log.d(TAG, "✅ População incremental: " + games.size() + " novos jogos adicionados");
                 callback.onPopulationComplete(games.size());
             }
 

@@ -243,16 +243,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onPopulationComplete(int newGames) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "🔄 Atualização incremental completa: " + newGames + " novos jogos");
-                    if (newGames > 0) {
-                        Toast.makeText(MainActivity.this,
-                                "📈 " + newGames + " novos jogos adicionados",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(MainActivity.this,
-                                "✅ Base de dados atualizada",
-                                Toast.LENGTH_SHORT).show();
-                    }
                     isLoadingGames = false;
                 });
             }

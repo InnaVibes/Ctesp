@@ -129,8 +129,6 @@ public class HomeFragment extends Fragment implements ShakeDetector.OnShakeListe
                 newReleasesAdapter.notifyDataSetChanged();
                 popularAdapter.notifyDataSetChanged();
 
-                // Implementa "Descoberta de Hoje" (bonificação)
-                setupDailyDiscovery(games);
             });
         });
     }

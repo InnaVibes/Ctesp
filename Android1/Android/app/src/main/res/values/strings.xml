@@ -25,9 +25,10 @@
     <string name="action_settings">Settings</string>
     <string name="share_game">Share this game</string>
 
-    <!-- USER INFO -->
+    <!-- USER INFO - Para Nav Header -->
     <string name="default_username">Game Explorer</string>
-    <string name="user_email">user@example.com</string>
+    <string name="default_user_email">user@ripoffsteam.com</string>
+    <string name="user_email">user@ripoffsteam.com</string>
 
     <!-- PREFERENCE CATEGORIES -->
     <string name="pref_category_notifications">Notifications</string>
@@ -46,12 +47,17 @@
 
     <!-- USER PREFERENCES -->
     <string name="pref_username_key">username_enabled</string>
-    <string name="pref_username_title">Show Username</string>
-    <string name="pref_username_summary">Display username in navigation drawer</string>
+    <string name="pref_username_title">Show Custom Profile</string>
+    <string name="pref_username_summary">Display custom username and email in navigation drawer</string>
 
     <string name="pref_set_username_key">set_username</string>
     <string name="pref_set_username_title">Username</string>
     <string name="pref_set_username_summary">Enter your display name</string>
+
+    <!-- NOVO: Email Preferences -->
+    <string name="pref_set_email_key">set_email</string>
+    <string name="pref_set_email_title">Email</string>
+    <string name="pref_set_email_summary">Enter your email address (optional)</string>
 
     <!-- APPEARANCE PREFERENCES -->
     <string name="pref_theme_key">app_theme</string>
@@ -79,12 +85,18 @@
 
     <!-- TOAST MESSAGES -->
     <string name="username_updated">Username updated: %1$s</string>
+    <string name="email_updated">Email updated: %1$s</string>
     <string name="theme_changed">Theme changed</string>
     <string name="notifications_enabled">Notifications enabled</string>
     <string name="notifications_disabled">Notifications disabled</string>
     <string name="language_changed">Language changed to: %1$s</string>
     <string name="restart_required">App restart required for some changes</string>
+    <string name="nav_header_updated">Navigation header updated</string>
+    <string name="email_generated">Email generated: %1$s</string>
+    <string name="invalid_email">Please enter a valid email address</string>
+    <string name="username_too_short">Username must be at least 2 characters</string>
 
+    <!-- ACHIEVEMENTS -->
     <string name="achievements">Conquistas</string>
     <string name="achievements_unlocked">Conquistas Desbloqueadas</string>
     <string name="games_viewed">Jogos Visualizados</string>

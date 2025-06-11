@@ -11,6 +11,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.ripoffsteam.DataBase.AppDatabase;
 import com.ripoffsteam.fragments.WishlistFragment;
 import com.ripoffsteam.modelos.Game;
@@ -307,9 +309,17 @@ public class GameDetailActivity extends AppCompatActivity {
                 }
             }
 
-            // Define a imagem do jogo (usando placeholder por agora)
             if (gameImage != null) {
-                gameImage.setImageResource(R.drawable.ic_game_placeholder);
+                String imageUrl = game.getImageUrl();
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    Glide.with(this)
+                            .load(imageUrl)
+                            .placeholder(R.drawable.ic_game_placeholder)
+                            .error(R.drawable.ic_game_placeholder)
+                            .into(gameImage);
+                } else {
+                    gameImage.setImageResource(R.drawable.ic_game_placeholder);
+                }
             }
 
             // Verifica se o jogo está na lista de jogos desejados e atualiza o botão

@@ -14,22 +14,24 @@
         android:src="@drawable/ic_game_controller"
         android:contentDescription="App icon"/>
 
+    <!-- TÍTULO: Nome do usuário (ATUALIZADO DINAMICAMENTE) -->
     <TextView
+        android:id="@+id/nav_header_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/app_name"
+        android:text="@string/default_username"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@android:color/white"
         android:textStyle="bold"/>
 
-    <!-- CORRIGIDO: Mostra o email por padrão, será atualizado dinamicamente -->
+    <!-- SUBTÍTULO: Email do usuário (GERADO AUTOMATICAMENTE) -->
     <TextView
         android:id="@+id/nav_header_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="@string/user_email"
+        android:text="user@ripoffsteam.com"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:alpha="0.8"/>

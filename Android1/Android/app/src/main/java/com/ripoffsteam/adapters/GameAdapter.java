@@ -12,6 +12,7 @@ import com.ripoffsteam.modelos.Game;
 import java.util.List;
 import android.content.Intent;
 import com.ripoffsteam.GameDetailActivity;
+import com.bumptech.glide.Glide;
 
 // Adaptador para a RecyclerView que mostra uma lista de jogos
 public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder> {
@@ -44,13 +45,23 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
     @Override
     public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
         Game game = games.get(position);
+
         // Define os textos nas TextViews
         holder.gameName.setText(game.getName());
         holder.gameStudio.setText(game.getStudio());
         holder.gameRating.setText(String.format("Rating: %.1f/5", game.getRating()));
 
-        // Usa uma imagem placeholder para todos os jogos
-        holder.gameImage.setImageResource(R.drawable.ic_game_placeholder);
+        // NOVA LINHA: Carrega imagem real ou placeholder
+        String imageUrl = game.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(holder.gameImage.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_game_placeholder)
+                    .error(R.drawable.ic_game_placeholder)
+                    .into(holder.gameImage);
+        } else {
+            holder.gameImage.setImageResource(R.drawable.ic_game_placeholder);
+        }
 
         // Define o clique no item para abrir a atividade de detalhe do jogo
         holder.itemView.setOnClickListener(v -> {
