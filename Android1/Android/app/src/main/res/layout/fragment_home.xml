@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:text="Hello, Gamer!"
             android:textSize="24sp"
-            android:textColor="@color/black"/>
+            android:textColor="?attr/colorOnSurface"/>
 
         <!-- Recommended Section -->
         <TextView
@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             android:text="@string/recommended"
             android:textSize="18sp"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="16dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -42,6 +43,7 @@
             android:layout_height="wrap_content"
             android:text="@string/new_releases"
             android:textSize="18sp"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="24dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -58,6 +60,7 @@
             android:layout_height="wrap_content"
             android:text="@string/most_popular"
             android:textSize="18sp"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginTop="24dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -76,6 +79,7 @@
             android:layout_marginTop="24dp"
             android:gravity="center"
             android:text="@string/shake_for_surprise"
-            android:textSize="14sp"/>
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"/>
     </LinearLayout>
 </ScrollView>

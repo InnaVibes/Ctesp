@@ -62,8 +62,8 @@
     <color name="ripple_dark">#33FFFFFF</color>
 
     <!-- Status Bar Colors -->
-    <color name="status_bar_light">@color/purple_700</color>
-    <color name="status_bar_dark">@color/purple_700</color>
+    <color name="status_bar_light">#512DA8</color>
+    <color name="status_bar_dark">#512DA8</color>
 
     <!-- Spinner and Dropdown Colors -->
     <color name="spinner_background_light">#FFFFFF</color>
@@ -83,6 +83,16 @@
     <!-- Achievement Colors -->
     <color name="achievement_unlocked">#4CAF50</color>
     <color name="achievement_locked">#9E9E9E</color>
+
+    <!-- Text selection colors -->
+    <color name="text_selection_light">#40673AB7</color>
+    <color name="text_selection_dark">#40CE93D8</color>
+
+    <!-- Additional theme-aware colors -->
+    <color name="divider_light">#E0E0E0</color>
+    <color name="divider_dark">#1F1F1F</color>
+    <color name="outline_light">#79747E</color>
+    <color name="outline_dark">#938F99</color>
 
     <!-- Legacy colors for compatibility -->
     <color name="gray">#808080</color>

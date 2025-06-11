@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"/>
 
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                android:textColor="@color/purple_700"/>
+                android:textColor="?attr/colorPrimary"/>
 
             <TextView
                 android:id="@+id/game_rating"
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                android:textColor="@color/black"/>
+                android:textColor="?android:attr/textColorSecondary"/>
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

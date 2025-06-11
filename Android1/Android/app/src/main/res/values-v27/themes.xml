@@ -1,7 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Dark Theme for Night Mode -->
-    <style name="Theme.RipoffSteam" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Theme.RipoffSteam.Dark" parent="Theme.MaterialComponents.NoActionBar">
         <!-- Primary Colors -->
         <item name="colorPrimary">@color/purple_200</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -26,7 +26,7 @@
         <item name="android:navigationBarColor">@color/surface_dark</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
 
-        <!-- Text Colors - CRITICAL FOR DARK THEME -->
+        <!-- Text Colors -->
         <item name="android:textColorPrimary">@color/text_primary_dark</item>
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
 
@@ -38,38 +38,5 @@
         <!-- Popup Colors -->
         <item name="popupMenuStyle">@style/PopupMenuStyle.Dark</item>
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle.Dark</item>
-
-        <!-- Additional Dark Theme Properties -->
-        <item name="colorError">#CF6679</item>
-        <item name="colorOnError">@color/black</item>
-
-        <!-- CardView background for dark theme -->
-        <item name="cardViewStyle">@style/CardViewDarkStyle</item>
-
-        <!-- Spinner Colors for Dark Theme -->
-        <item name="colorBackgroundFloating">@color/surface_dark</item>
     </style>
-
-    <!-- Dark CardView Style -->
-    <style name="CardViewDarkStyle" parent="Widget.MaterialComponents.CardView">
-        <item name="cardBackgroundColor">@color/surface_dark</item>
-        <item name="cardElevation">4dp</item>
-    </style>
-
-    <!-- Popup Menu Styles for Dark Theme -->
-    <style name="PopupMenuStyle.Dark" parent="Widget.MaterialComponents.PopupMenu">
-        <item name="android:popupBackground">@color/menu_background_dark</item>
-        <item name="android:textColor">@color/menu_text_dark</item>
-        <item name="android:textColorPrimary">@color/menu_text_dark</item>
-        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
-    </style>
-
-    <!-- Overflow Menu Styles for Dark Theme -->
-    <style name="OverflowMenuStyle.Dark" parent="Widget.MaterialComponents.PopupMenu.Overflow">
-        <item name="android:popupBackground">@color/menu_background_dark</item>
-        <item name="android:textColor">@color/menu_text_dark</item>
-        <item name="android:textColorPrimary">@color/menu_text_dark</item>
-        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
-    </style>
-
 </resources>

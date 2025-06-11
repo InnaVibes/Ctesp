@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@android:color/black"/>
+                    android:textColor="?attr/colorOnSurface"/>
 
                 <TextView
                     android:id="@+id/game_studio"
@@ -51,7 +51,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:textSize="16sp"
-                    android:textColor="@color/purple_700"/>
+                    android:textColor="?attr/colorPrimary"/>
 
                 <RatingBar
                     android:id="@+id/game_rating_bar"
@@ -70,6 +70,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/platforms"
                 android:textSize="18sp"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="24dp"/>
 
             <LinearLayout
@@ -88,6 +89,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/genres"
                 android:textSize="18sp"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="16dp"/>
 
             <LinearLayout
@@ -106,6 +108,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/description"
                 android:textSize="18sp"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginTop="16dp"/>
 
             <TextView
@@ -114,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textSize="14sp"
-                android:textColor="@android:color/black"/>
+                android:textColor="?attr/colorOnSurface"/>
 
             <!-- Wishlist Button -->
             <Button

@@ -38,6 +38,10 @@
         <!-- Popup Colors -->
         <item name="popupMenuStyle">@style/PopupMenuStyle.Light</item>
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle.Light</item>
+
+        <!-- Error Colors -->
+        <item name="colorError">#B00020</item>
+        <item name="colorOnError">@color/white</item>
     </style>
 
     <!-- Light Theme -->
