@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Wishlist Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/wishlist"
+        android:textSize="24sp"
+        android:textColor="@color/purple_700"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Empty State (visible when wishlist is empty) -->
+    <LinearLayout
+        android:id="@+id/empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_empty_wishlist"
+            android:contentDescription="@string/empty_wishlist"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/empty_wishlist_message"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+
+    <!-- Wishlist RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/wishlist_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/game_item"/>
+</LinearLayout>
