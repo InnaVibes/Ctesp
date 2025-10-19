@@ -3,22 +3,24 @@ const User = require('../models/User');
 const rawgService = require('../services/rawgService');
 const cheapSharkService = require('../services/cheapSharkService');
 
+// Função auxiliar para verificar conteúdo explícito
+const canViewExplicit = (user) => {
+  if (!user) return false;
+  return user.isAdult && user.settings.showExplicitContent;
+};
+
 // @desc    Obter homepage com jogos em destaque
 // @route   GET /api/games/homepage
-// @access  Public
+// @access  Public (com autenticação opcional)
 exports.getHomepage = async (req, res) => {
   try {
-    const userId = req.user ? req.user.id : null;
     let user = null;
-
-    if (userId) {
-      user = await User.findById(userId);
+    if (req.user) {
+      user = await User.findById(req.user.id);
     }
 
-    // Construir query baseada nas permissões do utilizador
     const query = { isActive: true };
-    
-    if (!user || !user.isAdult || !user.settings.showExplicitContent) {
+    if (!canViewExplicit(user)) {
       query.isExplicit = false;
     }
 
@@ -49,6 +51,7 @@ exports.getHomepage = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro homepage:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao obter homepage',
@@ -63,11 +66,10 @@ exports.getHomepage = async (req, res) => {
 exports.searchGames = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = '-released' } = req.query;
-    const userId = req.user ? req.user.id : null;
     let user = null;
-
-    if (userId) {
-      user = await User.findById(userId);
+    
+    if (req.user) {
+      user = await User.findById(req.user.id);
     }
 
     const query = { isActive: true };
@@ -76,7 +78,7 @@ exports.searchGames = async (req, res) => {
       query.$text = { $search: search };
     }
 
-    if (!user || !user.isAdult || !user.settings.showExplicitContent) {
+    if (!canViewExplicit(user)) {
       query.isExplicit = false;
     }
 
@@ -97,6 +99,7 @@ exports.searchGames = async (req, res) => {
       data: games
     });
   } catch (error) {
+    console.error('Erro search:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao pesquisar jogos',
@@ -110,65 +113,99 @@ exports.searchGames = async (req, res) => {
 // @access  Public
 exports.getGameDetails = async (req, res) => {
   try {
-    const { gameId } = req.params;
-    const userId = req.user ? req.user.id : null;
+    const gameId = parseInt(req.params.gameId);
     let user = null;
 
-    if (userId) {
-      user = await User.findById(userId);
+    if (req.user) {
+      user = await User.findById(req.user.id);
     }
 
-    let game = await Game.findOne({ rawgId: parseInt(gameId), isActive: true });
+    // Procurar na BD
+    let game = await Game.findOne({ rawgId: gameId, isActive: true });
 
     // Verificar permissões de conteúdo explícito
-    if (game && game.isExplicit) {
-      if (!user || !user.isAdult || !user.settings.showExplicitContent) {
-        return res.status(403).json({
-          success: false,
-          message: 'Conteúdo explícito. Ative nas definições se for maior de 18 anos.'
-        });
-      }
+    if (game && game.isExplicit && !canViewExplicit(user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Conteúdo explícito. Ative nas definições se for maior de 18 anos.'
+      });
     }
 
     // Se não existe na BD, buscar da RAWG API
     if (!game) {
-      const rawgGame = await rawgService.getGameDetails(gameId);
+      console.log(`Jogo ${gameId} não encontrado na BD. Buscando na RAWG...`);
       
-      if (!rawgGame) {
+      try {
+        const rawgGame = await rawgService.getGameDetails(gameId);
+        
+        if (!rawgGame) {
+          return res.status(404).json({
+            success: false,
+            message: 'Jogo não encontrado'
+          });
+        }
+
+        // Buscar preço da CheapShark
+        let priceData = null;
+        try {
+          priceData = await cheapSharkService.searchGamePrice(rawgGame.name);
+        } catch (err) {
+          console.error('Erro CheapShark:', err.message);
+        }
+
+        const releaseYear = rawgGame.released 
+          ? new Date(rawgGame.released).getFullYear() 
+          : new Date().getFullYear();
+        
+        const price = priceData 
+          ? priceData.price 
+          : cheapSharkService.generateFallbackPrice(rawgGame.rating || 3, releaseYear);
+
+        // Verificar se é conteúdo explícito
+        const isExplicit = rawgGame.esrb_rating && 
+          (rawgGame.esrb_rating.slug === 'mature' || 
+           rawgGame.esrb_rating.slug === 'adults-only');
+
+        // Criar jogo na BD
+        game = await Game.create({
+          rawgId: rawgGame.id,
+          name: rawgGame.name,
+          slug: rawgGame.slug,
+          description: rawgGame.description_raw || rawgGame.description || '',
+          released: rawgGame.released,
+          backgroundImage: rawgGame.background_image,
+          rating: rawgGame.rating,
+          ratingTop: rawgGame.rating_top,
+          ratingsCount: rawgGame.ratings_count,
+          metacritic: rawgGame.metacritic,
+          platforms: rawgGame.platforms || [],
+          genres: rawgGame.genres || [],
+          publishers: rawgGame.publishers || [],
+          developers: rawgGame.developers || [],
+          esrbRating: rawgGame.esrb_rating || null,
+          isExplicit: isExplicit,
+          price: {
+            amount: price,
+            onSale: priceData ? priceData.onSale : false,
+            salePrice: priceData && priceData.onSale ? priceData.price : null
+          }
+        });
+
+        console.log(`Jogo ${game.name} criado com sucesso na BD`);
+      } catch (error) {
+        console.error('Erro ao buscar jogo da RAWG:', error.message);
         return res.status(404).json({
           success: false,
-          message: 'Jogo não encontrado'
+          message: 'Jogo não encontrado e erro ao buscar da API externa'
         });
       }
+    }
 
-      // Buscar preço da CheapShark
-      const priceData = await cheapSharkService.searchGamePrice(rawgGame.name);
-      
-      const releaseYear = rawgGame.released ? new Date(rawgGame.released).getFullYear() : new Date().getFullYear();
-      const price = priceData ? priceData.price : cheapSharkService.generateFallbackPrice(rawgGame.rating || 3, releaseYear);
-
-      // Criar jogo na BD
-      game = await Game.create({
-        rawgId: rawgGame.id,
-        name: rawgGame.name,
-        slug: rawgGame.slug,
-        description: rawgGame.description_raw,
-        released: rawgGame.released,
-        backgroundImage: rawgGame.background_image,
-        rating: rawgGame.rating,
-        ratingTop: rawgGame.rating_top,
-        ratingsCount: rawgGame.ratings_count,
-        metacritic: rawgGame.metacritic,
-        platforms: rawgGame.platforms,
-        genres: rawgGame.genres,
-        publishers: rawgGame.publishers,
-        developers: rawgGame.developers,
-        esrbRating: rawgGame.esrb_rating,
-        price: {
-          amount: price,
-          onSale: priceData ? priceData.onSale : false,
-          salePrice: priceData && priceData.onSale ? priceData.price : null
-        }
+    // Verificar permissões após criação
+    if (game.isExplicit && !canViewExplicit(user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Conteúdo explícito não disponível'
       });
     }
 
@@ -186,6 +223,7 @@ exports.getGameDetails = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro ao obter detalhes:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao obter detalhes do jogo',
@@ -199,12 +237,12 @@ exports.getGameDetails = async (req, res) => {
 // @access  Private
 exports.addGameRating = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const gameId = parseInt(req.params.gameId);
     const { rating, comment } = req.body;
     const user = await User.findById(req.user.id);
 
     // Verificar se o utilizador possui o jogo
-    const ownsGame = user.library.some(item => item.gameId === parseInt(gameId));
+    const ownsGame = user.library.some(item => item.gameId === gameId);
     if (!ownsGame) {
       return res.status(403).json({
         success: false,
@@ -212,7 +250,7 @@ exports.addGameRating = async (req, res) => {
       });
     }
 
-    const game = await Game.findOne({ rawgId: parseInt(gameId) });
+    const game = await Game.findOne({ rawgId: gameId });
     if (!game) {
       return res.status(404).json({
         success: false,
@@ -224,12 +262,10 @@ exports.addGameRating = async (req, res) => {
     const existingRating = game.userRatings.find(r => r.userId.toString() === req.user.id);
     
     if (existingRating) {
-      // Atualizar rating existente
       existingRating.rating = rating;
       existingRating.comment = comment;
       existingRating.createdAt = Date.now();
     } else {
-      // Adicionar novo rating
       game.userRatings.push({
         userId: req.user.id,
         rating,
@@ -249,6 +285,7 @@ exports.addGameRating = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro ao adicionar rating:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao adicionar avaliação',
@@ -262,10 +299,10 @@ exports.addGameRating = async (req, res) => {
 // @access  Public
 exports.getGameRatings = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const gameId = parseInt(req.params.gameId);
     const { page = 1, limit = 10 } = req.query;
 
-    const game = await Game.findOne({ rawgId: parseInt(gameId) })
+    const game = await Game.findOne({ rawgId: gameId })
       .populate('userRatings.userId', 'name');
 
     if (!game) {
@@ -287,6 +324,7 @@ exports.getGameRatings = async (req, res) => {
       data: ratings
     });
   } catch (error) {
+    console.error('Erro ao obter ratings:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao obter avaliações',

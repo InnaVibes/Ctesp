@@ -5,14 +5,14 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
-const connectDB = require('./config/database');
+const connectDB = require('../config/database');
 
 // Importar rotas
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const gameRoutes = require('./routes/gameRoutes');
-const purchaseRoutes = require('./routes/purchaseRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require('../routes/authRoutes');
+const userRoutes = require('../routes/userRoutes');
+const gameRoutes = require('../routes/gameRoutes');
+const purchaseRoutes = require('../routes/purchaseRoutes');
+const adminRoutes = require('../routes/adminRoutes');
 
 // Inicializar Express
 const app = express();
