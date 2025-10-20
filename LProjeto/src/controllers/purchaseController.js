@@ -2,9 +2,6 @@ const User = require('../models/User');
 const Game = require('../models/Game');
 const Transaction = require('../models/Transaction');
 
-// @desc    Processar compra do carrinho
-// @route   POST /api/purchase/checkout
-// @access  Private
 exports.checkoutCart = async (req, res) => {
   try {
     const { paymentMethod } = req.body;
