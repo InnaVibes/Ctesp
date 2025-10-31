@@ -34,8 +34,8 @@ exports.validateRegister = [
     .withMessage('Data de nascimento inválida')
     .custom((value) => {
       const age = Math.floor((new Date() - new Date(value)) / 31557600000);
-      if (age < 13) {
-        throw new Error('Idade mínima: 13 anos');
+      if (age < 8) {
+        throw new Error('Idade mínima: 8 anos');
       }
       return true;
     })
