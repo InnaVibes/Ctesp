@@ -18,12 +18,12 @@ class AchievementsViewController: UIViewController {
     private let emptyLabel = UILabel()
     
     let achievements: [Achievement] = [
-        Achievement(id: 1, title: "Primeiro Passo", description: "Seguir o seu primeiro animal", icon: "star.fill", isUnlocked: true),
+        Achievement(id: 1, title: "Primeiro Passo", description: "Seguir seu primeiro animal", icon: "star.fill", isUnlocked: true),
         Achievement(id: 2, title: "Colecionador", description: "Seguir 5 animais", icon: "heart.circle.fill", isUnlocked: true),
         Achievement(id: 3, title: "Protetor", description: "Seguir 10 animais", icon: "shield.fill", isUnlocked: false),
         Achievement(id: 4, title: "Campeão", description: "Seguir 25 animais", icon: "crown.fill", isUnlocked: false),
-        Achievement(id: 5, title: "Visitante", description: "Visitar a aplicação 5 vezes", icon: "eye.fill", isUnlocked: true),
-        Achievement(id: 6, title: "Explorador", description: "Visitar a aplicação 20 vezes", icon: "map.fill", isUnlocked: false),
+        Achievement(id: 5, title: "Visitante", description: "Visitar a app 5 vezes", icon: "eye.fill", isUnlocked: true),
+        Achievement(id: 6, title: "Explorador", description: "Visitar a app 20 vezes", icon: "map.fill", isUnlocked: false),
     ]
     
     override func viewDidLoad() {
@@ -130,7 +130,7 @@ class AchievementCell: UICollectionViewCell {
     
     private func setupUI() {
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .petFinderNeutral
+        containerView.backgroundColor = .systemGray6
         containerView.layer.cornerRadius = 12
         containerView.clipsToBounds = true
         containerView.layer.borderWidth = 2
@@ -190,15 +190,15 @@ class AchievementCell: UICollectionViewCell {
     
     func configure(with achievement: Achievement) {
         iconView.image = UIImage(systemName: achievement.icon)
-        iconView.tintColor = achievement.isUnlocked ? .petFinderWarning : .systemGray3
+        iconView.tintColor = achievement.isUnlocked ? .systemYellow : .systemGray3
         
         titleLabel.text = achievement.title
         descriptionLabel.text = achievement.description
         
         lockImageView.isHidden = achievement.isUnlocked
         
-        containerView.backgroundColor = achievement.isUnlocked ? .petFinderNeutral : UIColor.systemGray5
-        containerView.layer.borderColor = achievement.isUnlocked ? UIColor.petFinderWarning.cgColor : UIColor.clear.cgColor
+        containerView.backgroundColor = achievement.isUnlocked ? .systemGray6 : .systemGray5
+        containerView.layer.borderColor = achievement.isUnlocked ? UIColor.systemYellow.cgColor : UIColor.clear.cgColor
         
         alpha = achievement.isUnlocked ? 1.0 : 0.6
     }
