@@ -11,7 +11,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let container = NSPersistentContainer(name: "PetFinderDataModel")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                fatalError("Erro não resolvido \(error), \(error.userInfo)")
+                fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
         return container
@@ -33,33 +33,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let tabBarController = UITabBarController()
         
-        // Configure tab bar appearance com cores suaves
-        let tabBarAppearance = UITabBarAppearance()
-        tabBarAppearance.configureWithDefaultBackground()
-        tabBarAppearance.backgroundColor = UIColor.systemBackground
-        tabBarAppearance.stackedLayoutAppearance.normal.iconColor = UIColor.petFinderPrimaryLight
-        tabBarAppearance.stackedLayoutAppearance.selected.iconColor = UIColor.petFinderPrimary
-        UITabBar.appearance().standardAppearance = tabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-        
         let animalListVC = AnimalListViewController()
         let animalNavController = UINavigationController(rootViewController: animalListVC)
-        animalNavController.tabBarItem = UITabBarItem(title: "Animais", image: UIImage(systemName: "pawprint.fill"), tag: 0)
+        animalNavController.tabBarItem = UITabBarItem(title: "Animais", image: UIImage(systemName: "heart.fill"), tag: 0)
         
         let followingVC = FollowingViewController()
         let followingNavController = UINavigationController(rootViewController: followingVC)
-        followingNavController.tabBarItem = UITabBarItem(title: "Favoritos", image: UIImage(systemName: "heart.fill"), tag: 1)
+        followingNavController.tabBarItem = UITabBarItem(title: "Seguindo", image: UIImage(systemName: "star.fill"), tag: 1)
         
         let achievementsVC = AchievementsViewController()
         let achievementsNavController = UINavigationController(rootViewController: achievementsVC)
-        achievementsNavController.tabBarItem = UITabBarItem(title: "Conquistas", image: UIImage(systemName: "star.fill"), tag: 2)
+        achievementsNavController.tabBarItem = UITabBarItem(title: "Conquistas", image: UIImage(systemName: "trophy.fill"), tag: 2)
         
         let settingsVC = SettingsViewController()
         let settingsNavController = UINavigationController(rootViewController: settingsVC)
         settingsNavController.tabBarItem = UITabBarItem(title: "Definições", image: UIImage(systemName: "gear"), tag: 3)
         
         tabBarController.viewControllers = [animalNavController, followingNavController, achievementsNavController, settingsNavController]
-        tabBarController.tabBar.standardAppearance = tabBarAppearance
         
         window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
@@ -78,7 +68,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 try context.save()
             } catch {
                 let nserror = error as NSError
-                fatalError("Erro não resolvido \(nserror), \(nserror.userInfo)")
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }

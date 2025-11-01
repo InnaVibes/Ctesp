@@ -179,7 +179,7 @@ struct MockData {
                 )
             }
             
-            print("✅ Dados de teste criados: \(animals.count) animais adicionados")
+            print("✅ Mock data criado: \(animals.count) animais adicionados")
         }
     }
 }

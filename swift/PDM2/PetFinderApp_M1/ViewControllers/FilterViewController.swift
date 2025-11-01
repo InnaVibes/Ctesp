@@ -8,6 +8,8 @@ class FilterViewController: UIViewController {
     
     weak var delegate: FilterViewControllerDelegate?
     
+    // MARK: - UI Components
+    
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
@@ -26,22 +28,28 @@ class FilterViewController: UIViewController {
     private let applyButton = UIButton(type: .system)
     private let resetButton = UIButton(type: .system)
     
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
     }
     
+    // MARK: - UI Setup
+    
     private func setupUI() {
         title = "Filtros"
         view.backgroundColor = .systemBackground
         
+        // Navigation bar buttons
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel,
             target: self,
             action: #selector(cancelTapped)
         )
         
+        // Setup scroll view
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -80,17 +88,18 @@ class FilterViewController: UIViewController {
         
         // Buttons
         applyButton.setTitle("Aplicar Filtros", for: .normal)
-        applyButton.backgroundColor = .petFinderPrimary
+        applyButton.backgroundColor = .systemBlue
         applyButton.setTitleColor(.white, for: .normal)
         applyButton.layer.cornerRadius = 8
         applyButton.translatesAutoresizingMaskIntoConstraints = false
         applyButton.addTarget(self, action: #selector(applyTapped), for: .touchUpInside)
         
         resetButton.setTitle("Limpar Filtros", for: .normal)
-        resetButton.setTitleColor(.petFinderDanger, for: .normal)
+        resetButton.setTitleColor(.systemRed, for: .normal)
         resetButton.translatesAutoresizingMaskIntoConstraints = false
         resetButton.addTarget(self, action: #selector(resetTapped), for: .touchUpInside)
         
+        // Add to content view
         contentView.addSubview(speciesLabel)
         contentView.addSubview(speciesSegmentedControl)
         contentView.addSubview(breedLabel)
@@ -105,17 +114,20 @@ class FilterViewController: UIViewController {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
+            // Scroll view
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
+            // Content view
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
+            // Species
             speciesLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             speciesLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             speciesLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
@@ -124,6 +136,7 @@ class FilterViewController: UIViewController {
             speciesSegmentedControl.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             speciesSegmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            // Breed
             breedLabel.topAnchor.constraint(equalTo: speciesSegmentedControl.bottomAnchor, constant: 24),
             breedLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             breedLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
@@ -133,6 +146,7 @@ class FilterViewController: UIViewController {
             breedTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             breedTextField.heightAnchor.constraint(equalToConstant: 40),
             
+            // Gender
             genderLabel.topAnchor.constraint(equalTo: breedTextField.bottomAnchor, constant: 24),
             genderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             genderLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
@@ -141,6 +155,7 @@ class FilterViewController: UIViewController {
             genderSegmentedControl.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             genderSegmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            // Age
             ageLabel.topAnchor.constraint(equalTo: genderSegmentedControl.bottomAnchor, constant: 24),
             ageLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             ageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
@@ -149,16 +164,20 @@ class FilterViewController: UIViewController {
             ageSegmentedControl.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             ageSegmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            // Apply button
             applyButton.topAnchor.constraint(equalTo: ageSegmentedControl.bottomAnchor, constant: 32),
             applyButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             applyButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             applyButton.heightAnchor.constraint(equalToConstant: 50),
             
+            // Reset button
             resetButton.topAnchor.constraint(equalTo: applyButton.bottomAnchor, constant: 12),
             resetButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             resetButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32)
         ])
     }
+    
+    // MARK: - Actions
     
     @objc private func cancelTapped() {
         self.dismiss(animated: true, completion: nil)

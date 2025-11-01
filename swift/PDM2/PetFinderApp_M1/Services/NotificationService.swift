@@ -11,7 +11,7 @@ class NotificationService {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["dailyAnimal"])
         
         let content = UNMutableNotificationContent()
-        content.title = "Novo animal para adopção!"
+        content.title = "Novo animal para adoção!"
         content.body = "Descubra um novo amigo hoje"
         content.sound = .default
         
