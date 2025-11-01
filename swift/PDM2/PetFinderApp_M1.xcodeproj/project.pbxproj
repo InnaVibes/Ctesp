@@ -14,6 +14,7 @@
 		A1000005000000000000001 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005000000000000001 /* SettingsViewController.swift */; };
 		A1000006000000000000001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000006000000000000001 /* NotificationService.swift */; };
 		A1000007000000000000001 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007000000000000001 /* CoreDataManager.swift */; };
+		A1000009000000000000001 /* PetFinderDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A2000009000000000000001 /* PetFinderDataModel.xcdatamodeld */; };
 		A1000010000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000010000000000000001 /* Assets.xcassets */; };
 		A1000011000000000000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A2000011000000000000001 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,7 @@
 		A2000005000000000000001 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A2000006000000000000001 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		A2000007000000000000001 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		A2000009000000000000001 /* PetFinderDataModel.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = PetFinderDataModel.xcdatamodeld; sourceTree = "<group>"; };
 		A2000010000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000011000000000000001 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A2000012000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000007000000000000001 /* CoreDataManager.swift */,
+				A2000009000000000000001 /* PetFinderDataModel.xcdatamodeld */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 				A1000005000000000000001 /* SettingsViewController.swift in Sources */,
 				A1000006000000000000001 /* NotificationService.swift in Sources */,
 				A1000007000000000000001 /* CoreDataManager.swift in Sources */,
+				A1000009000000000000001 /* PetFinderDataModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +399,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		A2000009000000000000001 /* PetFinderDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				A2000009000000000000002 /* PetFinderDataModel.xcdatamodel */,
+			);
+			currentVersion = A2000009000000000000002 /* PetFinderDataModel.xcdatamodel */;
+			path = PetFinderDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		A2000009000000000000002 /* PetFinderDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PetFinderDataModel.xcdatamodel; sourceTree = "<group>"; };
+/* End XCVersionGroup section */
 	};
 	rootObject = AB000001000000000000001 /* Project object */;
 }
