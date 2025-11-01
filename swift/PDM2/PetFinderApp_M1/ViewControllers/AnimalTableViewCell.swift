@@ -1,6 +1,13 @@
 import UIKit
 
+protocol AnimalTableViewCellDelegate: AnyObject {
+    func animalCellDidTapFavorite(_ cell: AnimalTableViewCell, animal: AnimalEntity)
+}
+
 class AnimalTableViewCell: UITableViewCell {
+    
+    weak var delegate: AnimalTableViewCellDelegate?
+    private var animal: AnimalEntity?
     
     private let nameLabel = UILabel()
     private let speciesLabel = UILabel()
@@ -32,6 +39,7 @@ class AnimalTableViewCell: UITableViewCell {
         
         followButton.setImage(UIImage(systemName: "heart"), for: .normal)
         followButton.translatesAutoresizingMaskIntoConstraints = false
+        followButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
         
         contentView.addSubview(nameLabel)
         contentView.addSubview(speciesLabel)
@@ -53,12 +61,19 @@ class AnimalTableViewCell: UITableViewCell {
             
             followButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             followButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            followButton.widthAnchor.constraint(equalToConstant: 30),
-            followButton.heightAnchor.constraint(equalToConstant: 30)
+            followButton.widthAnchor.constraint(equalToConstant: 40),
+            followButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
+    @objc private func favoriteTapped() {
+        guard let animal = animal else { return }
+        delegate?.animalCellDidTapFavorite(self, animal: animal)
+    }
+    
     func configure(with animal: AnimalEntity) {
+        self.animal = animal
+        
         nameLabel.text = animal.name ?? "Sem nome"
         speciesLabel.text = animal.species ?? "-"
         
