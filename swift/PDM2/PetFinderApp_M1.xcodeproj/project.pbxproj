@@ -11,6 +11,7 @@
 		A1000001B00000000000001 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001 /* MockData.swift */; };
 		A1000002000000000000001 /* AnimalListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002000000000000001 /* AnimalListViewController.swift */; };
 		A1000002A00000000000001 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002A00000000000001 /* AnimalTableViewCell.swift */; };
+		A1000002B00000000000001 /* AnimalDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002B00000000000001 /* AnimalDetailViewController.swift */; };
 		A1000003000000000000001 /* FollowingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003000000000000001 /* FollowingViewController.swift */; };
 		A1000004000000000000001 /* AchievementsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000004000000000000001 /* AchievementsViewController.swift */; };
 		A1000005000000000000001 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005000000000000001 /* SettingsViewController.swift */; };
@@ -28,6 +29,7 @@
 		A2000001B00000000000001 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		A2000002000000000000001 /* AnimalListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalListViewController.swift; sourceTree = "<group>"; };
 		A2000002A00000000000001 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
+		A2000002B00000000000001 /* AnimalDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalDetailViewController.swift; sourceTree = "<group>"; };
 		A2000003000000000000001 /* FollowingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowingViewController.swift; sourceTree = "<group>"; };
 		A2000004000000000000001 /* AchievementsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsViewController.swift; sourceTree = "<group>"; };
 		A2000005000000000000001 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 			children = (
 				A2000002000000000000001 /* AnimalListViewController.swift */,
 				A2000002A00000000000001 /* AnimalTableViewCell.swift */,
+				A2000002B00000000000001 /* AnimalDetailViewController.swift */,
 				A2000003000000000000001 /* FollowingViewController.swift */,
 				A2000004000000000000001 /* AchievementsViewController.swift */,
 				A2000005000000000000001 /* SettingsViewController.swift */,
@@ -194,6 +197,7 @@
 				A1000001B00000000000001 /* MockData.swift in Sources */,
 				A1000002000000000000001 /* AnimalListViewController.swift in Sources */,
 				A1000002A00000000000001 /* AnimalTableViewCell.swift in Sources */,
+				A1000002B00000000000001 /* AnimalDetailViewController.swift in Sources */,
 				A1000003000000000000001 /* FollowingViewController.swift in Sources */,
 				A1000004000000000000001 /* AchievementsViewController.swift in Sources */,
 				A1000005000000000000001 /* SettingsViewController.swift in Sources */,
