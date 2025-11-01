@@ -20,14 +20,11 @@ class FollowingViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Seguindo"
+        title = "Favoritos"
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // Make navigation bar transparent so content scrolls behind
-        navigationController?.navigationBar.scrollEdgeAppearance = UINavigationBarAppearance()
-        
-        emptyLabel.text = "Nenhum animal sendo seguido"
+        emptyLabel.text = "Nenhum animal nos favoritos"
         emptyLabel.textAlignment = .center
         emptyLabel.numberOfLines = 0
         emptyLabel.font = .systemFont(ofSize: 16, weight: .medium)
@@ -89,9 +86,6 @@ extension FollowingViewController: UITableViewDataSource {
 extension FollowingViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let animal = followingAnimals[indexPath.row]
-        let detailVC = AnimalDetailViewController(animal: animal)
-        navigationController?.pushViewController(detailVC, animated: true)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -115,6 +109,10 @@ extension FollowingViewController: UITableViewDelegate {
 }
 
 // MARK: - Following Animal Cell Delegate
+protocol FollowingAnimalCellDelegate: AnyObject {
+    func followingAnimalCellDidTapFavorite(_ cell: FollowingAnimalCell, animal: AnimalEntity)
+}
+
 extension FollowingViewController: FollowingAnimalCellDelegate {
     func followingAnimalCellDidTapFavorite(_ cell: FollowingAnimalCell, animal: AnimalEntity) {
         CoreDataManager.shared.toggleFollowing(for: animal)
@@ -123,10 +121,6 @@ extension FollowingViewController: FollowingAnimalCellDelegate {
 }
 
 // MARK: - Custom Cell
-protocol FollowingAnimalCellDelegate: AnyObject {
-    func followingAnimalCellDidTapFavorite(_ cell: FollowingAnimalCell, animal: AnimalEntity)
-}
-
 class FollowingAnimalCell: UITableViewCell {
     
     weak var delegate: FollowingAnimalCellDelegate?
@@ -138,7 +132,6 @@ class FollowingAnimalCell: UITableViewCell {
     private let breedLabel = UILabel()
     private let savedDateLabel = UILabel()
     private let favoriteImageView = UIImageView()
-    private let favoriteButton = UIButton(type: .system)
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -153,7 +146,7 @@ class FollowingAnimalCell: UITableViewCell {
         selectionStyle = .gray
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .systemGray6
+        containerView.backgroundColor = .petFinderNeutral
         containerView.layer.cornerRadius = 8
         containerView.clipsToBounds = true
         
@@ -162,7 +155,7 @@ class FollowingAnimalCell: UITableViewCell {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
         speciesLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        speciesLabel.textColor = .systemBlue
+        speciesLabel.textColor = .petFinderPrimary
         speciesLabel.translatesAutoresizingMaskIntoConstraints = false
         
         breedLabel.font = .systemFont(ofSize: 12, weight: .regular)
@@ -174,18 +167,14 @@ class FollowingAnimalCell: UITableViewCell {
         savedDateLabel.translatesAutoresizingMaskIntoConstraints = false
         
         favoriteImageView.image = UIImage(systemName: "heart.fill")
-        favoriteImageView.tintColor = .systemRed
+        favoriteImageView.tintColor = .petFinderDanger
         favoriteImageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        favoriteButton.translatesAutoresizingMaskIntoConstraints = false
-        favoriteButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
         
         containerView.addSubview(nameLabel)
         containerView.addSubview(speciesLabel)
         containerView.addSubview(breedLabel)
         containerView.addSubview(savedDateLabel)
         containerView.addSubview(favoriteImageView)
-        containerView.addSubview(favoriteButton)
         
         contentView.addSubview(containerView)
         
@@ -200,14 +189,9 @@ class FollowingAnimalCell: UITableViewCell {
             favoriteImageView.widthAnchor.constraint(equalToConstant: 24),
             favoriteImageView.heightAnchor.constraint(equalToConstant: 24),
             
-            favoriteButton.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
-            favoriteButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
-            favoriteButton.widthAnchor.constraint(equalToConstant: 32),
-            favoriteButton.heightAnchor.constraint(equalToConstant: 32),
-            
             nameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            nameLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -12),
+            nameLabel.trailingAnchor.constraint(equalTo: favoriteImageView.leadingAnchor, constant: -12),
             
             speciesLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             speciesLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
@@ -219,11 +203,6 @@ class FollowingAnimalCell: UITableViewCell {
             savedDateLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             savedDateLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12)
         ])
-    }
-    
-    @objc private func favoriteTapped() {
-        guard let animal = animal else { return }
-        delegate?.followingAnimalCellDidTapFavorite(self, animal: animal)
     }
     
     func configure(with animal: AnimalEntity) {
