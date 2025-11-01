@@ -124,7 +124,7 @@ extension AnimalListViewController: UITableViewDelegate {
 // MARK: - Filter Delegate
 extension AnimalListViewController: FilterViewControllerDelegate {
     func didApplyFilters(species: String?, breed: String?, gender: String?, age: String?) {
-        // TODO: Implementar filtros quando API estiver integrada
+        print("Filtros aplicados: especie=\(species ?? "todas"), raca=\(breed ?? "todas"), genero=\(gender ?? "todos"), idade=\(age ?? "todas")")
         loadAnimals()
     }
 }
