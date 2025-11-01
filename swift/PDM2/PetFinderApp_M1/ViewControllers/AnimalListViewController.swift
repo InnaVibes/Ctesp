@@ -5,5 +5,6 @@ class AnimalListViewController: UIViewController {
         super.viewDidLoad()
         title = "Animais para Adoção"
         view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.prefersLargeTitles = true
     }
 }

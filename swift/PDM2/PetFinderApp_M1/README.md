@@ -10,7 +10,9 @@
 - AnimalListViewController.swift (Lista de animais - estrutura base)
 - FollowingViewController.swift (Seguindo - estrutura base)
 - AchievementsViewController.swift (Conquistas - estrutura base)
+- FilterViewController.swift (Filtros de pesquisa)
 - NotificationService.swift (Serviço de notificações)
+- CoreDataManager.swift (Gestão de Core Data)
 
 **Configuração:**
 - PetFinderDataModel.xcdatamodel (Core Data configurado)
@@ -38,6 +40,7 @@
 ✅ **Core Data:**
 - Modelo configurado (AnimalEntity)
 - Atributos: id, name, species, breed, gender, age, description, photoURLs, location, isFollowing, savedDate
+- CoreDataManager com CRUD completo
 - Pronto para persistência de dados
 
 ✅ **Notificações:**
@@ -45,26 +48,47 @@
 - Agendamento diário configurável
 - Cancelamento de notificações
 
+✅ **Filtros:**
+- FilterViewController implementado
+- Filtros por espécie, raça, género e idade
+- Delegate pattern para comunicação
+
 ### Estrutura do Projeto
 
 ```
-PetFinderApp/
+PetFinderApp_M1/
 ├── AppDelegate.swift
-├── AnimalListViewController.swift
-├── FollowingViewController.swift
-├── AchievementsViewController.swift
-├── SettingsViewController.swift
-├── NotificationService.swift
-├── PetFinderDataModel.xcdatamodel
-├── Info.plist
-└── README.md
+├── ViewControllers/
+│   ├── AnimalListViewController.swift
+│   ├── FollowingViewController.swift
+│   ├── AchievementsViewController.swift
+│   ├── SettingsViewController.swift
+│   └── FilterViewController.swift
+├── Services/
+│   └── NotificationService.swift
+├── CoreData/
+│   ├── CoreDataManager.swift
+│   └── PetFinderDataModel.xcdatamodeld/
+├── Resources/
+│   ├── Assets.xcassets/
+│   └── LaunchScreen.storyboard
+└── Info.plist
 ```
 
 ### Como Executar
 
 1. Abrir o projeto no Xcode
+   ```bash
+   open PetFinderApp_M1.xcodeproj
+   ```
 2. Selecionar simulador iOS (iPhone 15 Pro ou superior)
 3. Build and Run (Cmd + R)
+
+### Requisitos
+
+- Xcode 15.0 ou superior
+- iOS 15.0 ou superior
+- Swift 5.0
 
 ### API Keys
 
@@ -95,14 +119,32 @@ Obter em: https://www.petfinder.com/developers
 | Core Data configurado | ✅ |
 | Notificações | ✅ |
 | App Icon | ⏳ M2 |
-| Launch Screen | ⏳ M2 |
+| Launch Screen | ✅ |
 
-### Notas
+### Notas Técnicas
 
-- Estrutura base preparada para M2
-- Arquitetura MVC implementada
-- Código limpo e documentado
-- Pronto para integração com API
+- **Arquitetura:** MVC com camada de serviços
+- **Persistência:** Core Data com NSManagedObject
+- **UI:** UIKit programático (sem Storyboards exceto LaunchScreen)
+- **Notificações:** UserNotifications framework
+- **Thread-safe:** CoreDataManager usa o main context
+
+### Resolução de Problemas
+
+**Erro: "Cannot find AnimalEntity"**
+- Solução: Editor → Create NSManagedObject Subclass no Xcode
+
+**Erro: "App crashes on launch"**
+- Verificar se o Core Data model está incluído no target
+- Verificar se Info.plist está configurado
+
+### Estrutura de Código
+
+- Todos os ViewControllers usam programmatic UI
+- Auto Layout com constraints
+- Delegate patterns para comunicação
+- Singleton patterns para serviços
+- UserDefaults para configurações
 
 ---
 

@@ -5,5 +5,6 @@ class AchievementsViewController: UIViewController {
         super.viewDidLoad()
         title = "Conquistas"
         view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.prefersLargeTitles = true
     }
 }

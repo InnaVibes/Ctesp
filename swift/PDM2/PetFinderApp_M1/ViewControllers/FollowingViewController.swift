@@ -5,5 +5,6 @@ class FollowingViewController: UIViewController {
         super.viewDidLoad()
         title = "Seguindo"
         view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.prefersLargeTitles = true
     }
 }
