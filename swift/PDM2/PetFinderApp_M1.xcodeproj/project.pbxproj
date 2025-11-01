@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A1000001000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001000000000000001 /* AppDelegate.swift */; };
+		A1000001B00000000000001 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001 /* MockData.swift */; };
 		A1000002000000000000001 /* AnimalListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002000000000000001 /* AnimalListViewController.swift */; };
 		A1000002A00000000000001 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002A00000000000001 /* AnimalTableViewCell.swift */; };
 		A1000003000000000000001 /* FollowingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003000000000000001 /* FollowingViewController.swift */; };
@@ -24,6 +25,7 @@
 /* Begin PBXFileReference section */
 		A3000001000000000000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000001000000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A2000001B00000000000001 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		A2000002000000000000001 /* AnimalListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalListViewController.swift; sourceTree = "<group>"; };
 		A2000002A00000000000001 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
 		A2000003000000000000001 /* FollowingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowingViewController.swift; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000001000000000000001 /* AppDelegate.swift */,
+				A2000001B00000000000001 /* MockData.swift */,
 				A5000004000000000000001 /* ViewControllers */,
 				A5000005000000000000001 /* Services */,
 				A5000006000000000000001 /* CoreData */,
@@ -188,6 +191,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000001000000000000001 /* AppDelegate.swift in Sources */,
+				A1000001B00000000000001 /* MockData.swift in Sources */,
 				A1000002000000000000001 /* AnimalListViewController.swift in Sources */,
 				A1000002A00000000000001 /* AnimalTableViewCell.swift in Sources */,
 				A1000003000000000000001 /* FollowingViewController.swift in Sources */,

@@ -26,6 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
         
+        // Seed mock data
+        MockData.seedTestData()
+        
         window = UIWindow(frame: UIScreen.main.bounds)
         
         let tabBarController = UITabBarController()
