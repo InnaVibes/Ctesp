@@ -136,8 +136,7 @@ class AchievementCell: UICollectionViewCell {
         containerView.layer.borderWidth = 2
         containerView.layer.borderColor = UIColor.clear.cgColor
         
-        iconView.font = UIFont.systemFont(ofSize: 40)
-        iconView.contentMode = .center
+        iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
         
         titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
