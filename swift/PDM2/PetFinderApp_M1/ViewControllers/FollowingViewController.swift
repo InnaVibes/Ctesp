@@ -3,9 +3,7 @@ import UIKit
 class FollowingViewController: UIViewController {
     
     private let tableView = UITableView()
-    private let emptyStateView = UIView()
     private let emptyLabel = UILabel()
-    private let emptyImageView = UIImageView()
     private var followingAnimals: [AnimalEntity] = []
     
     override func viewDidLoad() {
@@ -22,29 +20,18 @@ class FollowingViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Seguindo"
+        title = "Favoritos"
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // Empty state view
-        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateView.isHidden = true
-        
-        emptyImageView.image = UIImage(systemName: "star.slash")
-        emptyImageView.tintColor = .systemGray3
-        emptyImageView.font = UIFont.systemFont(ofSize: 60)
-        emptyImageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        emptyLabel.text = "Nenhum animal sendo seguido"
+        emptyLabel.text = "Nenhum animal nos favoritos"
         emptyLabel.textAlignment = .center
         emptyLabel.numberOfLines = 0
         emptyLabel.font = .systemFont(ofSize: 16, weight: .medium)
         emptyLabel.textColor = .secondaryLabel
+        emptyLabel.isHidden = true
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        emptyStateView.addSubview(emptyImageView)
-        emptyStateView.addSubview(emptyLabel)
-        view.addSubview(emptyStateView)
+        view.addSubview(emptyLabel)
     }
     
     private func setupTableView() {
@@ -66,26 +53,16 @@ class FollowingViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            emptyStateView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            emptyStateView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            emptyImageView.topAnchor.constraint(equalTo: emptyStateView.topAnchor),
-            emptyImageView.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
-            emptyImageView.heightAnchor.constraint(equalToConstant: 60),
-            emptyImageView.widthAnchor.constraint(equalToConstant: 60),
-            
-            emptyLabel.topAnchor.constraint(equalTo: emptyImageView.bottomAnchor, constant: 16),
-            emptyLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor),
-            emptyLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor),
-            emptyLabel.bottomAnchor.constraint(equalTo: emptyStateView.bottomAnchor)
+            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            emptyLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
     }
     
     private func loadFollowingAnimals() {
         followingAnimals = CoreDataManager.shared.fetchFollowingAnimals()
-        emptyStateView.isHidden = !followingAnimals.isEmpty
+        emptyLabel.isHidden = !followingAnimals.isEmpty
         tableView.reloadData()
     }
 }
@@ -100,6 +77,7 @@ extension FollowingViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FollowingCell", for: indexPath) as! FollowingAnimalCell
         let animal = followingAnimals[indexPath.row]
         cell.configure(with: animal)
+        cell.delegate = self
         return cell
     }
 }
@@ -108,8 +86,6 @@ extension FollowingViewController: UITableViewDataSource {
 extension FollowingViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let animal = followingAnimals[indexPath.row]
-        print("Detalhes de: \(animal.name ?? "Sem nome")")
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -132,8 +108,23 @@ extension FollowingViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - Following Animal Cell Delegate
+protocol FollowingAnimalCellDelegate: AnyObject {
+    func followingAnimalCellDidTapFavorite(_ cell: FollowingAnimalCell, animal: AnimalEntity)
+}
+
+extension FollowingViewController: FollowingAnimalCellDelegate {
+    func followingAnimalCellDidTapFavorite(_ cell: FollowingAnimalCell, animal: AnimalEntity) {
+        CoreDataManager.shared.toggleFollowing(for: animal)
+        loadFollowingAnimals()
+    }
+}
+
 // MARK: - Custom Cell
 class FollowingAnimalCell: UITableViewCell {
+    
+    weak var delegate: FollowingAnimalCellDelegate?
+    private var animal: AnimalEntity?
     
     private let containerView = UIView()
     private let nameLabel = UILabel()
@@ -155,7 +146,7 @@ class FollowingAnimalCell: UITableViewCell {
         selectionStyle = .gray
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .systemGray6
+        containerView.backgroundColor = .petFinderNeutral
         containerView.layer.cornerRadius = 8
         containerView.clipsToBounds = true
         
@@ -164,7 +155,7 @@ class FollowingAnimalCell: UITableViewCell {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
         speciesLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        speciesLabel.textColor = .systemBlue
+        speciesLabel.textColor = .petFinderPrimary
         speciesLabel.translatesAutoresizingMaskIntoConstraints = false
         
         breedLabel.font = .systemFont(ofSize: 12, weight: .regular)
@@ -176,7 +167,7 @@ class FollowingAnimalCell: UITableViewCell {
         savedDateLabel.translatesAutoresizingMaskIntoConstraints = false
         
         favoriteImageView.image = UIImage(systemName: "heart.fill")
-        favoriteImageView.tintColor = .systemRed
+        favoriteImageView.tintColor = .petFinderDanger
         favoriteImageView.translatesAutoresizingMaskIntoConstraints = false
         
         containerView.addSubview(nameLabel)
@@ -215,6 +206,8 @@ class FollowingAnimalCell: UITableViewCell {
     }
     
     func configure(with animal: AnimalEntity) {
+        self.animal = animal
+        
         nameLabel.text = animal.name ?? "Sem nome"
         speciesLabel.text = animal.species ?? "-"
         breedLabel.text = "Raça: \(animal.breed ?? "-")"

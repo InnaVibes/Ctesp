@@ -16,14 +16,20 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="🐾" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="PAW-Aw-PAW">
+                                <rect key="frame" x="20" y="350" width="353" height="80"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="70"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pet Finder" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                <rect key="frame" x="20" y="396" width="353" height="60"/>
+                                <rect key="frame" x="20" y="430" width="353" height="60"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Encontre seu novo amigo" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="MeR-gR-rHa">
-                                <rect key="frame" x="20" y="464" width="353" height="21"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Encontre o seu novo amigo" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="MeR-gR-rHa">
+                                <rect key="frame" x="20" y="498" width="353" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" systemColor="secondaryLabelColor"/>
                                 <nil key="highlightedColor"/>
@@ -33,12 +39,16 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="MeR-gR-rHa" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="62V-hj-VLE"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="JgO-Kh-CYu"/>
+                            <constraint firstItem="PAW-Aw-PAW" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="PAW-CX-PAW"/>
+                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="topAnchor" secondItem="PAW-Aw-PAW" secondAttribute="bottomAnchor" id="JgO-Kh-CYu"/>
                             <constraint firstItem="MeR-gR-rHa" firstAttribute="top" secondItem="GJd-Yh-RWb" secondAttribute="bottom" constant="8" id="VUw-D8-qNY"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="MeR-gR-rHa" secondAttribute="trailing" constant="20" id="Wgc-jr-xcI"/>
                             <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="exm-UA-ej4"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="GJd-Yh-RWb" secondAttribute="trailing" constant="20" id="fgX-Uc-oIb"/>
                             <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="qqM-NS-xev"/>
+                            <constraint firstItem="PAW-Aw-PAW" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="PAW-L-PAW"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="PAW-Aw-PAW" secondAttribute="trailing" constant="20" id="PAW-R-PAW"/>
+                            <constraint firstItem="PAW-Aw-PAW" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-60" id="PAW-Y-PAW"/>
                         </constraints>
                     </view>
                 </viewController>

@@ -21,7 +21,6 @@ class SettingsViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingCell")
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SwitchCell")
         tableView.backgroundColor = .systemBackground
         
         view.addSubview(tableView)
@@ -35,9 +34,9 @@ extension SettingsViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 2 // Cache
-        case 1: return 2 // Notificações
-        case 2: return 1 // Geral
+        case 0: return 2
+        case 1: return 2
+        case 2: return 1
         default: return 0
         }
     }
@@ -45,7 +44,6 @@ extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SettingCell", for: indexPath)
         
-        // Reset cell properties
         cell.textLabel?.text = ""
         cell.detailTextLabel?.text = ""
         cell.accessoryType = .none
@@ -53,7 +51,7 @@ extension SettingsViewController: UITableViewDataSource {
         cell.selectionStyle = .default
         
         switch indexPath.section {
-        case 0: // Cache
+        case 0:
             if indexPath.row == 0 {
                 cell.textLabel?.text = "Expiração de Cache"
                 let minutes = UserDefaults.standard.integer(forKey: "cacheExpirationMinutes")
@@ -66,7 +64,7 @@ extension SettingsViewController: UITableViewDataSource {
                 cell.accessoryType = .disclosureIndicator
             }
             
-        case 1: // Notificações
+        case 1:
             if indexPath.row == 0 {
                 cell.textLabel?.text = "Notificações Diárias"
                 let isEnabled = UserDefaults.standard.bool(forKey: "dailyNotificationsEnabled")
@@ -78,9 +76,9 @@ extension SettingsViewController: UITableViewDataSource {
                 cell.accessoryType = .disclosureIndicator
             }
             
-        case 2: // Geral
+        case 2:
             cell.textLabel?.text = "Limpar Todos os Dados"
-            cell.textLabel?.textColor = .systemRed
+            cell.textLabel?.textColor = .petFinderDanger
             cell.selectionStyle = .gray
             
         default:
@@ -92,7 +90,7 @@ extension SettingsViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 0: return "Cache"
+        case 0: return "Armazenamento"
         case 1: return "Notificações"
         case 2: return "Geral"
         default: return nil
@@ -103,7 +101,7 @@ extension SettingsViewController: UITableViewDataSource {
         switch section {
         case 0: return "Configura quanto tempo os dados são guardados localmente"
         case 1: return "Receba notificações sobre novos animais"
-        case 2: return "Esta ação não pode ser desfeita"
+        case 2: return "Esta acção não pode ser desfeita"
         default: return nil
         }
     }
@@ -132,8 +130,6 @@ extension SettingsViewController: UITableViewDelegate {
             clearAllData()
         }
     }
-    
-    // MARK: - Actions
     
     private func showCacheExpirationPicker() {
         let alert = UIAlertController(title: "Expiração de Cache", message: "Selecione em minutos", preferredStyle: .actionSheet)
@@ -170,16 +166,13 @@ extension SettingsViewController: UITableViewDelegate {
         UserDefaults.standard.set(!currentValue, forKey: "dailyNotificationsEnabled")
         
         if !currentValue {
-            // Enable notifications
             let hour = UserDefaults.standard.integer(forKey: "notificationHour")
             NotificationService.shared.scheduleDailyAnimalNotification(at: hour > 0 ? hour : 9)
             
-            // Show success message
-            let alert = UIAlertController(title: "Notificações Ativadas", message: "Receberá notificações diárias", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Notificações Activadas", message: "Receberá notificações diárias", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
         } else {
-            // Disable notifications
             NotificationService.shared.cancelNotification(identifier: "dailyAnimal")
         }
         
@@ -194,7 +187,6 @@ extension SettingsViewController: UITableViewDelegate {
             alert.addAction(UIAlertAction(title: timeString, style: .default) { _ in
                 UserDefaults.standard.set(hour, forKey: "notificationHour")
                 
-                // Reschedule notification if enabled
                 if UserDefaults.standard.bool(forKey: "dailyNotificationsEnabled") {
                     NotificationService.shared.scheduleDailyAnimalNotification(at: hour)
                 }
@@ -210,7 +202,7 @@ extension SettingsViewController: UITableViewDelegate {
     private func clearAllData() {
         let alert = UIAlertController(
             title: "Limpar Dados",
-            message: "Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.",
+            message: "Tem a certeza que deseja limpar todos os dados? Esta acção não pode ser desfeita.",
             preferredStyle: .alert
         )
         
