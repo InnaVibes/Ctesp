@@ -130,7 +130,10 @@ extension SettingsViewController: UITableViewDelegate {
             
         case 2:
             clearAllData()
+        default:
+            clearAllData()
         }
+        
     }
     
     // MARK: - Actions

@@ -77,7 +77,7 @@ extension FollowingViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FollowingCell", for: indexPath) as! FollowingAnimalCell
+        let cell = tableView.dequeueReusableCell(withReuseIdentifier: "FollowingCell", for: indexPath) as! FollowingAnimalCell
         let animal = followingAnimals[indexPath.row]
         cell.configure(with: animal)
         cell.delegate = self

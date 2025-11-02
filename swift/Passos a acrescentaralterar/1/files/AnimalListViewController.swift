@@ -24,6 +24,9 @@ class AnimalListViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = true
         
+        // Make navigation bar transparent so content scrolls behind
+        navigationController?.navigationBar.scrollEdgeAppearance = UINavigationBarAppearance()
+        
         // Add Filter Button
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "slider.horizontal.3"),
