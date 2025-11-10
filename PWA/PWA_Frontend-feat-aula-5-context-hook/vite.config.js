@@ -15,13 +15,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://ctesppwa.onrender.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/socket.io': {
-        target: 'http://localhost:5000',
+        target: 'https://ctesppwa.onrender.com',
         ws: true,
         changeOrigin: true,
         secure: false,
