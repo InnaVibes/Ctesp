@@ -42,6 +42,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Criar dados de teste (apenas se a base de dados estiver vazia)
         MockData.seedTestData()
         
+        // ✨ Incrementar contador de aberturas da app
+        AchievementsManager.shared.incrementAppOpenCount()
+        
         // Criar janela principal
         window = UIWindow(frame: UIScreen.main.bounds)
         
@@ -113,8 +116,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if context.hasChanges {
             do {
                 try context.save()
+                print("✅ Contexto guardado com sucesso")
             } catch {
                 let nserror = error as NSError
+                print("⚠️ Erro ao guardar contexto: \(nserror), \(nserror.userInfo)")
                 fatalError("Erro ao guardar contexto: \(nserror), \(nserror.userInfo)")
             }
         }
@@ -127,10 +132,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
         ) { granted, error in
+            if let error = error {
+                print("⚠️ Erro ao solicitar permissão de notificações: \(error)")
+                return
+            }
+            
             if granted {
+                print("✅ Permissão de notificações concedida")
                 DispatchQueue.main.async {
                     UIApplication.shared.registerForRemoteNotifications()
                 }
+            } else {
+                print("⚠️ Permissão de notificações negada")
             }
         }
     }
@@ -148,21 +161,25 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // Mostrar banner, som e badge mesmo com a app aberta
         completionHandler([.banner, .sound, .badge])
     }
-
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-    // Configurar delegado de notificações
-    UNUserNotificationCenter.current().delegate = self
-    requestNotificationPermission()
-    
-    // Criar dados de teste (apenas se a base de dados estiver vazia)
-    MockData.seedTestData()
-    
-    // ✨ NOVO: Incrementar contador de aberturas da app
-    AchievementsManager.shared.incrementAppOpenCount()
-    
-    // ... resto do código
-    return true
-   } 
+    /// Chamado quando o utilizador toca numa notificação
+    /// Permite responder à interação do utilizador
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                             didReceive response: UNNotificationResponse,
+                             withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        let userInfo = response.notification.request.content.userInfo
+        
+        // Verificar se é uma notificação de conquista
+        if let achievementId = response.notification.request.identifier.components(separatedBy: "_").last {
+            print("📱 Utilizador tocou na notificação de conquista: \(achievementId)")
+            
+            // Navegar para o separador de conquistas
+            if let tabBarController = window?.rootViewController as? UITabBarController {
+                tabBarController.selectedIndex = 2 // Tab de Conquistas
+            }
+        }
+        
+        completionHandler()
+    }
 }
