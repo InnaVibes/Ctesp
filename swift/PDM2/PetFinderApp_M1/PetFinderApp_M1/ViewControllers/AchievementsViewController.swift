@@ -1,7 +1,7 @@
 import UIKit
 
 /// Controlador que apresenta as conquistas do utilizador
-/// Exibe conquistas desbloqueadas e bloqueadas num formato de grelha
+/// Exibe conquistas desbloqueadas e bloqueadas com progresso real
 class AchievementsViewController: UIViewController {
     
     // MARK: - Propriedades de Interface
@@ -16,61 +16,19 @@ class AchievementsViewController: UIViewController {
         
         // Calcular tamanho dos itens (2 por linha)
         let itemWidth = (UIScreen.main.bounds.width - 16 * 3) / 2
-        layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+        layout.itemSize = CGSize(width: itemWidth, height: itemWidth + 20)
         
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
     
-    /// Etiqueta mostrada quando não há conquistas
-    private let emptyLabel = UILabel()
+    /// Cabeçalho com estatísticas gerais
+    private let headerView = UIView()
+    private let statsLabel = UILabel()
     
     // MARK: - Propriedades de Dados
     
-    /// Lista de todas as conquistas disponíveis
-    let achievements: [Achievement] = [
-        Achievement(
-            id: 1,
-            title: "Primeiro Passo",
-            description: "Seguir seu primeiro animal",
-            icon: "star.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 2,
-            title: "Colecionador",
-            description: "Seguir 5 animais",
-            icon: "heart.circle.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 3,
-            title: "Protetor",
-            description: "Seguir 10 animais",
-            icon: "shield.fill",
-            isUnlocked: false
-        ),
-        Achievement(
-            id: 4,
-            title: "Campeão",
-            description: "Seguir 25 animais",
-            icon: "crown.fill",
-            isUnlocked: false
-        ),
-        Achievement(
-            id: 5,
-            title: "Visitante",
-            description: "Visitar a app 5 vezes",
-            icon: "eye.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 6,
-            title: "Explorador",
-            description: "Visitar a app 20 vezes",
-            icon: "map.fill",
-            isUnlocked: false
-        ),
-    ]
+    /// Lista de todas as conquistas (carregada dinamicamente)
+    private var achievements: [Achievement] = []
     
     // MARK: - Ciclo de Vida
     
@@ -79,6 +37,18 @@ class AchievementsViewController: UIViewController {
         setupUI()
         setupCollectionView()
         setupConstraints()
+        setupNotificationObserver()
+        loadAchievements()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Recarregar sempre que aparecer para refletir mudanças
+        loadAchievements()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Configuração da Interface
@@ -89,15 +59,36 @@ class AchievementsViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // Configurar etiqueta de estado vazio
-        emptyLabel.text = "Desbloqueie conquistas\nseguindo animais!"
-        emptyLabel.textAlignment = .center
-        emptyLabel.numberOfLines = 0
-        emptyLabel.font = .systemFont(ofSize: 16, weight: .medium)
-        emptyLabel.textColor = .secondaryLabel
-        emptyLabel.isHidden = true
-        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(emptyLabel)
+        // Botão de reset (apenas para testes - remover em produção)
+        #if DEBUG
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Reset",
+            style: .plain,
+            target: self,
+            action: #selector(resetStats)
+        )
+        #endif
+        
+        // Configurar cabeçalho com estatísticas
+        headerView.backgroundColor = .systemGray6
+        headerView.layer.cornerRadius = 12
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        
+        statsLabel.numberOfLines = 0
+        statsLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        statsLabel.textColor = .secondaryLabel
+        statsLabel.textAlignment = .center
+        statsLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        headerView.addSubview(statsLabel)
+        view.addSubview(headerView)
+        
+        NSLayoutConstraint.activate([
+            statsLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 12),
+            statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            statsLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -12)
+        ])
     }
     
     /// Configura a vista de coleção
@@ -114,18 +105,92 @@ class AchievementsViewController: UIViewController {
     /// Configura as restrições de layout
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Vista de coleção ocupa toda a área
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            // Cabeçalho no topo
+            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            // Vista de coleção abaixo do cabeçalho
+            collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 8),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
-            // Etiqueta vazia centrada
-            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            emptyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            emptyLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
+    }
+    
+    /// Configura observador de notificações de novas conquistas
+    private func setupNotificationObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(achievementUnlocked),
+            name: NSNotification.Name("AchievementUnlocked"),
+            object: nil
+        )
+    }
+    
+    // MARK: - Gestão de Dados
+    
+    /// Carrega todas as conquistas do gestor
+    private func loadAchievements() {
+        achievements = AchievementsManager.shared.getAllAchievements()
+        updateStatsLabel()
+        collectionView.reloadData()
+    }
+    
+    /// Atualiza as estatísticas no cabeçalho
+    private func updateStatsLabel() {
+        let stats = AchievementsManager.shared.getUserStats()
+        let unlockedCount = achievements.filter { $0.isUnlocked }.count
+        let totalCount = achievements.count
+        let followingCount = CoreDataManager.shared.getFollowingCount()
+        
+        statsLabel.text = """
+        🏆 Conquistas: \(unlockedCount)/\(totalCount) desbloqueadas
+        ❤️ Seguindo: \(followingCount) animais
+        📱 Aberturas: \(stats.appOpenCount) vezes
+        👀 Visualizações: \(stats.totalAnimalsViewed) animais
+        """
+    }
+    
+    // MARK: - Acções
+    
+    /// Chamado quando uma nova conquista é desbloqueada
+    @objc private func achievementUnlocked(_ notification: Notification) {
+        // Recarregar dados e mostrar animação
+        loadAchievements()
+        
+        // Mostrar banner de celebração
+        if let achievement = notification.userInfo?["achievement"] as? Achievement {
+            showCelebrationBanner(for: achievement)
+        }
+    }
+    
+    /// Mostra banner de celebração para conquista desbloqueada
+    private func showCelebrationBanner(for achievement: Achievement) {
+        let alert = UIAlertController(
+            title: "🎉 Conquista Desbloqueada!",
+            message: "\(achievement.title)\n\(achievement.description)",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Fantástico!", style: .default))
+        present(alert, animated: true)
+    }
+    
+    /// Reset de estatísticas (apenas para testes)
+    @objc private func resetStats() {
+        let alert = UIAlertController(
+            title: "Reset de Estatísticas",
+            message: "Deseja resetar todas as estatísticas e conquistas?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Resetar", style: .destructive) { _ in
+            AchievementsManager.shared.resetAllStats()
+            self.loadAchievements()
+        })
+        
+        present(alert, animated: true)
     }
 }
 
@@ -160,59 +225,33 @@ extension AchievementsViewController: UICollectionViewDelegate {
     /// Apresenta um alerta com detalhes da conquista
     /// - Parameter achievement: Conquista a exibir
     private func showAchievementDetails(_ achievement: Achievement) {
+        let statusMessage = achievement.isUnlocked
+            ? "✅ Conquista desbloqueada!"
+            : "🔒 Progresso: \(achievement.progressText)"
+        
         let alert = UIAlertController(
             title: achievement.title,
-            message: achievement.description,
+            message: "\(achievement.description)\n\n\(statusMessage)",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(
-            title: achievement.isUnlocked ? "Conseguido!" : "Bloqueado",
-            style: .default
-        ))
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
 }
 
-// MARK: - Modelo de Conquista
+// MARK: - Célula de Conquista Atualizada
 
-/// Estrutura que representa uma conquista
-struct Achievement {
-    /// Identificador único
-    let id: Int
-    
-    /// Título da conquista
-    let title: String
-    
-    /// Descrição de como desbloquear
-    let description: String
-    
-    /// Nome do ícone SF Symbol
-    let icon: String
-    
-    /// Se a conquista está desbloqueada
-    let isUnlocked: Bool
-}
-
-// MARK: - Célula de Conquista
-
-/// Célula personalizada para exibir uma conquista
+/// Célula personalizada para exibir uma conquista com progresso
 class AchievementCell: UICollectionViewCell {
     
     // MARK: - Elementos de Interface
     
-    /// Vista contentor com fundo
     private let containerView = UIView()
-    
-    /// Ícone da conquista
     private let iconView = UIImageView()
-    
-    /// Título da conquista
     private let titleLabel = UILabel()
-    
-    /// Descrição da conquista
     private let descriptionLabel = UILabel()
-    
-    /// Ícone de cadeado para conquistas bloqueadas
+    private let progressLabel = UILabel()
+    private let progressBar = UIProgressView(progressViewStyle: .default)
     private let lockImageView = UIImageView()
     
     // MARK: - Inicialização
@@ -228,7 +267,6 @@ class AchievementCell: UICollectionViewCell {
     
     // MARK: - Configuração da Interface
     
-    /// Configura todos os elementos visuais da célula
     private func setupUI() {
         // Vista contentor
         containerView.translatesAutoresizingMaskIntoConstraints = false
@@ -243,20 +281,30 @@ class AchievementCell: UICollectionViewCell {
         iconView.translatesAutoresizingMaskIntoConstraints = false
         
         // Título
-        titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 13, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 1
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         // Descrição
-        descriptionLabel.font = .systemFont(ofSize: 11, weight: .regular)
+        descriptionLabel.font = .systemFont(ofSize: 10, weight: .regular)
         descriptionLabel.textColor = .secondaryLabel
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 2
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Ícone de cadeado
+        // Progresso
+        progressLabel.font = .systemFont(ofSize: 9, weight: .semibold)
+        progressLabel.textColor = .systemBlue
+        progressLabel.textAlignment = .center
+        progressLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        progressBar.progressTintColor = .systemBlue
+        progressBar.trackTintColor = .systemGray4
+        
+        // Cadeado
         lockImageView.image = UIImage(systemName: "lock.fill")
         lockImageView.tintColor = .systemGray
         lockImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -265,63 +313,70 @@ class AchievementCell: UICollectionViewCell {
         containerView.addSubview(iconView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(descriptionLabel)
+        containerView.addSubview(progressLabel)
+        containerView.addSubview(progressBar)
         containerView.addSubview(lockImageView)
         contentView.addSubview(containerView)
         
-        // Restrições de layout
+        // Restrições
         NSLayoutConstraint.activate([
-            // Vista contentor preenche toda a célula
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            // Ícone no topo, centrado
             iconView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             iconView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 50),
-            iconView.heightAnchor.constraint(equalToConstant: 50),
+            iconView.widthAnchor.constraint(equalToConstant: 40),
+            iconView.heightAnchor.constraint(equalToConstant: 40),
             
-            // Título abaixo do ícone
-            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
+            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 6),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 6),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -6),
             
-            // Descrição abaixo do título
-            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 8),
-            descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
-            descriptionLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
+            descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 6),
+            descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -6),
             
-            // Cadeado no canto superior direito
+            progressLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 4),
+            progressLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            
+            progressBar.topAnchor.constraint(equalTo: progressLabel.bottomAnchor, constant: 4),
+            progressBar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            progressBar.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            progressBar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            
             lockImageView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
             lockImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
-            lockImageView.widthAnchor.constraint(equalToConstant: 20),
-            lockImageView.heightAnchor.constraint(equalToConstant: 20)
+            lockImageView.widthAnchor.constraint(equalToConstant: 16),
+            lockImageView.heightAnchor.constraint(equalToConstant: 16)
         ])
     }
     
     // MARK: - Configuração
     
-    /// Configura a célula com dados de uma conquista
-    /// - Parameter achievement: Conquista a exibir
     func configure(with achievement: Achievement) {
-        // Configurar ícone
         iconView.image = UIImage(systemName: achievement.icon)
         iconView.tintColor = achievement.isUnlocked ? .systemYellow : .systemGray3
         
-        // Configurar textos
         titleLabel.text = achievement.title
         descriptionLabel.text = achievement.description
+        progressLabel.text = achievement.progressText
+        progressBar.progress = Float(achievement.progress)
+        
+        // Ocultar progresso se já desbloqueado
+        progressLabel.isHidden = achievement.isUnlocked
+        progressBar.isHidden = achievement.isUnlocked
         
         // Mostrar/ocultar cadeado
         lockImageView.isHidden = achievement.isUnlocked
         
-        // Ajustar aparência conforme estado
+        // Aparência conforme estado
         containerView.backgroundColor = achievement.isUnlocked ? .systemGray6 : .systemGray5
-        containerView.layer.borderColor = achievement.isUnlocked ? UIColor.systemYellow.cgColor : UIColor.clear.cgColor
+        containerView.layer.borderColor = achievement.isUnlocked 
+            ? UIColor.systemYellow.cgColor 
+            : UIColor.clear.cgColor
         
-        // Opacidade reduzida para conquistas bloqueadas
-        alpha = achievement.isUnlocked ? 1.0 : 0.6
+        alpha = achievement.isUnlocked ? 1.0 : 0.7
     }
 }
