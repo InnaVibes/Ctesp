@@ -151,20 +151,6 @@ class CoreDataManager {
         }
     }
     
-    // MARK: - Gestão de Contexto
-    
-    /// Guarda o contexto se houver alterações pendentes
-    private func saveContext() {
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                let nserror = error as NSError
-                print("Erro ao guardar contexto: \(nserror), \(nserror.userInfo)")
-            }
-        }
-    }
-    
     // MARK: - Estatísticas
     
     /// Obtém o número de animais que o utilizador está a seguir
@@ -193,18 +179,18 @@ class CoreDataManager {
             return 0
         }
     }
-
     
-// MARK: - Gestão de Contexto (atualizar método existente)
-
-/// Guarda o contexto se houver alterações pendentes
-func saveContext() {
-    if context.hasChanges {
-        do {
-            try context.save()
-        } catch {
-            let nserror = error as NSError
-            print("Erro ao guardar contexto: \(nserror), \(nserror.userInfo)")
+    // MARK: - Gestão de Contexto
+    
+    /// Guarda o contexto se houver alterações pendentes
+    func saveContext() {
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                let nserror = error as NSError
+                print("Erro ao guardar contexto: \(nserror), \(nserror.userInfo)")
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 import Foundation
 import CoreData
 import UIKit
+import UserNotifications
 
 /// Gestor de conquistas que verifica progresso em tempo real
 class AchievementsManager {
@@ -168,7 +169,7 @@ class AchievementsManager {
                 return stats
             }
         } catch {
-            print("Erro ao obter estatísticas: \(error)")
+            print("⚠️ Erro ao obter estatísticas: \(error)")
         }
         
         // Criar novas estatísticas se não existirem
@@ -180,7 +181,12 @@ class AchievementsManager {
         newStats.totalSearches = 0
         newStats.totalShares = 0
         
-        CoreDataManager.shared.saveContext()
+        do {
+            try context.save()
+        } catch {
+            print("⚠️ Erro ao guardar novas estatísticas: \(error)")
+        }
+        
         return newStats
     }
     
@@ -189,7 +195,13 @@ class AchievementsManager {
         let stats = getUserStats()
         stats.appOpenCount += 1
         stats.lastOpenDate = Date()
-        CoreDataManager.shared.saveContext()
+        
+        do {
+            try CoreDataManager.shared.context.save()
+            print("✅ Aberturas da app incrementadas: \(stats.appOpenCount)")
+        } catch {
+            print("⚠️ Erro ao incrementar aberturas: \(error)")
+        }
         
         // Verificar se desbloqueou nova conquista
         checkForNewAchievements()
@@ -199,7 +211,13 @@ class AchievementsManager {
     func incrementAnimalsViewed() {
         let stats = getUserStats()
         stats.totalAnimalsViewed += 1
-        CoreDataManager.shared.saveContext()
+        
+        do {
+            try CoreDataManager.shared.context.save()
+            print("✅ Animais visualizados incrementados: \(stats.totalAnimalsViewed)")
+        } catch {
+            print("⚠️ Erro ao incrementar visualizações: \(error)")
+        }
         
         checkForNewAchievements()
     }
@@ -208,7 +226,13 @@ class AchievementsManager {
     func incrementShareCount() {
         let stats = getUserStats()
         stats.totalShares += 1
-        CoreDataManager.shared.saveContext()
+        
+        do {
+            try CoreDataManager.shared.context.save()
+            print("✅ Partilhas incrementadas: \(stats.totalShares)")
+        } catch {
+            print("⚠️ Erro ao incrementar partilhas: \(error)")
+        }
         
         checkForNewAchievements()
     }
@@ -217,7 +241,13 @@ class AchievementsManager {
     func incrementSearchCount() {
         let stats = getUserStats()
         stats.totalSearches += 1
-        CoreDataManager.shared.saveContext()
+        
+        do {
+            try CoreDataManager.shared.context.save()
+            print("✅ Pesquisas incrementadas: \(stats.totalSearches)")
+        } catch {
+            print("⚠️ Erro ao incrementar pesquisas: \(error)")
+        }
     }
     
     // MARK: - Notificações de Conquistas
@@ -266,7 +296,11 @@ class AchievementsManager {
             trigger: nil // Mostra imediatamente
         )
         
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("⚠️ Erro ao adicionar notificação: \(error)")
+            }
+        }
     }
     
     // MARK: - Reset (para testes)
@@ -278,7 +312,13 @@ class AchievementsManager {
         stats.totalAnimalsViewed = 0
         stats.totalSearches = 0
         stats.totalShares = 0
-        CoreDataManager.shared.saveContext()
+        
+        do {
+            try CoreDataManager.shared.context.save()
+            print("✅ Estatísticas resetadas")
+        } catch {
+            print("⚠️ Erro ao resetar estatísticas: \(error)")
+        }
         
         // Limpar marcadores de conquistas mostradas
         for type in AchievementType.allCases {
@@ -288,7 +328,7 @@ class AchievementsManager {
     }
 }
 
-// MARK: - Modelo de Conquista Atualizado
+// MARK: - Modelo de Conquista
 
 struct Achievement {
     let id: String
