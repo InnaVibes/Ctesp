@@ -310,4 +310,28 @@ class AnimalDetailViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
+
+    override func viewDidLoad() {
+    super.viewDidLoad()
+    setupUI()
+    setupConstraints()
+    updateUI()
+    
+    // ✨ NOVO: Rastrear visualização de animal
+    AchievementsManager.shared.incrementAnimalsViewed()
+}
+
+@objc private func shareTapped() {
+    let text = "Conheça o \(animal.name ?? "animal")! \(animal.descriptionText ?? "") - Localização: \(animal.location ?? "-")"
+    let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+    
+    // ✨ NOVO: Rastrear partilha
+    activityVC.completionWithItemsHandler = { _, completed, _, _ in
+        if completed {
+            AchievementsManager.shared.incrementShareCount()
+        }
+    }
+    
+    present(activityVC, animated: true)
+}
 }

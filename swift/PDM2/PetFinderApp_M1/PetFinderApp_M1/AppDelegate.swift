@@ -12,9 +12,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     /// Contentor persistente para Core Data
-    /// Carrega automaticamente o modelo de dados "PetFinderDataModel"
+    /// Carrega automaticamente o modelo de dados "PetFinder"
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "PetFinderDataModel")
+        let container = NSPersistentContainer(name: "PetFinder")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
                 fatalError("Erro ao carregar stores persistentes: \(error), \(error.userInfo)")
@@ -148,4 +148,21 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // Mostrar banner, som e badge mesmo com a app aberta
         completionHandler([.banner, .sound, .badge])
     }
+
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    
+    // Configurar delegado de notificações
+    UNUserNotificationCenter.current().delegate = self
+    requestNotificationPermission()
+    
+    // Criar dados de teste (apenas se a base de dados estiver vazia)
+    MockData.seedTestData()
+    
+    // ✨ NOVO: Incrementar contador de aberturas da app
+    AchievementsManager.shared.incrementAppOpenCount()
+    
+    // ... resto do código
+    return true
+   } 
 }

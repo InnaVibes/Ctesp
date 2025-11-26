@@ -14,3 +14,13 @@
         <attribute name="species" attributeType="String"/>
     </entity>
 </model>
+
+<entity name="UserStatsEntity" representedClassName="UserStatsEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="appOpenCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="firstOpenDate" attributeType="Date" optional="YES" usesScalarValueType="NO"/>
+        <attribute name="lastOpenDate" attributeType="Date" optional="YES" usesScalarValueType="NO"/>
+        <attribute name="totalAnimalsViewed" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalSearches" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalShares" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+</model>
