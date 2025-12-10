@@ -26,6 +26,7 @@
 		C1000017 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000017; };
 		C1000018 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000018; };
 		C1000019 /* AchievementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000019; };
+		C1000020 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000021; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		C2000018 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
 		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
 		C2000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C2000021 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				C2000020 /* Info.plist */,
+				C2000021 /* AppDelegate.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -249,6 +252,7 @@
 				C1000017 /* SyncManager.swift in Sources */,
 				C1000018 /* AnimalTableViewCell.swift in Sources */,
 				C1000019 /* AchievementCell.swift in Sources */,
+				C1000020 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
