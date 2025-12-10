@@ -23,6 +23,9 @@ class PetDetailViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         configureWithPet()
+        
+        // Track animal viewed
+        AchievementsManager.shared.incrementAnimalsViewed()
     }
     
     private func setupUI() {
@@ -86,6 +89,13 @@ class PetDetailViewController: UIViewController {
             detailsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -UIConstants.mediumSpacing),
             detailsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -UIConstants.largeSpacing)
         ])
+        
+        // Add share button
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .action,
+            target: self,
+            action: #selector(shareTapped)
+        )
     }
     
     private func configureWithPet() {
@@ -98,7 +108,7 @@ class PetDetailViewController: UIViewController {
         addDetailRow(title: "Tamanho", value: pet.size)
         addDetailRow(title: "Localização", value: pet.formattedLocation)
         
-        if let description = pet.description, !description.isEmpty {
+        if let description = pet.descriptionText, !description.isEmpty {
             addDetailRow(title: "Descrição", value: description)
         }
         
@@ -150,5 +160,19 @@ class PetDetailViewController: UIViewController {
                 self?.imageView.image = image
             }
         }.resume()
+    }
+    
+    @objc private func shareTapped() {
+        let text = "Conheça o \(pet.name)! \(pet.descriptionText ?? "") - Localização: \(pet.formattedLocation)"
+        let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        
+        // Track share
+        activityVC.completionWithItemsHandler = { _, completed, _, _ in
+            if completed {
+                AchievementsManager.shared.incrementShareCount()
+            }
+        }
+        
+        present(activityVC, animated: true)
     }
 }

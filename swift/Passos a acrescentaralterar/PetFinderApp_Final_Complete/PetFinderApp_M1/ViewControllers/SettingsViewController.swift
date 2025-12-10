@@ -5,13 +5,11 @@ class SettingsViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     
     private enum SettingSection: Int, CaseIterable {
-        case api
         case cache
         case about
         
         var title: String {
             switch self {
-            case .api: return "API"
             case .cache: return "Cache"
             case .about: return "Sobre"
             }
@@ -42,33 +40,6 @@ class SettingsViewController: UIViewController {
         ])
     }
     
-    private func configureAPISettings() {
-        let alert = UIAlertController(title: "Configurar API", message: "Configure suas credenciais do Adopt-a-Pet", preferredStyle: .alert)
-        
-        alert.addTextField { textField in
-            textField.placeholder = "API Key"
-            textField.text = UserDefaults.standard.string(forKey: UserDefaultsKeys.apiKey)
-        }
-        
-        alert.addTextField { textField in
-            textField.placeholder = "Shelter ID"
-            textField.text = UserDefaults.standard.string(forKey: UserDefaultsKeys.shelterId)
-        }
-        
-        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Guardar", style: .default) { _ in
-            let apiKey = alert.textFields?[0].text ?? ""
-            let shelterId = alert.textFields?[1].text ?? ""
-            
-            UserDefaults.standard.set(apiKey, forKey: UserDefaultsKeys.apiKey)
-            UserDefaults.standard.set(shelterId, forKey: UserDefaultsKeys.shelterId)
-            
-            AlertHelper.showSuccess(on: self, message: "Credenciais guardadas com sucesso")
-        })
-        
-        present(alert, animated: true)
-    }
-    
     private func clearCache() {
         AlertHelper.showConfirmation(
             on: self,
@@ -83,7 +54,6 @@ class SettingsViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
 extension SettingsViewController: UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -94,7 +64,6 @@ extension SettingsViewController: UITableViewDataSource {
         guard let settingSection = SettingSection(rawValue: section) else { return 0 }
         
         switch settingSection {
-        case .api: return 1
         case .cache: return 1
         case .about: return 1
         }
@@ -111,8 +80,6 @@ extension SettingsViewController: UITableViewDataSource {
         guard let settingSection = SettingSection(rawValue: indexPath.section) else { return cell }
         
         switch settingSection {
-        case .api:
-            cell.textLabel?.text = "Configurar API"
         case .cache:
             cell.textLabel?.text = "Limpar Cache"
         case .about:
@@ -125,7 +92,6 @@ extension SettingsViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - UITableViewDelegate
 extension SettingsViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -134,8 +100,6 @@ extension SettingsViewController: UITableViewDelegate {
         guard let settingSection = SettingSection(rawValue: indexPath.section) else { return }
         
         switch settingSection {
-        case .api:
-            configureAPISettings()
         case .cache:
             clearCache()
         case .about:

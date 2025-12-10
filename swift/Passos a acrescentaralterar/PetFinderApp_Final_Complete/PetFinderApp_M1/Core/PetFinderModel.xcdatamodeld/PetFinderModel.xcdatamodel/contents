@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22G74" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="PetUnifiedModel" representedClassName="PetUnifiedModel" syncable="YES">
+        <attribute name="age" attributeType="String"/>
+        <attribute name="breed" attributeType="String"/>
+        <attribute name="city" attributeType="String"/>
+        <attribute name="descriptionText" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="isFollowing" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="largePhotoURL" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="photoURL" optional="YES" attributeType="String"/>
+        <attribute name="savedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="secondaryBreed" optional="YES" attributeType="String"/>
+        <attribute name="sex" attributeType="String"/>
+        <attribute name="size" attributeType="String"/>
+        <attribute name="species" attributeType="String"/>
+        <attribute name="state" attributeType="String"/>
+    </entity>
+    <entity name="UserStatsEntity" representedClassName="UserStatsEntity" syncable="YES">
+        <attribute name="appOpenCount" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="firstOpenDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastOpenDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="totalAnimalsViewed" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalSearches" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalShares" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+</model>
