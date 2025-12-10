@@ -1,0 +1,433 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C1000001 /* APIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001; };
+		C1000002 /* UIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002; };
+		C1000003 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000003; };
+		C1000004 /* PetUnifiedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000004; };
+		C1000005 /* AdoptAPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000005; };
+		C1000006 /* StaticPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000006; };
+		C1000007 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000007; };
+		C1000008 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000008; };
+		C1000009 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000009; };
+		C1000010 /* APIURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000010; };
+		C1000011 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000011; };
+		C1000012 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000012; };
+		C1000013 /* PetUnifiedModel+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000013; };
+		C1000014 /* AlertHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000014; };
+		C1000015 /* LoadingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000015; };
+		C1000016 /* AchievementsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000016; };
+		C1000017 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000017; };
+		C1000018 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000018; };
+		C1000019 /* AchievementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000019; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		C3000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C2000001 /* APIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConstants.swift; sourceTree = "<group>"; };
+		C2000002 /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
+		C2000003 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
+		C2000004 /* PetUnifiedModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetUnifiedModel.swift; sourceTree = "<group>"; };
+		C2000005 /* AdoptAPetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptAPetModel.swift; sourceTree = "<group>"; };
+		C2000006 /* StaticPetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticPetModel.swift; sourceTree = "<group>"; };
+		C2000007 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
+		C2000008 /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
+		C2000009 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		C2000010 /* APIURLBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIURLBuilder.swift; sourceTree = "<group>"; };
+		C2000011 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
+		C2000012 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		C2000013 /* PetUnifiedModel+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PetUnifiedModel+Extensions.swift"; sourceTree = "<group>"; };
+		C2000014 /* AlertHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertHelper.swift; sourceTree = "<group>"; };
+		C2000015 /* LoadingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingHelper.swift; sourceTree = "<group>"; };
+		C2000016 /* AchievementsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsManager.swift; sourceTree = "<group>"; };
+		C2000017 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
+		C2000018 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
+		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C4000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C5000001 = {
+			isa = PBXGroup;
+			children = (
+				C5000002 /* PetFinderApp_M1 */,
+				C5000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C5000002 /* PetFinderApp_M1 */ = {
+			isa = PBXGroup;
+			children = (
+				C5000010 /* Constants */,
+				C5000020 /* Models */,
+				C5000030 /* Network */,
+				C5000040 /* Extensions */,
+				C5000050 /* Utils */,
+				C5000060 /* Managers */,
+				C5000070 /* Views */,
+			);
+			path = PetFinderApp_M1;
+			sourceTree = "<group>";
+		};
+		C5000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C3000001 /* PetFinderApp_M1.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C5000010 /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				C2000001 /* APIConstants.swift */,
+				C2000002 /* UIConstants.swift */,
+				C2000003 /* UserDefaultsKeys.swift */,
+			);
+			path = Constants;
+			sourceTree = "<group>";
+		};
+		C5000020 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C2000004 /* PetUnifiedModel.swift */,
+				C2000005 /* AdoptAPetModel.swift */,
+				C2000006 /* StaticPetModel.swift */,
+				C2000007 /* Achievement.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C5000030 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				C2000008 /* NetworkError.swift */,
+				C2000009 /* APIClient.swift */,
+				C2000010 /* APIURLBuilder.swift */,
+				C2000011 /* CacheManager.swift */,
+				C2000012 /* NetworkManager.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		C5000040 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				C2000013 /* PetUnifiedModel+Extensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		C5000050 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				C2000014 /* AlertHelper.swift */,
+				C2000015 /* LoadingHelper.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		C5000060 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				C2000016 /* AchievementsManager.swift */,
+				C2000017 /* SyncManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		C5000070 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C5000071 /* Cells */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C5000071 /* Cells */ = {
+			isa = PBXGroup;
+			children = (
+				C2000018 /* AnimalTableViewCell.swift */,
+				C2000019 /* AchievementCell.swift */,
+			);
+			path = Cells;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C6000001 /* PetFinderApp_M1 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C7000001 /* Build configuration list for PBXNativeTarget "PetFinderApp_M1" */;
+			buildPhases = (
+				C8000001 /* Sources */,
+				C4000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PetFinderApp_M1;
+			productName = PetFinderApp_M1;
+			productReference = C3000001 /* PetFinderApp_M1.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C9000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = C9000002 /* Build configuration list for PBXProject "PetFinderApp_M1" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C5000001;
+			productRefGroup = C5000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C6000001 /* PetFinderApp_M1 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C8000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1000001 /* APIConstants.swift in Sources */,
+				C1000002 /* UIConstants.swift in Sources */,
+				C1000003 /* UserDefaultsKeys.swift in Sources */,
+				C1000004 /* PetUnifiedModel.swift in Sources */,
+				C1000005 /* AdoptAPetModel.swift in Sources */,
+				C1000006 /* StaticPetModel.swift in Sources */,
+				C1000007 /* Achievement.swift in Sources */,
+				C1000008 /* NetworkError.swift in Sources */,
+				C1000009 /* APIClient.swift in Sources */,
+				C1000010 /* APIURLBuilder.swift in Sources */,
+				C1000011 /* CacheManager.swift in Sources */,
+				C1000012 /* NetworkManager.swift in Sources */,
+				C1000013 /* PetUnifiedModel+Extensions.swift in Sources */,
+				C1000014 /* AlertHelper.swift in Sources */,
+				C1000015 /* LoadingHelper.swift in Sources */,
+				C1000016 /* AchievementsManager.swift in Sources */,
+				C1000017 /* SyncManager.swift in Sources */,
+				C1000018 /* AnimalTableViewCell.swift in Sources */,
+				C1000019 /* AchievementCell.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CA000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CA000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CB000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = PetFinderApp_M1/App/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.petfinder.PetFinderApp-M1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CB000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = PetFinderApp_M1/App/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.petfinder.PetFinderApp-M1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C9000002 /* Build configuration list for PBXProject "PetFinderApp_M1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA000001 /* Debug */,
+				CA000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C7000001 /* Build configuration list for PBXNativeTarget "PetFinderApp_M1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CB000001 /* Debug */,
+				CB000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C9000001 /* Project object */;
+}
