@@ -49,7 +49,11 @@
 		C2000017 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		C2000018 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
 		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
+<<<<<<< Updated upstream
 		C3000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+=======
+		C2000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+>>>>>>> Stashed changes
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +78,11 @@
 		C5000002 /* PetFinderApp_M1 */ = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< Updated upstream
 				1579A85F2EE9870E002129BA /* Info.plist */,
+=======
+				C5000080 /* App */,
+>>>>>>> Stashed changes
 				C5000010 /* Constants */,
 				C5000020 /* Models */,
 				C5000030 /* Network */,
@@ -92,6 +100,14 @@
 				C3000001 /* PetFinderApp_M1.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C5000080 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				C2000020 /* Info.plist */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 		C5000010 /* Constants */ = {
@@ -367,7 +383,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = PetFinderApp_M1/App/Info.plist;
+				INFOPLIST_FILE = "PetFinderApp_M1/App/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -391,7 +407,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = PetFinderApp_M1/App/Info.plist;
+				INFOPLIST_FILE = "PetFinderApp_M1/App/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
