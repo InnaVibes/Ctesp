@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C1000001 /* APIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001; };
-		C1000002 /* UIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002; };
-		C1000003 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000003; };
-		C1000004 /* PetUnifiedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000004; };
-		C1000005 /* AdoptAPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000005; };
-		C1000006 /* StaticPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000006; };
-		C1000007 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000007; };
-		C1000008 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000008; };
-		C1000009 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000009; };
-		C1000010 /* APIURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000010; };
-		C1000011 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000011; };
-		C1000012 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000012; };
-		C1000013 /* PetUnifiedModel+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000013; };
-		C1000014 /* AlertHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000014; };
-		C1000015 /* LoadingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000015; };
-		C1000016 /* AchievementsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000016; };
-		C1000017 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000017; };
-		C1000018 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000018; };
-		C1000019 /* AchievementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000019; };
+		C1000001 /* APIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000001 /* APIConstants.swift */; };
+		C1000002 /* UIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002 /* UIConstants.swift */; };
+		C1000003 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000003 /* UserDefaultsKeys.swift */; };
+		C1000004 /* PetUnifiedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000004 /* PetUnifiedModel.swift */; };
+		C1000005 /* AdoptAPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000005 /* AdoptAPetModel.swift */; };
+		C1000006 /* StaticPetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000006 /* StaticPetModel.swift */; };
+		C1000007 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000007 /* Achievement.swift */; };
+		C1000008 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000008 /* NetworkError.swift */; };
+		C1000009 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000009 /* APIClient.swift */; };
+		C1000010 /* APIURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000010 /* APIURLBuilder.swift */; };
+		C1000011 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000011 /* CacheManager.swift */; };
+		C1000012 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000012 /* NetworkManager.swift */; };
+		C1000013 /* PetUnifiedModel+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000013 /* PetUnifiedModel+Extensions.swift */; };
+		C1000014 /* AlertHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000014 /* AlertHelper.swift */; };
+		C1000015 /* LoadingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000015 /* LoadingHelper.swift */; };
+		C1000016 /* AchievementsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000016 /* AchievementsManager.swift */; };
+		C1000017 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000017 /* SyncManager.swift */; };
+		C1000018 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000018 /* AnimalTableViewCell.swift */; };
+		C1000019 /* AchievementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000019 /* AchievementCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C3000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1579A85F2EE9870E002129BA /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C2000001 /* APIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConstants.swift; sourceTree = "<group>"; };
 		C2000002 /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
 		C2000003 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
@@ -49,6 +49,7 @@
 		C2000017 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		C2000018 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
 		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
+		C3000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +74,7 @@
 		C5000002 /* PetFinderApp_M1 */ = {
 			isa = PBXGroup;
 			children = (
+				1579A85F2EE9870E002129BA /* Info.plist */,
 				C5000010 /* Constants */,
 				C5000020 /* Models */,
 				C5000030 /* Network */,
@@ -409,20 +411,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C9000002 /* Build configuration list for PBXProject "PetFinderApp_M1" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CA000001 /* Debug */,
-				CA000002 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		C7000001 /* Build configuration list for PBXNativeTarget "PetFinderApp_M1" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CB000001 /* Debug */,
 				CB000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9000002 /* Build configuration list for PBXProject "PetFinderApp_M1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA000001 /* Debug */,
+				CA000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
