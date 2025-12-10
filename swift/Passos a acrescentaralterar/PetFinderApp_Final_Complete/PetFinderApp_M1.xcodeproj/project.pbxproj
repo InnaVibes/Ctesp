@@ -50,7 +50,11 @@
 		C2000018 /* AnimalTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalTableViewCell.swift; sourceTree = "<group>"; };
 		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 		C3000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+=======
+		C2000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+>>>>>>> Stashed changes
 =======
 		C2000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 >>>>>>> Stashed changes
@@ -79,7 +83,11 @@
 			isa = PBXGroup;
 			children = (
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 				1579A85F2EE9870E002129BA /* Info.plist */,
+=======
+				C5000080 /* App */,
+>>>>>>> Stashed changes
 =======
 				C5000080 /* App */,
 >>>>>>> Stashed changes
