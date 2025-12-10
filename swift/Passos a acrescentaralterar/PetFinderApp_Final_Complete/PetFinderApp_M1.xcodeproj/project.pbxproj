@@ -27,6 +27,9 @@
 		C1000018 /* AnimalTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000018; };
 		C1000019 /* AchievementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000019; };
 		C1000020 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000021; };
+		C1000021 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000022; };
+		C1000022 /* PetDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000023; };
+		C1000023 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000024; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +55,9 @@
 		C2000019 /* AchievementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementCell.swift; sourceTree = "<group>"; };
 		C2000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C2000021 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C2000022 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		C2000023 /* PetDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetDetailViewController.swift; sourceTree = "<group>"; };
+		C2000024 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +90,7 @@
 				C5000050 /* Utils */,
 				C5000060 /* Managers */,
 				C5000070 /* Views */,
+				C5000090 /* ViewControllers */,
 			);
 			path = PetFinderApp_M1;
 			sourceTree = "<group>";
@@ -181,6 +188,16 @@
 			path = Cells;
 			sourceTree = "<group>";
 		};
+		C5000090 /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				C2000022 /* HomeViewController.swift */,
+				C2000023 /* PetDetailViewController.swift */,
+				C2000024 /* SettingsViewController.swift */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -253,6 +270,9 @@
 				C1000018 /* AnimalTableViewCell.swift in Sources */,
 				C1000019 /* AchievementCell.swift in Sources */,
 				C1000020 /* AppDelegate.swift in Sources */,
+				C1000021 /* HomeViewController.swift in Sources */,
+				C1000022 /* PetDetailViewController.swift in Sources */,
+				C1000023 /* SettingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

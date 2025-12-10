@@ -13,23 +13,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configurar a janela principal
         window = UIWindow(frame: UIScreen.main.bounds)
         
-        // Criar um ViewController temporário
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .systemBackground
+        // Criar TabBarController
+        let tabBarController = UITabBarController()
         
-        let label = UILabel()
-        label.text = "PetFinder App"
-        label.font = .systemFont(ofSize: 24, weight: .bold)
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        viewController.view.addSubview(label)
+        // Home
+        let homeVC = HomeViewController()
+        let homeNav = UINavigationController(rootViewController: homeVC)
+        homeNav.tabBarItem = UITabBarItem(
+            title: "Início",
+            image: UIImage(systemName: "house"),
+            selectedImage: UIImage(systemName: "house.fill")
+        )
         
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: viewController.view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: viewController.view.centerYAnchor)
-        ])
+        // Settings
+        let settingsVC = SettingsViewController()
+        let settingsNav = UINavigationController(rootViewController: settingsVC)
+        settingsNav.tabBarItem = UITabBarItem(
+            title: "Definições",
+            image: UIImage(systemName: "gear"),
+            selectedImage: UIImage(systemName: "gear")
+        )
         
-        window?.rootViewController = viewController
+        tabBarController.viewControllers = [homeNav, settingsNav]
+        
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
         
         return true
