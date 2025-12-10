@@ -102,9 +102,6 @@ extension HomeViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let pet = pets[indexPath.row]
         
-        // Track animal viewed
-        AchievementsManager.shared.incrementAnimalsViewed()
-        
         let detailVC = PetDetailViewController(pet: pet)
         navigationController?.pushViewController(detailVC, animated: true)
     }
@@ -113,8 +110,8 @@ extension HomeViewController: UITableViewDelegate {
 // MARK: - AnimalTableViewCellDelegate
 extension HomeViewController: AnimalTableViewCellDelegate {
     
-    func animalCellDidTapFavorite(_ cell: AnimalTableViewCell, animalId: String) {
-        CoreDataManager.shared.toggleFollowing(petId: animalId)
-        tableView.reloadData()
+    func animalCellDidTapFavorite(_ cell: AnimalTableViewCell, animalId: Int64) {
+        // TODO: Implementar lógica de favoritos com Core Data
+        AlertHelper.showAlert(on: self, title: "Favorito", message: "Funcionalidade em desenvolvimento")
     }
 }

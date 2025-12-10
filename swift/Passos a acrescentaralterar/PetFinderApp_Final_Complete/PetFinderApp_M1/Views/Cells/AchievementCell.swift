@@ -6,8 +6,6 @@ class AchievementCell: UICollectionViewCell {
     private let iconView = UIImageView()
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
-    private let progressLabel = UILabel()
-    private let progressBar = UIProgressView(progressViewStyle: .default)
     private let lockImageView = UIImageView()
     
     override init(frame: CGRect) {
@@ -30,26 +28,17 @@ class AchievementCell: UICollectionViewCell {
         iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
         
-        titleLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 1
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        descriptionLabel.font = .systemFont(ofSize: 10, weight: .regular)
+        descriptionLabel.font = .systemFont(ofSize: 11, weight: .regular)
         descriptionLabel.textColor = .secondaryLabel
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 2
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        progressLabel.font = .systemFont(ofSize: 9, weight: .semibold)
-        progressLabel.textColor = .systemBlue
-        progressLabel.textAlignment = .center
-        progressLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.progressTintColor = .systemBlue
-        progressBar.trackTintColor = .systemGray4
         
         lockImageView.image = UIImage(systemName: "lock.fill")
         lockImageView.tintColor = .systemGray
@@ -58,8 +47,6 @@ class AchievementCell: UICollectionViewCell {
         containerView.addSubview(iconView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(descriptionLabel)
-        containerView.addSubview(progressLabel)
-        containerView.addSubview(progressBar)
         containerView.addSubview(lockImageView)
         contentView.addSubview(containerView)
         
@@ -69,31 +56,24 @@ class AchievementCell: UICollectionViewCell {
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            iconView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
+            iconView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: UIConstants.smallSpacing),
             iconView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 40),
-            iconView.heightAnchor.constraint(equalToConstant: 40),
+            iconView.widthAnchor.constraint(equalToConstant: UIConstants.largeIconSize),
+            iconView.heightAnchor.constraint(equalToConstant: UIConstants.largeIconSize),
             
-            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 6),
-            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 6),
-            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -6),
+            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: UIConstants.smallSpacing),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: UIConstants.smallSpacing),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -UIConstants.smallSpacing),
             
-            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
-            descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 6),
-            descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -6),
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: UIConstants.smallSpacing),
+            descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -UIConstants.smallSpacing),
+            descriptionLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -UIConstants.smallSpacing),
             
-            progressLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 4),
-            progressLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            
-            progressBar.topAnchor.constraint(equalTo: progressLabel.bottomAnchor, constant: 4),
-            progressBar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            progressBar.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            progressBar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
-            
-            lockImageView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
-            lockImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
-            lockImageView.widthAnchor.constraint(equalToConstant: 16),
-            lockImageView.heightAnchor.constraint(equalToConstant: 16)
+            lockImageView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: UIConstants.smallSpacing),
+            lockImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -UIConstants.smallSpacing),
+            lockImageView.widthAnchor.constraint(equalToConstant: UIConstants.smallIconSize),
+            lockImageView.heightAnchor.constraint(equalToConstant: UIConstants.smallIconSize)
         ])
     }
     
@@ -103,19 +83,12 @@ class AchievementCell: UICollectionViewCell {
         
         titleLabel.text = achievement.title
         descriptionLabel.text = achievement.description
-        progressLabel.text = achievement.progressText
-        progressBar.progress = Float(achievement.progress)
-        
-        progressLabel.isHidden = achievement.isUnlocked
-        progressBar.isHidden = achievement.isUnlocked
         
         lockImageView.isHidden = achievement.isUnlocked
         
         containerView.backgroundColor = achievement.isUnlocked ? .systemGray6 : .systemGray5
-        containerView.layer.borderColor = achievement.isUnlocked 
-            ? UIColor.systemYellow.cgColor 
-            : UIColor.clear.cgColor
+        containerView.layer.borderColor = achievement.isUnlocked ? UIColor.systemYellow.cgColor : UIColor.clear.cgColor
         
-        alpha = achievement.isUnlocked ? 1.0 : 0.7
+        alpha = achievement.isUnlocked ? 1.0 : 0.6
     }
 }

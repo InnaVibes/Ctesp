@@ -1,13 +1,13 @@
 import UIKit
 
 protocol AnimalTableViewCellDelegate: AnyObject {
-    func animalCellDidTapFavorite(_ cell: AnimalTableViewCell, animalId: String)
+    func animalCellDidTapFavorite(_ cell: AnimalTableViewCell, animalId: Int64)
 }
 
 class AnimalTableViewCell: UITableViewCell {
     
     weak var delegate: AnimalTableViewCellDelegate?
-    private var animalId: String?
+    private var animalId: Int64?
     
     private let animalImageView = UIImageView()
     private let nameLabel = UILabel()
@@ -85,7 +85,8 @@ class AnimalTableViewCell: UITableViewCell {
     }
     
     func configure(with pet: PetUnifiedModel, isFollowing: Bool) {
-        self.animalId = pet.id
+        guard let petIdInt = Int64(pet.id) else { return }
+        self.animalId = petIdInt
         
         nameLabel.text = pet.name
         speciesLabel.text = pet.formattedSpecies
