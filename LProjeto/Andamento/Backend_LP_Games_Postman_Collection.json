@@ -1,0 +1,1209 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Backend LP Games - Full Tests",
+		"description": "Complete API testing collection for Backend LP Games Store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Check Server Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Client (Valid)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('client_token', jsonData.data.token);",
+									"    pm.environment.set('client_id', jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"MyPass123!\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('admin_token', jsonData.data.token);",
+									"    pm.environment.set('admin_id', jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"AdminPass123!\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"phone\": \"911111111\",\n  \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('owner_token', jsonData.data.token);",
+									"    pm.environment.set('owner_id', jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Owner User\",\n  \"email\": \"owner@example.com\",\n  \"password\": \"OwnerPass123!\",\n  \"dateOfBirth\": \"1985-01-01\",\n  \"phone\": \"910000000\",\n  \"role\": \"owner\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Password (too short)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test1@example.com\",\n  \"password\": \"123\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Password (no uppercase)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test2@example.com\",\n  \"password\": \"mypass123!\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Password (no special char)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test3@example.com\",\n  \"password\": \"MyPass123\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"not-an-email\",\n  \"password\": \"MyPass123!\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Phone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test4@example.com\",\n  \"password\": \"MyPass123!\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"phone\": \"123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Underage (< 13 years)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test5@example.com\",\n  \"password\": \"MyPass123!\",\n  \"dateOfBirth\": \"2020-01-01\",\n  \"phone\": \"912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Client",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('client_token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"MyPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('admin_token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"AdminPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('owner_token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"OwnerPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Wrong Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"WrongPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - User Not Found",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"notfound@example.com\",\n  \"password\": \"MyPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile (Client)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "profile"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile (No Token)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "profile"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile (Client)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Updated\",\n  \"phone\": \"913333333\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "profile"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Clients Management",
+			"item": [
+				{
+					"name": "Create Client (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('created_client_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Maria Santos\",\n  \"email\": \"maria.santos@example.com\",\n  \"password\": \"MariaPass123!\",\n  \"phone\": \"914444444\",\n  \"age\": 28,\n  \"dateOfBirth\": \"1996-03-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/clients/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Client (No Auth) - Should Fail",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Client\",\n  \"email\": \"test.client@example.com\",\n  \"password\": \"TestPass123!\",\n  \"phone\": \"915555555\",\n  \"age\": 25\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/clients/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Clients (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "get"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Clients (Owner)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "get"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Clients (Client) - Should Fail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "get"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Client by ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/get/{{created_client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "get", "{{created_client_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Own Profile (Client)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/get/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "get", "{{client_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Client (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Maria Santos Updated\",\n  \"phone\": \"916666666\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/clients/update/{{created_client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "update", "{{created_client_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Own Profile (Client)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Final\",\n  \"phone\": \"917777777\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/clients/update/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "update", "{{client_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Client (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clients/delete/{{created_client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "clients", "delete", "{{created_client_id}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admins Management",
+			"item": [
+				{
+					"name": "Create Admin (Owner)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('created_admin_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pedro Admin\",\n  \"email\": \"pedro.admin@example.com\",\n  \"password\": \"PedroPass123!\",\n  \"phone\": \"918888888\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admins/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Admin (Client) - Should Fail",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Fake Admin\",\n  \"email\": \"fake.admin@example.com\",\n  \"password\": \"FakePass123!\",\n  \"phone\": \"919999999\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admins/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Admins (Owner)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admins/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "get"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Admin by ID (Owner)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admins/get/{{created_admin_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "get", "{{created_admin_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Admin (Owner)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pedro Admin Updated\",\n  \"phone\": \"910101010\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admins/update/{{created_admin_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "update", "{{created_admin_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Admin (Owner)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admins/delete/{{created_admin_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admins", "delete", "{{created_admin_id}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Features",
+			"item": [
+				{
+					"name": "Wishlist",
+					"item": [
+						{
+							"name": "Get Wishlist",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/wishlist",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "wishlist"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add to Wishlist",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"gameId\": 3498,\n  \"gameName\": \"Grand Theft Auto V\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/wishlist",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "wishlist"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Another to Wishlist",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"gameId\": 4200,\n  \"gameName\": \"Portal 2\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/wishlist",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "wishlist"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove from Wishlist",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/wishlist/3498",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "wishlist", "3498"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cart",
+					"item": [
+						{
+							"name": "Get Cart",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/cart",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "cart"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add to Cart",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"gameId\": 4200,\n  \"gameName\": \"Portal 2\",\n  \"price\": 9.99\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/cart",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "cart"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Another to Cart",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"gameId\": 5286,\n  \"gameName\": \"Tomb Raider\",\n  \"price\": 19.99\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/cart",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "cart"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove from Cart",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/cart/4200",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "cart", "4200"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Clear Cart",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/cart",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "cart"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Library",
+					"item": [
+						{
+							"name": "Get Library",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{client_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/users/library",
+									"host": ["{{base_url}}"],
+									"path": ["api", "users", "library"]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Owner Management",
+			"item": [
+				{
+					"name": "Get All Owners (Owner)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/owner/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "owner", "get"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Owner by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/owner/get/{{owner_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "owner", "get", "{{owner_id}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Owner",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{owner_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Owner Updated\",\n  \"phone\": \"900000001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/owner/update/{{owner_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "owner", "update", "{{owner_id}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "client_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "owner_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "owner_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "created_client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "created_admin_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

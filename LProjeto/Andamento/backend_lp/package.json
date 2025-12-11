@@ -1,0 +1,37 @@
+{
+  "name": "backend-lp-games",
+  "version": "2.0.0",
+  "description": "Game Store Backend API with authentication and game management",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "game-store",
+    "api",
+    "mongodb",
+    "express",
+    "jwt"
+  ],
+  "author": "LP Team",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.4",
+    "nodemailer": "^7.0.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
