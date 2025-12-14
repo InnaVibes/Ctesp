@@ -114,7 +114,8 @@ CREATE TABLE activity_logs (
 -- Inserir Admin (password: admin123)
 INSERT INTO users (name, email, password, user_type, phone, address) VALUES 
 ('Administrador', 'admin@standautomovel.pt', '$2y$12$LQv3c1yycjQoxe3FaJQ.Oe5YKzAqT0H5vJKhZ8f8KqHk5GxDfHaVS', 'admin', '912345678', 'Rua do Stand, 123, Porto');
-
+INSERT INTO users (name, email, password, user_type, phone, address) VALUES 
+('Administrador12', 'admin12@standautomovel.pt', 'admin123', 'admin', '912345678', 'Rua do Stand, 123, Porto');
 -- Inserir Utilizadores de Teste (password: user123)
 INSERT INTO users (name, email, password, user_type, phone, address) VALUES 
 ('João Silva', 'joao.silva@email.pt', '$2y$12$dQPyc8s5kCYXfF0ixYgK4OXwWJHF3V0V6kYKPZqM7nKxJvKP.Tz5i', 'user', '918765432', 'Rua das Flores, 45, Vila Nova de Gaia'),
