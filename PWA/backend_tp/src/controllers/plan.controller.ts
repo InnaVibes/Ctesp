@@ -38,7 +38,16 @@ export const completeWorkout = (req: AuthRequest, res: Response) => {
     form.parse(req, async (err, fields, files) => {
         if (err) return res.status(500).json(err);
         
-        if (fields.status === 'failed') {
+        // --- CORREÇÃO FINAL DOS ERROS DE TIPO ---
+        // 1. Pegamos no valor bruto que vem do formidable (pode ser array ou string)
+        const rawStatus = fields.status;
+
+        // 2. Criamos uma NOVA constante garantindo que é sempre string ou undefined
+        // Se for array (ex: ["failed"]), pegamos o primeiro. Se for string, usamos direto.
+        const statusValue = Array.isArray(rawStatus) ? rawStatus[0] : rawStatus;
+        // ----------------------------------------
+
+        if (statusValue === 'failed') {
              // io.to(ptId).emit('notification', 'Client failed workout');
              console.log("Sending Socket Toast to PT...");
         }

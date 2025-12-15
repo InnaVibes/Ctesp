@@ -1,8 +1,9 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IPlan extends Document {
-  clientId: string;
-  ptId: string;
+  // Alterámos de 'string' para 'Types.ObjectId' para coincidir com o Schema
+  clientId: Types.ObjectId;
+  ptId: Types.ObjectId;
   dayOfWeek: number;
   exercises: Array<{
     name: string;
@@ -16,6 +17,7 @@ export interface IPlan extends Document {
 }
 
 const PlanSchema = new Schema<IPlan>({
+  // Agora o TypeScript já aceita que isto seja um ObjectId
   clientId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   ptId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   dayOfWeek: { type: Number, required: true },
