@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -23,11 +23,8 @@ const MyWorkouts = () => {
     proofImage: null,
   });
 
-  useEffect(() => {
-    loadWorkouts();
-  }, []);
-
-  const loadWorkouts = async () => {
+  // Usar useCallback para memorizar a função
+  const loadWorkouts = useCallback(async () => {
     try {
       const data = await workoutService.getByClient(user._id);
       setWorkouts(data);
@@ -36,7 +33,11 @@ const MyWorkouts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user._id]);
+
+  useEffect(() => {
+    loadWorkouts();
+  }, [loadWorkouts]); // Agora a dependência está incluída
 
   const handleMarkWorkout = (workout) => {
     setSelectedWorkout(workout);

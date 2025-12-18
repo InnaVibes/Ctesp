@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import Button from '../components/Button';
+import Input from '../components/Input';
 import Loading from '../components/Loading';
+import Modal from '../components/Modal';
 import messageService from '../services/messageService';
 import { toast } from 'react-toastify';
 import { formatTime } from '../utils/helpers';
+import api from '../services/api';
 
 const Messages = () => {
   const { user } = useAuth();
@@ -15,57 +18,232 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchedUser, setSearchedUser] = useState(null);
+  const [searching, setSearching] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Função helper para gerar conversationId consistente com backend
+  const generateConversationId = useCallback((userId1, userId2) => {
+    const sortedIds = [userId1, userId2].sort();
+    return `${sortedIds[0]}_${sortedIds[1]}`;
+  }, []);
+
+  const loadConversations = useCallback(async (keepSelection = false) => {
+    try {
+      const data = await messageService.getConversations();
+      // Filtrar conversas válidas (com otherUser definido)
+      const validConversations = (data || []).filter(
+        (conv) => conv && conv.otherUser && conv.otherUser._id
+      );
+      
+      setConversations(validConversations);
+      
+      // Se deve manter seleção e havia uma conversa selecionada
+      if (keepSelection && selectedConversation) {
+        // Encontrar a mesma conversa na lista atualizada
+        const updatedConv = validConversations.find(
+          c => c._id === selectedConversation._id
+        );
+        if (updatedConv) {
+          setSelectedConversation(updatedConv);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar conversas:', error);
+      toast.error('Erro ao carregar conversas');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedConversation]);
+
   useEffect(() => {
-    loadConversations();
+    loadConversations(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation._id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadConversations = async () => {
-    try {
-      const data = await messageService.getConversations();
-      setConversations(data);
-    } catch (error) {
-      toast.error('Erro ao carregar conversas');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadMessages = async (conversationId) => {
     try {
       const data = await messageService.getMessages(conversationId);
-      setMessages(data);
+      setMessages(data || []);
       await messageService.markAsRead(conversationId);
     } catch (error) {
-      toast.error('Erro ao carregar mensagens');
+      console.error('Erro ao carregar mensagens:', error);
+      // Não mostrar erro ao usuário, apenas log
+    }
+  };
+
+  const handleSearchUser = async () => {
+    if (!searchEmail.trim()) {
+      toast.error('Digite um email ou username');
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await api.get('/users/search', {
+        params: { query: searchEmail }
+      });
+
+      if (response.data && response.data._id) {
+        setSearchedUser(response.data);
+      } else {
+        toast.error('Usuário não encontrado');
+        setSearchedUser(null);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      toast.error('Usuário não encontrado');
+      setSearchedUser(null);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleStartConversation = async () => {
+    if (!searchedUser || !searchedUser._id || !user?._id) {
+      toast.error('Usuário inválido');
+      return;
+    }
+
+    try {
+      // Primeiro, tentar criar/obter conversa no backend
+      const response = await api.post('/messages/conversations', {
+        userId: searchedUser._id
+      });
+
+      // Usar o conversationId retornado pelo backend
+      const conversationId = response.data._id;
+
+      const newConversation = {
+        _id: conversationId,
+        otherUser: {
+          _id: searchedUser._id,
+          username: searchedUser.username,
+          email: searchedUser.email,
+          profileImage: searchedUser.profileImage,
+          role: searchedUser.role
+        },
+        lastMessage: null,
+        unreadCount: 0
+      };
+
+      // Verificar se conversa já existe na lista
+      const exists = conversations.find(c => c._id === conversationId);
+      if (exists) {
+        setSelectedConversation(exists);
+        setShowNewChatModal(false);
+        setSearchEmail('');
+        setSearchedUser(null);
+        toast.info('Conversa já existe');
+        return;
+      }
+
+      setConversations([newConversation, ...conversations]);
+      setSelectedConversation(newConversation);
+      setMessages([]);
+      setShowNewChatModal(false);
+      setSearchEmail('');
+      setSearchedUser(null);
+      
+      toast.success('Conversa iniciada! Envie sua primeira mensagem.');
+    } catch (error) {
+      console.error('Erro ao iniciar conversa:', error);
+      
+      // Fallback: gerar conversationId localmente se backend falhar
+      const conversationId = generateConversationId(user._id, searchedUser._id);
+      
+      const newConversation = {
+        _id: conversationId,
+        otherUser: {
+          _id: searchedUser._id,
+          username: searchedUser.username,
+          email: searchedUser.email,
+          profileImage: searchedUser.profileImage,
+          role: searchedUser.role
+        },
+        lastMessage: null,
+        unreadCount: 0
+      };
+      
+      setConversations([newConversation, ...conversations]);
+      setSelectedConversation(newConversation);
+      setMessages([]);
+      setShowNewChatModal(false);
+      setSearchEmail('');
+      setSearchedUser(null);
+      
+      toast.success('Conversa iniciada! Envie sua primeira mensagem.');
     }
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
+    if (!selectedConversation?.otherUser?._id || !user?._id) {
+      toast.error('Conversa inválida');
+      return;
+    }
+
+    const tempMessage = {
+      _id: `temp-${Date.now()}`,
+      content: newMessage,
+      sender: {
+        _id: user._id,
+        username: user.username,
+        name: user.name || user.username
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    // Adicionar mensagem temporariamente
+    setMessages([...messages, tempMessage]);
+    const messageContent = newMessage;
+    setNewMessage('');
 
     try {
-      await messageService.sendMessage({
+      console.log('📤 Enviando mensagem:', {
         conversationId: selectedConversation._id,
-        content: newMessage,
+        receiverId: selectedConversation.otherUser._id,
+        content: messageContent
       });
-      setNewMessage('');
-      loadMessages(selectedConversation._id);
-      toast.success('Mensagem enviada');
+
+      const sentMessage = await messageService.sendMessage({
+        conversationId: selectedConversation._id,
+        receiverId: selectedConversation.otherUser._id,
+        content: messageContent,
+      });
+
+      console.log('✅ Mensagem enviada com sucesso:', sentMessage);
+
+      // Pequeno delay para garantir que backend processou
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Recarregar conversas mantendo a seleção atual
+      await loadConversations(true);
+      
+      // Recarregar mensagens da conversa atual
+      await loadMessages(selectedConversation._id);
+      
     } catch (error) {
+      console.error('❌ Erro ao enviar mensagem:', error);
       toast.error('Erro ao enviar mensagem');
+      
+      // Remover mensagem temporária em caso de erro
+      setMessages(messages.filter(m => m._id !== tempMessage._id));
+      setNewMessage(messageContent); // Restaurar texto
     }
   };
 
@@ -77,9 +255,14 @@ const Messages = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-        Mensagens
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Mensagens
+        </h1>
+        <Button onClick={() => setShowNewChatModal(true)}>
+          + Nova Conversa
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Lista de conversas */}
@@ -87,82 +270,127 @@ const Messages = () => {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Conversas
           </h2>
-          <div className="space-y-2">
-            {conversations.map(conv => (
-              <div
-                key={conv._id}
-                onClick={() => setSelectedConversation(conv)}
-                className={`
-                  p-3 rounded-lg cursor-pointer transition-colors
-                  ${selectedConversation?._id === conv._id
-                    ? 'bg-primary-100 dark:bg-primary-900'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }
-                `}
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar src={conv.otherUser?.avatar} name={conv.otherUser?.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-white truncate">
-                      {conv.otherUser?.name}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {conv.lastMessage?.content}
-                    </p>
+          
+          {conversations.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Nenhuma conversa ainda
+              </p>
+              <Button size="sm" onClick={() => setShowNewChatModal(true)}>
+                Iniciar Conversa
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {conversations.map(conv => {
+                if (!conv || !conv.otherUser || !conv.otherUser._id) {
+                  return null;
+                }
+                
+                return (
+                  <div
+                    key={conv._id}
+                    onClick={() => setSelectedConversation(conv)}
+                    className={`
+                      p-3 rounded-lg cursor-pointer transition-colors
+                      ${selectedConversation?._id === conv._id
+                        ? 'bg-primary-100 dark:bg-primary-900'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar 
+                        src={conv.otherUser.profileImage} 
+                        name={conv.otherUser.username || conv.otherUser.name || conv.otherUser.email || 'Usuário'} 
+                        size="sm" 
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                          {conv.otherUser.username || conv.otherUser.name || conv.otherUser.email}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {conv.otherUser.role === 'PT' ? 'Personal Trainer' : 'Cliente'}
+                        </p>
+                        {conv.lastMessage && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {conv.lastMessage.content}
+                          </p>
+                        )}
+                      </div>
+                      {(conv.unreadCount ?? 0) > 0 && (
+                        <span className="bg-primary-600 text-white text-xs rounded-full px-2 py-1">
+                          {conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {conv.unreadCount > 0 && (
-                    <span className="bg-primary-600 text-white text-xs rounded-full px-2 py-1">
-                      {conv.unreadCount}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
         {/* Área de mensagens */}
         <Card className="md:col-span-2 h-[600px] flex flex-col">
-          {selectedConversation ? (
+          {selectedConversation && selectedConversation.otherUser ? (
             <>
-              {/* Header da conversa */}
               <div className="flex items-center gap-3 pb-4 border-b dark:border-gray-700">
                 <Avatar
-                  src={selectedConversation.otherUser?.avatar}
-                  name={selectedConversation.otherUser?.name}
+                  src={selectedConversation.otherUser.profileImage}
+                  name={selectedConversation.otherUser.username || selectedConversation.otherUser.name || selectedConversation.otherUser.email || 'Usuário'}
                 />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {selectedConversation.otherUser?.name}
-                </h3>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    {selectedConversation.otherUser.username || selectedConversation.otherUser.name || selectedConversation.otherUser.email}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {selectedConversation.otherUser.role === 'PT' ? 'Personal Trainer' : 'Cliente'}
+                  </p>
+                  {/* Debug info - remover em produção */}
+                  <p className="text-xs text-gray-400 mt-1">
+                    ID: {selectedConversation._id}
+                  </p>
+                </div>
               </div>
 
-              {/* Mensagens */}
               <div className="flex-1 overflow-y-auto py-4 space-y-4">
-                {messages.map(msg => (
-                  <div
-                    key={msg._id}
-                    className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`
-                        max-w-[70%] px-4 py-2 rounded-lg
-                        ${msg.sender._id === user._id
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                        }
-                      `}
-                    >
-                      <p>{msg.content}</p>
-                      <p className="text-xs mt-1 opacity-75">
-                        {formatTime(msg.createdAt)}
-                      </p>
-                    </div>
+                {messages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Nenhuma mensagem ainda. Envie a primeira!
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  messages.map(msg => {
+                    if (!msg || !msg.sender) return null;
+                    
+                    return (
+                      <div
+                        key={msg._id}
+                        className={`flex ${msg.sender._id === user?._id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`
+                            max-w-[70%] px-4 py-2 rounded-lg
+                            ${msg.sender._id === user?._id
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                            }
+                          `}
+                        >
+                          <p>{msg.content}</p>
+                          <p className="text-xs mt-1 opacity-75">
+                            {formatTime(msg.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input de mensagem */}
               <form onSubmit={handleSendMessage} className="flex gap-2 pt-4 border-t dark:border-gray-700">
                 <input
                   type="text"
@@ -171,18 +399,94 @@ const Messages = () => {
                   placeholder="Digite sua mensagem..."
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <Button type="submit">Enviar</Button>
+                <Button type="submit" disabled={!newMessage.trim()}>Enviar</Button>
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-gray-500 dark:text-gray-400">
-                Selecione uma conversa para começar
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Selecione uma conversa ou inicie uma nova
               </p>
+              <Button onClick={() => setShowNewChatModal(true)}>
+                + Nova Conversa
+              </Button>
             </div>
           )}
         </Card>
       </div>
+
+      {/* Modal de Nova Conversa */}
+      <Modal
+        isOpen={showNewChatModal}
+        onClose={() => {
+          setShowNewChatModal(false);
+          setSearchEmail('');
+          setSearchedUser(null);
+        }}
+        title="Iniciar Nova Conversa"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email ou Username do usuário
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                placeholder="exemplo@email.com ou username"
+                className="flex-1"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearchUser();
+                  }
+                }}
+              />
+              <Button 
+                onClick={handleSearchUser}
+                loading={searching}
+              >
+                Buscar
+              </Button>
+            </div>
+          </div>
+
+          {searchedUser && searchedUser._id && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Usuário encontrado:
+              </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar 
+                    src={searchedUser.profileImage} 
+                    name={searchedUser.username || searchedUser.name || searchedUser.email || 'Usuário'} 
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {searchedUser.username || searchedUser.email}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {searchedUser.role === 'PT' ? 'Personal Trainer' : 'Cliente'}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleStartConversation}>
+                  Iniciar Conversa
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {searchEmail && !searchedUser && !searching && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+              Nenhum usuário encontrado. Verifique o email/username.
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

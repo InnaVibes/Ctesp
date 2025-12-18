@@ -12,7 +12,7 @@ const Register = () => {
     username: '',
     password: '',
     confirmPassword: '',
-    role: 'client',
+    role: 'CLIENT',
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -27,6 +27,11 @@ const Register = () => {
 
     if (formData.password !== formData.confirmPassword) {
       toast.error('As passwords não coincidem');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('A password deve ter pelo menos 6 caracteres');
       return;
     }
 
@@ -57,6 +62,7 @@ const Register = () => {
             name="name"
             value={formData.name}
             onChange={handleChange}
+            placeholder="Digite seu nome completo"
             required
           />
 
@@ -66,6 +72,7 @@ const Register = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
+            placeholder="seu@email.com"
             required
           />
 
@@ -75,6 +82,7 @@ const Register = () => {
             name="username"
             value={formData.username}
             onChange={handleChange}
+            placeholder="Escolha um username"
             required
           />
 
@@ -84,6 +92,7 @@ const Register = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
+            placeholder="Mínimo 6 caracteres"
             required
           />
 
@@ -93,6 +102,7 @@ const Register = () => {
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
+            placeholder="Digite a password novamente"
             required
           />
 
@@ -106,8 +116,8 @@ const Register = () => {
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="client">Cliente</option>
-              <option value="trainer">Personal Trainer</option>
+              <option value="CLIENT">Cliente</option>
+              <option value="PT">Personal Trainer</option>
             </select>
           </div>
 

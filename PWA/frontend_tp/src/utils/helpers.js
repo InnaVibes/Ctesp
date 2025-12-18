@@ -117,7 +117,8 @@ export const debounce = (func, wait) => {
   };
 };
 
-export default {
+// Export default como objeto nomeado (corrige o warning do ESLint)
+const helpers = {
   formatDate,
   formatDateTime,
   formatTime,
@@ -131,3 +132,5 @@ export default {
   isValidImageFile,
   debounce,
 };
+
+export default helpers;

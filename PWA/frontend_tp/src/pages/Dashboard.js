@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import Loading from '../components/Loading';
@@ -6,15 +6,12 @@ import workoutService from '../services/workoutService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
-  const { user, isTrainer, isClient } = useAuth();
+  const { user, isTrainer } = useAuth(); // Removido isClient pois não era usado
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
+  // Usar useCallback para memorizar a função
+  const loadStats = useCallback(async () => {
     try {
       const data = await workoutService.getStats(user._id);
       setStats(data);
@@ -23,7 +20,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user._id]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]); // Agora a dependência está incluída
 
   if (loading) return <Loading />;
 
