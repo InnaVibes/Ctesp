@@ -1,39 +1,25 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model, Document, Types } from 'mongoose';
 
-const MessageSchema = new Schema(
+export interface IMessage extends Document {
+  conversationId: string;
+  senderId: Types.ObjectId;
+  receiverId: Types.ObjectId;
+  content: string;
+  read: boolean;
+}
+
+const MessageSchema = new Schema<IMessage>(
   {
-    conversationId: {
-      type: String,
-      required: true,
-      index: true
-    },
-    senderId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    receiverId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    content: {
-      type: String,
-      required: true
-    },
-    read: {
-      type: Boolean,
-      default: false
-    }
+    conversationId: { type: String, required: true, index: true },
+    senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    content: { type: String, required: true },
+    read: { type: Boolean, default: false }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-// Índice composto para buscar mensagens de uma conversa rapidamente
+// Índice para otimizar a procura de mensagens numa conversa
 MessageSchema.index({ conversationId: 1, createdAt: -1 });
 
-const Message = model('Message', MessageSchema);
-
-module.exports = { Message };
+export const Message = model<IMessage>('Message', MessageSchema);
