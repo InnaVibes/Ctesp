@@ -44,28 +44,38 @@ const MyWorkouts = () => {
   };
 
   const handleSubmitCompletion = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  try {
+    const formData = new FormData();
+    formData.append('status', completionData.status);
     
-    try {
-      const formData = new FormData();
-      formData.append('status', completionData.status);
-      formData.append('feedback', completionData.feedback);
-      
-      if (completionData.image) {
-        formData.append('image', completionData.image);
-      }
-
-      await workoutService.completeWorkout(selectedWorkout._id, formData);
-
-      toast.success('Treino registado com sucesso');
-      setShowModal(false);
-      loadWorkouts();
-      setCompletionData({ status: 'completed', feedback: '', image: null });
-    } catch (error) {
-      console.error('Erro ao registar treino:', error);
-      toast.error('Erro ao registar treino');
+    // Só adiciona feedback se não estiver vazio
+    if (completionData.feedback && completionData.feedback.trim()) {
+      formData.append('feedback', completionData.feedback.trim());
     }
-  };
+    
+    if (completionData.image) {
+      formData.append('image', completionData.image);
+    }
+
+    // Debug - verificar o que está a ser enviado
+    console.log('=== FRONTEND DEBUG ===');
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    await workoutService.completeWorkout(selectedWorkout._id, formData);
+
+    toast.success('Treino registado com sucesso');
+    setShowModal(false);
+    loadWorkouts();
+    setCompletionData({ status: 'completed', feedback: '', image: null });
+  } catch (error) {
+    console.error('Erro ao registar treino:', error);
+    toast.error('Erro ao registar treino');
+  }
+};
   
 
   const handleImageChange = (e) => {

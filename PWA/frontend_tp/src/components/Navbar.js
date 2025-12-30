@@ -1,354 +1,238 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import Card from '../components/Card';
-import Button from '../components/Button';
-import Avatar from '../components/Avatar';
-import Loading from '../components/Loading';
-import Modal from '../components/Modal';
-import api from '../services/api';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import Avatar from './Avatar';
 
-const ClientHistory = () => {
-  const { clientId } = useParams();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [selectedCompletion, setSelectedCompletion] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+const Navbar = () => {
+  const { user, logout, isAdmin, isTrainer, isClient } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  useEffect(() => {
-    loadClientHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId]);
-
-  const loadClientHistory = async () => {
-    try {
-      const response = await api.get(`/plans/client-history/${clientId}`);
-      setData(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-      toast.error('Erro ao carregar histórico do cliente');
-    } finally {
-      setLoading(false);
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
-  const getStatusBadge = (status) => {
-    if (status === 'completed') {
-      return (
-        <span className="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-          Concluído
-        </span>
-      );
-    }
-    if (status === 'late') {
-      return (
-        <span className="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-          Atrasado
-        </span>
-      );
-    }
-    return (
-      <span className="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-        Falhado
-      </span>
+  const isActive = (path) => location.pathname === path;
+
+  const navLinks = [];
+
+  // Links baseados no role
+  if (isAdmin) {
+    navLinks.push(
+      { path: '/admin-dashboard', label: 'Dashboard' },
+      { path: '/admin', label: 'Gestão de Utilizadores' }
     );
-  };
-
-  const filteredHistory = () => {
-    if (!data?.history) return [];
-    if (filter === 'all') return data.history;
-    return data.history.filter(h => h.status === filter);
-  };
-
-  const handleViewDetails = (completion) => {
-    setSelectedCompletion(completion);
-    setShowModal(true);
-  };
-
-  if (loading) return <Loading />;
-
-  if (!data) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
-              Erro ao carregar histórico
-            </p>
-            <Link to="/my-clients">
-              <Button className="mt-4">Voltar aos Clientes</Button>
-            </Link>
-          </div>
-        </Card>
-      </div>
+  } else if (isTrainer) {
+    navLinks.push(
+      { path: '/', label: 'Dashboard' },
+      { path: '/workouts', label: 'Planos de Treino' },
+      { path: '/my-clients', label: 'Meus Clientes' },
+      { path: '/messages', label: 'Mensagens' }
+    );
+  } else if (isClient) {
+    navLinks.push(
+      { path: '/', label: 'Dashboard' },
+      { path: '/my-workouts', label: 'Meus Treinos' },
+      { path: '/select-pt', label: 'Escolher PT' },
+      { path: '/messages', label: 'Mensagens' }
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <Link
-          to="/my-clients"
-          className="text-primary-600 dark:text-primary-400 hover:underline mb-4 inline-block"
-        >
-          ← Voltar aos Clientes
-        </Link>
-        <div className="flex items-center gap-4 mb-4">
-          <Avatar
-            src={data.client.profileImage}
-            name={data.client.username}
-            size="lg"
-          />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {data.client.username}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {data.client.email}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {data.stats.totalCompletions}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Concluídos</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {data.stats.completed}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Falhados</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {data.stats.failed}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Com Feedback</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {data.stats.withFeedback}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Com Prova</p>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {data.stats.withProof}
-          </p>
-        </Card>
-      </div>
-
-      <Card>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Histórico de Treinos
-          </h2>
-          <div className="flex gap-2">
-            <Button
-              variant={filter === 'all' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setFilter('all')}
+    <nav className="bg-primary-600 dark:bg-gray-800 shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link
+              to="/"
+              className="flex items-center text-white font-bold text-xl"
             >
-              Todos
-            </Button>
-            <Button
-              variant={filter === 'completed' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setFilter('completed')}
-            >
-              Concluídos
-            </Button>
-            <Button
-              variant={filter === 'failed' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setFilter('failed')}
-            >
-              Falhados
-            </Button>
-          </div>
-        </div>
-
-        {filteredHistory().length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
-              Nenhum treino encontrado
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredHistory().map((completion) => (
-              <div
-                key={completion._id}
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              <svg
+                className="w-8 h-8 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {completion.planName}
-                      </h3>
-                      {getStatusBadge(completion.status)}
-                      {completion.feedback && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400">
-                          Com comentário
-                        </span>
-                      )}
-                      {completion.proofImage && (
-                        <span className="text-xs text-purple-600 dark:text-purple-400">
-                          Com prova
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(completion.date).toLocaleString('pt-PT')}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleViewDetails(completion)}
-                  >
-                    Ver Detalhes
-                  </Button>
-                </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              PT Platform
+            </Link>
+          </div>
 
-                {completion.feedback && (
-                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border-l-4 border-blue-500">
-                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">
-                      Comentário do Cliente
-                    </p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {completion.feedback}
-                    </p>
-                  </div>
-                )}
-
-                {completion.proofImage && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
-                      Prova de Conclusão
-                    </p>
-                    <img
-                      src={`http://localhost:3000${completion.proofImage}`}
-                      alt="Prova"
-                      className="rounded-lg max-w-xs cursor-pointer hover:opacity-90 border-2 border-purple-200 dark:border-purple-800"
-                      onClick={() => window.open(`http://localhost:3000${completion.proofImage}`, '_blank')}
-                    />
-                  </div>
-                )}
-              </div>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`
+                  px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${isActive(link.path)
+                    ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                    : 'text-primary-100 dark:text-gray-300 hover:bg-primary-500 dark:hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                {link.label}
+              </Link>
             ))}
           </div>
-        )}
-      </Card>
 
-      {selectedCompletion && (
-        <Modal
-          isOpen={showModal}
-          onClose={() => {
-            setShowModal(false);
-            setSelectedCompletion(null);
-          }}
-          title="Detalhes do Treino"
-        >
-          <div className="space-y-6">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Plano
-              </p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
-                {selectedCompletion.planName}
-              </p>
-            </div>
+          {/* Right side - Theme toggle & Profile */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-md text-primary-100 dark:text-gray-300 hover:bg-primary-500 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
+                </svg>
+              )}
+            </button>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Data
-                </p>
-                <p className="text-gray-900 dark:text-white">
-                  {new Date(selectedCompletion.date).toLocaleString('pt-PT')}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </p>
-                {getStatusBadge(selectedCompletion.status)}
-              </div>
-            </div>
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center space-x-2 text-white hover:opacity-90 transition-opacity"
+              >
+                <Avatar src={user?.profileImage} name={user?.username} size="sm" />
+                <span className="text-sm font-medium">{user?.username}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-            {selectedCompletion.feedback && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border-l-4 border-blue-500">
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-2">
-                  Comentário do Cliente
-                </p>
-                <p className="text-gray-900 dark:text-white text-base leading-relaxed">
-                  {selectedCompletion.feedback}
-                </p>
-              </div>
-            )}
-
-            {!selectedCompletion.feedback && (
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  O cliente não deixou comentário
-                </p>
-              </div>
-            )}
-
-            {selectedCompletion.proofImage && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border-l-4 border-purple-500">
-                <p className="text-sm font-bold text-purple-700 dark:text-purple-300 mb-3">
-                  Prova de Conclusão
-                </p>
-                <img
-                  src={`http://localhost:3000${selectedCompletion.proofImage}`}
-                  alt="Prova"
-                  className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-2 border-purple-300 dark:border-purple-700"
-                  onClick={() => window.open(`http://localhost:3000${selectedCompletion.proofImage}`, '_blank')}
-                />
-                <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 text-center">
-                  Clique para ampliar
-                </p>
-              </div>
-            )}
-
-            {!selectedCompletion.proofImage && (
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  O cliente não enviou prova de conclusão
-                </p>
-              </div>
-            )}
-
-            <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Exercícios do Treino
-              </p>
-              <div className="space-y-2">
-                {selectedCompletion.exercises && selectedCompletion.exercises.map((exercise, idx) => (
-                  <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {idx + 1}. {exercise.name}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50">
+                  <div className="px-4 py-2 border-b dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user?.username}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {exercise.sets} séries × {exercise.reps} repetições
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user?.role === 'PT' ? 'Personal Trainer' : user?.role === 'ADMIN' ? 'Administrador' : 'Cliente'}
                     </p>
                   </div>
-                ))}
-              </div>
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Perfil
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Sair
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </Modal>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md text-white hover:bg-primary-500 dark:hover:bg-gray-700"
+            >
+              {isMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-primary-700 dark:bg-gray-900">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setIsMenuOpen(false)}
+                className={`
+                  block px-3 py-2 rounded-md text-base font-medium transition-colors
+                  ${isActive(link.path)
+                    ? 'bg-primary-800 dark:bg-gray-800 text-white'
+                    : 'text-primary-100 dark:text-gray-300 hover:bg-primary-600 dark:hover:bg-gray-800'
+                  }
+                `}
+              >
+                {link.label}
+              </Link>
+            ))}
+            
+            <hr className="border-primary-500 dark:border-gray-700 my-2" />
+            
+            <Link
+              to="/profile"
+              onClick={() => setIsMenuOpen(false)}
+              className="block px-3 py-2 rounded-md text-base font-medium text-primary-100 dark:text-gray-300 hover:bg-primary-600 dark:hover:bg-gray-800"
+            >
+              Perfil
+            </Link>
+            
+            <button
+              onClick={toggleTheme}
+              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-primary-100 dark:text-gray-300 hover:bg-primary-600 dark:hover:bg-gray-800"
+            >
+              {theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
+            </button>
+            
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-300 hover:bg-primary-600 dark:hover:bg-gray-800"
+            >
+              Sair
+            </button>
+          </div>
+        </div>
       )}
-    </div>
+    </nav>
   );
 };
 
-export default ClientHistory;
+export default Navbar;

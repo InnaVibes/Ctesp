@@ -14,7 +14,8 @@ import {
   getDashboardStats,
   getRecentCompletions,
   getClientHistory,
-  checkExpiredPlans
+  checkExpiredPlans,
+  upload
 } from '../controllers/plan.controller';
 import { authenticate, authorize } from '../middlewares/auth.middleware';
 import { sendMessage, getMessages, getConversations, markAsRead, createConversation } from '../controllers/message.controller';
@@ -50,7 +51,7 @@ router.post('/auth/reset-password/:token', resetPassword);
 // PLANS
 router.post('/plans', authenticate, authorize(['PT']), createPlan);
 router.get('/plans', authenticate, getPlans);
-router.post('/plans/:id/complete', authenticate, completeWorkout);
+router.post('/plans/:id/complete', authenticate, upload.single('image'), completeWorkout);
 router.get('/plans/stats', authenticate, getDashboardStats);
 router.get('/plans/recent-completions', authenticate, authorize(['PT']), getRecentCompletions);
 router.get('/plans/client-history/:clientId', authenticate, authorize(['PT']), getClientHistory);
