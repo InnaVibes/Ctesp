@@ -1,47 +1,37 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import mongoose from 'mongoose';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 import apiRoutes from './routes/api.routes';
-import { connectDB } from './config/database';
-import * as swaggerDocument from '../swagger.json'; 
+import { createDefaultAdmin } from './utils/createDefaultAdmin';
 
 const app = express();
-const httpServer = createServer(app);
-export const io = new Server(httpServer, {
-  cors: { origin: "*" }
-});
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-connectDB();
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Prefixo global '/api'
 app.use('/api', apiRoutes);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-io.on('connection', (socket) => {
-  console.log(`Utilizador ligado: ${socket.id}`);
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/pt_platform';
+const PORT = process.env.PORT || 3000;
 
-  socket.on('join_room', (userId) => {
-    socket.join(userId);
+mongoose.connect(MONGO_URI)
+  .then(async () => {
+    console.log('MongoDB conectado');
+    
+    await createDefaultAdmin();
+    
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando na porta ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Erro ao conectar ao MongoDB:', err);
+    process.exit(1);
   });
-
-  socket.on('send_message', (data) => {
-    // Envia mensagem em tempo real e notificação
-    io.to(data.receiverId).emit('receive_message', data);
-    io.to(data.receiverId).emit('notification', { type: 'toast', msg: 'Nova Mensagem!' });
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Utilizador desligado');
-  });
-});
-
-const PORT = 3000;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Servidor a correr em http://localhost:${PORT}`);
-  console.log(`📄 Swagger disponível em http://localhost:${PORT}/api-docs`);
-});

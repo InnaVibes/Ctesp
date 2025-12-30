@@ -189,21 +189,11 @@ const ClientHistory = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-gray-900 dark:text-white">
                         {completion.planName}
                       </h3>
                       {getStatusBadge(completion.status)}
-                      {completion.feedback && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400">
-                          Com comentário
-                        </span>
-                      )}
-                      {completion.proofImage && (
-                        <span className="text-xs text-purple-600 dark:text-purple-400">
-                          Com prova
-                        </span>
-                      )}
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(completion.date).toLocaleString('pt-PT')}
@@ -218,25 +208,19 @@ const ClientHistory = () => {
                 </div>
 
                 {completion.feedback && (
-                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border-l-4 border-blue-500">
-                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">
-                      Comentário do Cliente
-                    </p>
+                  <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-900 rounded">
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {completion.feedback}
+                      <strong>Feedback:</strong> {completion.feedback}
                     </p>
                   </div>
                 )}
 
                 {completion.proofImage && (
                   <div className="mt-3">
-                    <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
-                      Prova de Conclusão
-                    </p>
                     <img
                       src={`http://localhost:3000${completion.proofImage}`}
                       alt="Prova"
-                      className="rounded-lg max-w-xs cursor-pointer hover:opacity-90 border-2 border-purple-200 dark:border-purple-800"
+                      className="rounded-lg max-w-xs cursor-pointer hover:opacity-90"
                       onClick={() => window.open(`http://localhost:3000${completion.proofImage}`, '_blank')}
                     />
                   </div>
@@ -256,86 +240,54 @@ const ClientHistory = () => {
           }}
           title="Detalhes do Treino"
         >
-          <div className="space-y-6">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <div className="space-y-4">
+            <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Plano
               </p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <p className="text-gray-900 dark:text-white">
                 {selectedCompletion.planName}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Data
-                </p>
-                <p className="text-gray-900 dark:text-white">
-                  {new Date(selectedCompletion.date).toLocaleString('pt-PT')}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </p>
-                {getStatusBadge(selectedCompletion.status)}
-              </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Data
+              </p>
+              <p className="text-gray-900 dark:text-white">
+                {new Date(selectedCompletion.date).toLocaleString('pt-PT')}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </p>
+              {getStatusBadge(selectedCompletion.status)}
             </div>
 
             {selectedCompletion.feedback && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border-l-4 border-blue-500">
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-2">
-                  Comentário do Cliente
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Feedback
                 </p>
-                <p className="text-gray-900 dark:text-white text-base leading-relaxed">
-                  {selectedCompletion.feedback}
-                </p>
-              </div>
-            )}
-
-            {!selectedCompletion.feedback && (
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  O cliente não deixou comentário
-                </p>
-              </div>
-            )}
-
-            {selectedCompletion.proofImage && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border-l-4 border-purple-500">
-                <p className="text-sm font-bold text-purple-700 dark:text-purple-300 mb-3">
-                  Prova de Conclusão
-                </p>
-                <img
-                  src={`http://localhost:3000${selectedCompletion.proofImage}`}
-                  alt="Prova"
-                  className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-2 border-purple-300 dark:border-purple-700"
-                  onClick={() => window.open(`http://localhost:3000${selectedCompletion.proofImage}`, '_blank')}
-                />
-                <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 text-center">
-                  Clique para ampliar
-                </p>
-              </div>
-            )}
-
-            {!selectedCompletion.proofImage && (
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  O cliente não enviou prova de conclusão
-                </p>
+                <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded">
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedCompletion.feedback}
+                  </p>
+                </div>
               </div>
             )}
 
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Exercícios do Treino
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Exercícios
               </p>
               <div className="space-y-2">
                 {selectedCompletion.exercises && selectedCompletion.exercises.map((exercise, idx) => (
-                  <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {idx + 1}. {exercise.name}
+                      {exercise.name}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {exercise.sets} séries × {exercise.reps} repetições
@@ -344,6 +296,20 @@ const ClientHistory = () => {
                 ))}
               </div>
             </div>
+
+            {selectedCompletion.proofImage && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Prova de Conclusão
+                </p>
+                <img
+                  src={`http://localhost:3000${selectedCompletion.proofImage}`}
+                  alt="Prova"
+                  className="w-full rounded-lg cursor-pointer hover:opacity-90"
+                  onClick={() => window.open(`http://localhost:3000${selectedCompletion.proofImage}`, '_blank')}
+                />
+              </div>
+            )}
           </div>
         </Modal>
       )}

@@ -1,197 +1,28 @@
 import { Response } from 'express';
+import { Message } from '../models/Message';
+import { User } from '../models/User';
 import { AuthRequest } from '../middlewares/auth.middleware';
-const { Message } = require('../models/Message');
-const { User } = require('../models/User');
 
-// Enviar mensagem
-export const sendMessage = async (req: AuthRequest, res: Response) => {
-  try {
-    const { conversationId, receiverId, content } = req.body;
-    const senderId = req.user?._id;
-
-    console.log('📨 Enviando mensagem:', { conversationId, senderId, receiverId, content });
-
-    if (!conversationId || !receiverId || !content) {
-      return res.status(400).json({ message: 'conversationId, receiverId e content são obrigatórios' });
-    }
-
-    // Criar mensagem
-    const message = new Message({
-      conversationId,
-      senderId,
-      receiverId,
-      content,
-      read: false
-    });
-
-    await message.save();
-
-    // Popular informações do sender e receiver
-    await message.populate('senderId', 'username email profileImage role');
-    await message.populate('receiverId', 'username email profileImage role');
-
-    console.log('✅ Mensagem enviada com sucesso');
-    res.status(201).json(message);
-  } catch (err) {
-    console.error('❌ Erro ao enviar mensagem:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Obter mensagens de uma conversa
-export const getMessages = async (req: AuthRequest, res: Response) => {
-  try {
-    const { conversationId } = req.params;
-    const { limit = '50', before } = req.query;
-
-    console.log('📬 Buscando mensagens da conversa:', conversationId);
-
-    const query: any = { conversationId };
-    
-    // Se tiver paginação
-    if (before && typeof before === 'string') {
-      query.createdAt = { $lt: new Date(before) };
-    }
-
-    const messages = await Message.find(query)
-      .populate('senderId', 'username email profileImage role')
-      .populate('receiverId', 'username email profileImage role')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit as string));
-
-    console.log(`✅ ${messages.length} mensagens encontradas`);
-    
-    // Retornar em ordem cronológica (mais antiga primeiro)
-    res.json(messages.reverse());
-  } catch (err) {
-    console.error('❌ Erro ao buscar mensagens:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Obter conversas do usuário
-export const getConversations = async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user?._id;
-
-    console.log('💬 Buscando conversas do usuário:', userId);
-
-    // Buscar todas as mensagens onde o usuário é sender ou receiver
-    const messages = await Message.find({
-      $or: [
-        { senderId: userId },
-        { receiverId: userId }
-      ]
-    })
-      .populate('senderId', 'username email profileImage role')
-      .populate('receiverId', 'username email profileImage role')
-      .sort({ createdAt: -1 })
-      .lean(); // Converter para objeto JS puro
-
-    // Agrupar por conversationId e pegar a última mensagem
-    const conversationsMap = new Map();
-
-    messages.forEach((msg: any) => {
-      if (!conversationsMap.has(msg.conversationId)) {
-        // Determinar quem é o "outro usuário"
-        const isSender = msg.senderId._id.toString() === userId.toString();
-        const otherUser = isSender ? msg.receiverId : msg.senderId;
-
-        // Validar que otherUser tem dados completos
-        if (!otherUser || !otherUser._id) {
-          console.warn('⚠️ Mensagem sem otherUser válido:', msg._id);
-          return;
-        }
-
-        // Contar mensagens não lidas
-        const unreadCount = messages.filter((m: any) => 
-          m.conversationId === msg.conversationId && 
-          m.receiverId && 
-          m.receiverId._id &&
-          m.receiverId._id.toString() === userId.toString() && 
-          !m.read
-        ).length;
-
-        conversationsMap.set(msg.conversationId, {
-          _id: msg.conversationId,
-          otherUser: {
-            _id: otherUser._id,
-            username: otherUser.username,
-            email: otherUser.email,
-            profileImage: otherUser.profileImage,
-            role: otherUser.role
-          },
-          lastMessage: {
-            content: msg.content,
-            createdAt: msg.createdAt,
-            senderId: msg.senderId._id
-          },
-          unreadCount,
-          updatedAt: msg.createdAt
-        });
-      }
-    });
-
-    const conversations = Array.from(conversationsMap.values())
-      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    
-    console.log(`✅ ${conversations.length} conversas encontradas`);
-
-    res.json(conversations);
-  } catch (err) {
-    console.error('❌ Erro ao buscar conversas:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Marcar mensagens como lidas
-export const markAsRead = async (req: AuthRequest, res: Response) => {
-  try {
-    const { conversationId } = req.params;
-    const userId = req.user?._id;
-
-    console.log('✓ Marcando mensagens como lidas:', conversationId);
-
-    // Marcar todas as mensagens da conversa como lidas
-    const result = await Message.updateMany(
-      {
-        conversationId,
-        receiverId: userId,
-        read: false
-      },
-      {
-        read: true
-      }
-    );
-
-    console.log(`✅ ${result.modifiedCount} mensagens marcadas como lidas`);
-    res.json({ success: true, modifiedCount: result.modifiedCount });
-  } catch (err) {
-    console.error('❌ Erro ao marcar mensagens:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Criar ou obter conversa
 export const createConversation = async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = req.body;
-    const currentUserId = req.user?._id;
 
-    console.log('🆕 Criando/obtendo conversa entre:', currentUserId, 'e', userId);
-
-    // Verificar se usuário existe
-    const otherUser = await User.findById(userId).select('-password').lean();
-    if (!otherUser) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Não autenticado' });
     }
 
-    // Criar ID de conversa (sempre ordenado para garantir unicidade)
-    const userIds = [currentUserId.toString(), userId.toString()].sort();
-    const conversationId = `${userIds[0]}_${userIds[1]}`;
+    if (!userId) {
+      return res.status(400).json({ message: 'userId é obrigatório' });
+    }
 
-    console.log('✅ Conversa criada/obtida:', conversationId);
-    
+    const otherUser = await User.findById(userId);
+    if (!otherUser) {
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
+    }
+
+    const sortedIds = [req.user._id, userId].sort();
+    const conversationId = `${sortedIds[0]}_${sortedIds[1]}`;
+
     res.json({
       _id: conversationId,
       otherUser: {
@@ -203,7 +34,157 @@ export const createConversation = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (err) {
-    console.error('❌ Erro ao criar conversa:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Erro ao criar conversa' });
+  }
+};
+
+export const sendMessage = async (req: AuthRequest, res: Response) => {
+  try {
+    const { conversationId, receiverId, content } = req.body;
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    if (!conversationId || !receiverId || !content) {
+      return res.status(400).json({ message: 'Dados incompletos' });
+    }
+
+    const receiver = await User.findById(receiverId);
+    if (!receiver) {
+      return res.status(404).json({ message: 'Destinatário não encontrado' });
+    }
+
+    const sender = await User.findById(req.user._id);
+    if (!sender) {
+      return res.status(404).json({ message: 'Remetente não encontrado' });
+    }
+
+    const newMessage = new Message({
+      conversationId,
+      senderId: req.user._id,
+      receiverId,
+      content,
+      read: false,
+    });
+
+    await newMessage.save();
+
+    const populatedMessage = await Message.findById(newMessage._id)
+      .populate('senderId', 'username email profileImage')
+      .populate('receiverId', 'username email profileImage');
+
+    res.status(201).json(populatedMessage);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao enviar mensagem' });
+  }
+};
+
+export const getMessages = async (req: AuthRequest, res: Response) => {
+  try {
+    const { conversationId } = req.params;
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    if (!conversationId) {
+      return res.status(400).json({ message: 'conversationId é obrigatório' });
+    }
+
+    const messages = await Message.find({ conversationId })
+      .populate('senderId', 'username email profileImage')
+      .populate('receiverId', 'username email profileImage')
+      .sort({ createdAt: 1 });
+
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar mensagens' });
+  }
+};
+
+export const getConversations = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    const userId = req.user._id;
+
+    const messages = await Message.find({
+      $or: [{ senderId: userId }, { receiverId: userId }]
+    })
+      .populate('senderId', 'username email profileImage role')
+      .populate('receiverId', 'username email profileImage role')
+      .sort({ createdAt: -1 });
+
+    const conversationsMap = new Map();
+
+    messages.forEach((message: any) => {
+      const conversationId = message.conversationId;
+
+      if (!conversationsMap.has(conversationId)) {
+        const otherUser =
+          message.senderId._id.toString() === userId
+            ? message.receiverId
+            : message.senderId;
+
+        const unreadCount = messages.filter(
+          (m: any) =>
+            m.conversationId === conversationId &&
+            m.receiverId._id.toString() === userId &&
+            !m.read
+        ).length;
+
+        conversationsMap.set(conversationId, {
+          _id: conversationId,
+          otherUser,
+          lastMessage: {
+            content: message.content,
+            createdAt: message.createdAt,
+          },
+          unreadCount,
+          updatedAt: message.createdAt,
+        });
+      }
+    });
+
+    const conversations = Array.from(conversationsMap.values());
+    conversations.sort((a, b) => {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+
+    res.json(conversations);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar conversas' });
+  }
+};
+
+export const markAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    const { conversationId } = req.params;
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    if (!conversationId) {
+      return res.status(400).json({ message: 'conversationId é obrigatório' });
+    }
+
+    const currentUserId = req.user._id;
+
+    await Message.updateMany(
+      {
+        conversationId,
+        receiverId: currentUserId,
+        read: false,
+      },
+      { read: true }
+    );
+
+    res.json({ message: 'Mensagens marcadas como lidas' });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao marcar mensagens como lidas' });
   }
 };

@@ -43,29 +43,9 @@ const workoutService = {
     }
   },
 
-  getByTrainer: async (trainerId) => {
-    try {
-      const response = await api.get('/plans', { 
-        params: { ptId: trainerId } 
-      });
-      return response.data || [];
-    } catch (error) {
-      console.error('Erro ao buscar planos do trainer:', error);
-      return [];
-    }
-  },
-
-  logCompletion: async (workoutId, completionData) => {
-    const response = await api.post(`/plans/${workoutId}/complete`, completionData);
-    return response.data;
-  },
-
-  uploadProof: async (workoutId, imageFile) => {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('status', 'completed');
-    
-    const response = await api.post(`/plans/${workoutId}/complete`, formData, {
+  // Método para completar treino com imagem
+  completeWorkout: async (planId, formData) => {
+    const response = await api.post(`/plans/${planId}/complete`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -73,31 +53,24 @@ const workoutService = {
     return response.data;
   },
 
-  getStats: async (clientId, params = {}) => {
+  // Obter estatísticas do dashboard
+  getStats: async (clientId) => {
     try {
-      const plans = await workoutService.getByClient(clientId);
+      const params = clientId ? { clientId } : {};
+      const response = await api.get('/plans/stats', { params });
       
-      const completedWorkouts = plans.filter(p => p.isCompleted).length;
-      const totalWorkouts = plans.length;
-      const completionRate = totalWorkouts > 0 
-        ? Math.round((completedWorkouts / totalWorkouts) * 100) 
-        : 0;
+      // Transformar dados para o formato esperado pelo gráfico
+      const weeklyData = response.data.map(item => ({
+        day: item.date,
+        workouts: item.totalCompleted
+      }));
       
-      const weeklyData = [
-        { day: 'Seg', workouts: 2 },
-        { day: 'Ter', workouts: 1 },
-        { day: 'Qua', workouts: 3 },
-        { day: 'Qui', workouts: 2 },
-        { day: 'Sex', workouts: 1 },
-        { day: 'Sáb', workouts: 0 },
-        { day: 'Dom', workouts: 1 },
-      ];
+      const totalCompleted = weeklyData.reduce((sum, item) => sum + item.workouts, 0);
       
       return {
-        completedWorkouts,
-        completionRate,
-        activeDays: 5,
-        totalClients: 10,
+        completedWorkouts: totalCompleted,
+        completionRate: 75, // Calcular baseado nos dados reais
+        activeDays: weeklyData.filter(item => item.workouts > 0).length,
         weeklyData
       };
     } catch (error) {
@@ -106,7 +79,6 @@ const workoutService = {
         completedWorkouts: 0,
         completionRate: 0,
         activeDays: 0,
-        totalClients: 0,
         weeklyData: []
       };
     }

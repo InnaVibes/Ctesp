@@ -18,12 +18,11 @@ const MyWorkouts = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [completionData, setCompletionData] = useState({
-    completed: true,
-    notes: '',
-    proofImage: null,
+    status: 'completed',
+    feedback: '',
+    image: null,
   });
 
-  // Usar useCallback para memorizar a função
   const loadWorkouts = useCallback(async () => {
     try {
       const data = await workoutService.getByClient(user._id);
@@ -37,7 +36,7 @@ const MyWorkouts = () => {
 
   useEffect(() => {
     loadWorkouts();
-  }, [loadWorkouts]); // Agora a dependência está incluída
+  }, [loadWorkouts]);
 
   const handleMarkWorkout = (workout) => {
     setSelectedWorkout(workout);
@@ -46,32 +45,33 @@ const MyWorkouts = () => {
 
   const handleSubmitCompletion = async (e) => {
     e.preventDefault();
+    
     try {
-      // Enviar dados de conclusão
-      await workoutService.logCompletion(selectedWorkout._id, {
-        date: selectedDate,
-        completed: completionData.completed,
-        notes: completionData.notes,
-      });
-
-      // Upload de imagem se houver
-      if (completionData.proofImage) {
-        await workoutService.uploadProof(selectedWorkout._id, completionData.proofImage);
+      const formData = new FormData();
+      formData.append('status', completionData.status);
+      formData.append('feedback', completionData.feedback);
+      
+      if (completionData.image) {
+        formData.append('image', completionData.image);
       }
+
+      await workoutService.completeWorkout(selectedWorkout._id, formData);
 
       toast.success('Treino registado com sucesso');
       setShowModal(false);
       loadWorkouts();
-      setCompletionData({ completed: true, notes: '', proofImage: null });
+      setCompletionData({ status: 'completed', feedback: '', image: null });
     } catch (error) {
+      console.error('Erro ao registar treino:', error);
       toast.error('Erro ao registar treino');
     }
   };
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCompletionData({ ...completionData, proofImage: file });
+      setCompletionData({ ...completionData, image: file });
     }
   };
 
@@ -96,14 +96,14 @@ const MyWorkouts = () => {
           />
         </Card>
 
-        {/* Lista de treinos do dia selecionado */}
+        {/* Lista de treinos */}
         <Card className="lg:col-span-2" title={`Treinos para ${formatDate(selectedDate)}`}>
           <div className="space-y-4">
             {workouts
               .filter(w => {
-                // Filtrar treinos do dia selecionado
-                const workoutDate = new Date(w.date);
-                return workoutDate.toDateString() === selectedDate.toDateString();
+                const workoutDay = w.dayOfWeek;
+                const selectedDay = selectedDate.getDay();
+                return workoutDay === selectedDay;
               })
               .map(workout => (
                 <div
@@ -113,7 +113,7 @@ const MyWorkouts = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {workout.title}
+                        Treino do Dia
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {workout.exercises?.length || 0} exercícios
@@ -122,26 +122,41 @@ const MyWorkouts = () => {
                     <span
                       className={`
                         px-3 py-1 text-xs rounded-full
-                        ${workout.completed
+                        ${workout.isCompleted
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                           : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                         }
                       `}
                     >
-                      {workout.completed ? 'Concluído' : 'Pendente'}
+                      {workout.isCompleted ? 'Concluído' : 'Pendente'}
                     </span>
                   </div>
 
                   {/* Lista de exercícios */}
-                  <div className="mb-4">
+                  <div className="mb-4 space-y-2">
                     {workout.exercises?.map((exercise, idx) => (
-                      <div key={idx} className="text-sm text-gray-600 dark:text-gray-400 py-1">
-                        • {exercise.name} - {exercise.sets}x{exercise.reps}
+                      <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <span className="text-sm text-gray-900 dark:text-white font-medium">
+                          {exercise.name}
+                        </span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {exercise.sets}x{exercise.reps}
+                        </span>
+                        {exercise.videoLink && (
+                          <a 
+                            href={exercise.videoLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                          >
+                            Ver vídeo
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
 
-                  {!workout.completed && (
+                  {!workout.isCompleted && (
                     <Button
                       size="sm"
                       onClick={() => handleMarkWorkout(workout)}
@@ -149,13 +164,18 @@ const MyWorkouts = () => {
                       Registar Treino
                     </Button>
                   )}
+                  
+                  {workout.feedback && (
+                    <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Feedback:</strong> {workout.feedback}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
 
-            {workouts.filter(w => {
-              const workoutDate = new Date(w.date);
-              return workoutDate.toDateString() === selectedDate.toDateString();
-            }).length === 0 && (
+            {workouts.filter(w => w.dayOfWeek === selectedDate.getDay()).length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-500 dark:text-gray-400">
                   Nenhum treino agendado para este dia
@@ -169,51 +189,53 @@ const MyWorkouts = () => {
       {/* Modal de registro de treino */}
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          setCompletionData({ status: 'completed', feedback: '', image: null });
+        }}
         title="Registar Treino"
       >
         <form onSubmit={handleSubmitCompletion} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Concluiu o treino?
+              Estado do Treino
             </label>
             <div className="flex gap-4">
               <label className="flex items-center">
                 <input
                   type="radio"
-                  checked={completionData.completed === true}
-                  onChange={() => setCompletionData({ ...completionData, completed: true })}
+                  checked={completionData.status === 'completed'}
+                  onChange={() => setCompletionData({ ...completionData, status: 'completed' })}
                   className="mr-2"
                 />
-                Sim
+                Concluído
               </label>
               <label className="flex items-center">
                 <input
                   type="radio"
-                  checked={completionData.completed === false}
-                  onChange={() => setCompletionData({ ...completionData, completed: false })}
+                  checked={completionData.status === 'failed'}
+                  onChange={() => setCompletionData({ ...completionData, status: 'failed' })}
                   className="mr-2"
                 />
-                Não
+                Não Concluído
               </label>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {completionData.completed ? 'Notas (opcional)' : 'Motivo'}
+              Feedback
             </label>
             <textarea
-              value={completionData.notes}
-              onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })}
+              value={completionData.feedback}
+              onChange={(e) => setCompletionData({ ...completionData, feedback: e.target.value })}
               rows={3}
-              placeholder={completionData.completed ? 'Como foi o treino?' : 'Por que não conseguiu completar?'}
+              placeholder="Como foi o treino? (opcional)"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              required={!completionData.completed}
             />
           </div>
 
-          {completionData.completed && (
+          {completionData.status === 'completed' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Foto de Comprovação (opcional)
@@ -241,7 +263,10 @@ const MyWorkouts = () => {
               type="button"
               variant="secondary"
               fullWidth
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setCompletionData({ status: 'completed', feedback: '', image: null });
+              }}
             >
               Cancelar
             </Button>

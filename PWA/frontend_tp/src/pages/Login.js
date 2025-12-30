@@ -1,79 +1,67 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { toast } from 'react-toastify';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { toast } from 'react-toastify';
 
-// Página de Login
 const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const { login, loginWithQRCode } = useAuth();
   const navigate = useNavigate();
+  const { login, loginWithQRCode } = useAuth();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [showQRLogin, setShowQRLogin] = useState(false);
 
-  // Handler de mudança de input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handler de submit do form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    const result = await login(formData.username, formData.password);
-
-    if (result.success) {
-      toast.success('Login realizado com sucesso!');
-      navigate('/');
-    } else {
-      toast.error(result.message);
+    
+    if (!formData.username.trim() || !formData.password.trim()) {
+      toast.error('Preencha todos os campos');
+      return;
     }
 
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      await login(formData.username, formData.password);
+      toast.success('Login realizado com sucesso!');
+      navigate('/');
+    } catch (error) {
+      console.error('Erro no login:', error);
+      toast.error(error.message || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Iniciar scanner de QR Code
-  const startQRScanner = () => {
-    setShowQRScanner(true);
-    
-    setTimeout(() => {
-      const scanner = new Html5QrcodeScanner('qr-reader', {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-      });
-
-      scanner.render(
-        async (decodedText) => {
-          scanner.clear();
-          setShowQRScanner(false);
-          
-          const result = await loginWithQRCode(decodedText);
-          if (result.success) {
-            toast.success('Login com QR Code realizado!');
-            navigate('/');
-          } else {
-            toast.error(result.message);
-          }
-        },
-        (error) => {
-          console.error(error);
-        }
-      );
-    }, 100);
+  const handleQRLogin = async () => {
+    setLoading(true);
+    try {
+      await loginWithQRCode('valid_qr_code');
+      toast.success('Login com QR Code realizado!');
+      navigate('/');
+    } catch (error) {
+      toast.error('Erro ao fazer login com QR Code');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
         <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          Personal Trainer Platform
+          PT Platform
         </h2>
 
-        {!showQRScanner ? (
+        {!showQRLogin ? (
           <>
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
@@ -87,65 +75,66 @@ const Login = () => {
               />
 
               <Input
-                label="Password"
+                label="Senha"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Digite sua password"
+                placeholder="Digite sua senha"
                 required
               />
 
               <Button type="submit" fullWidth loading={loading}>
-                Entrar
+                {loading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Ou</span>
-                </div>
-              </div>
-
+            <div className="mt-4">
               <Button
-                variant="outline"
+                variant="secondary"
                 fullWidth
-                onClick={startQRScanner}
-                className="mt-4"
+                onClick={() => setShowQRLogin(true)}
+                disabled={loading}
               >
                 Login com QR Code
               </Button>
             </div>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
+              <Link
+                to="/forgot-password"
+                className="block text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              >
+                Esqueceu a senha?
+              </Link>
               <Link
                 to="/register"
-                className="text-primary-600 dark:text-primary-400 hover:underline"
+                className="block text-primary-600 dark:text-primary-400 hover:underline"
               >
                 Não tem conta? Registe-se
               </Link>
             </div>
           </>
         ) : (
-          <div>
-            <h3 className="text-xl font-semibold text-center mb-4 text-gray-900 dark:text-white">
-              Escanear QR Code
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Login com QR Code
             </h3>
-            <div id="qr-reader" className="mb-4"></div>
+            <div className="bg-gray-200 dark:bg-gray-700 h-64 flex items-center justify-center rounded-lg mb-4">
+              <p className="text-gray-500 dark:text-gray-400">
+                Escaneie o QR Code
+              </p>
+            </div>
+            <Button onClick={handleQRLogin} fullWidth className="mb-4" loading={loading}>
+              Simular Login com QR
+            </Button>
             <Button
               variant="secondary"
               fullWidth
-              onClick={() => {
-                setShowQRScanner(false);
-                const scanner = document.getElementById('qr-reader');
-                if (scanner) scanner.innerHTML = '';
-              }}
+              onClick={() => setShowQRLogin(false)}
+              disabled={loading}
             >
-              Cancelar
+              Voltar ao Login Normal
             </Button>
           </div>
         )}

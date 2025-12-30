@@ -18,6 +18,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
   const [searchedUser, setSearchedUser] = useState(null);
@@ -30,7 +31,7 @@ const Messages = () => {
     return `${sortedIds[0]}_${sortedIds[1]}`;
   }, []);
 
-  const loadConversations = useCallback(async (keepSelection = false) => {
+  const loadConversations = useCallback(async () => {
     try {
       const data = await messageService.getConversations();
       // Filtrar conversas válidas (com otherUser definido)
@@ -39,35 +40,22 @@ const Messages = () => {
       );
       
       setConversations(validConversations);
-      
-      // Se deve manter seleção e havia uma conversa selecionada
-      if (keepSelection && selectedConversation) {
-        // Encontrar a mesma conversa na lista atualizada
-        const updatedConv = validConversations.find(
-          c => c._id === selectedConversation._id
-        );
-        if (updatedConv) {
-          setSelectedConversation(updatedConv);
-        }
-      }
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
       toast.error('Erro ao carregar conversas');
     } finally {
       setLoading(false);
     }
-  }, [selectedConversation]);
+  }, []);
 
   useEffect(() => {
-    loadConversations(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadConversations();
+  }, [loadConversations]);
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation._id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation]);
 
   useEffect(() => {
@@ -78,7 +66,11 @@ const Messages = () => {
     try {
       const data = await messageService.getMessages(conversationId);
       setMessages(data || []);
-      await messageService.markAsRead(conversationId);
+      
+      // Marcar como lido apenas se há mensagens
+      if (data && data.length > 0) {
+        await messageService.markAsRead(conversationId);
+      }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
       // Não mostrar erro ao usuário, apenas log
@@ -191,27 +183,41 @@ const Messages = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    
     if (!newMessage.trim()) return;
     if (!selectedConversation?.otherUser?._id || !user?._id) {
       toast.error('Conversa inválida');
       return;
     }
 
+    // Prevenir envios múltiplos
+    if (sendingMessage) return;
+
+    const messageContent = newMessage.trim();
+    const tempMessageId = `temp-${Date.now()}`;
+
+    // Criar mensagem temporária para UI otimista
     const tempMessage = {
-      _id: `temp-${Date.now()}`,
-      content: newMessage,
-      sender: {
+      _id: tempMessageId,
+      conversationId: selectedConversation._id,
+      content: messageContent,
+      senderId: {
         _id: user._id,
         username: user.username,
         name: user.name || user.username
       },
-      createdAt: new Date().toISOString()
+      receiverId: {
+        _id: selectedConversation.otherUser._id,
+        username: selectedConversation.otherUser.username
+      },
+      createdAt: new Date().toISOString(),
+      read: false
     };
 
-    // Adicionar mensagem temporariamente
-    setMessages([...messages, tempMessage]);
-    const messageContent = newMessage;
+    // Adicionar mensagem temporariamente à lista
+    setMessages(prevMessages => [...prevMessages, tempMessage]);
     setNewMessage('');
+    setSendingMessage(true);
 
     try {
       console.log('📤 Enviando mensagem:', {
@@ -228,22 +234,29 @@ const Messages = () => {
 
       console.log('✅ Mensagem enviada com sucesso:', sentMessage);
 
-      // Pequeno delay para garantir que backend processou
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Substituir mensagem temporária pela mensagem real
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg._id === tempMessageId ? sentMessage : msg
+        )
+      );
 
-      // Recarregar conversas mantendo a seleção atual
-      await loadConversations(true);
-      
-      // Recarregar mensagens da conversa atual
-      await loadMessages(selectedConversation._id);
+      // Atualizar a lista de conversas em background (sem recarregar as mensagens)
+      loadConversations();
       
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);
       toast.error('Erro ao enviar mensagem');
       
       // Remover mensagem temporária em caso de erro
-      setMessages(messages.filter(m => m._id !== tempMessage._id));
-      setNewMessage(messageContent); // Restaurar texto
+      setMessages(prevMessages => 
+        prevMessages.filter(msg => msg._id !== tempMessageId)
+      );
+      
+      // Restaurar texto da mensagem
+      setNewMessage(messageContent);
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -347,10 +360,6 @@ const Messages = () => {
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {selectedConversation.otherUser.role === 'PT' ? 'Personal Trainer' : 'Cliente'}
                   </p>
-                  {/* Debug info - remover em produção */}
-                  <p className="text-xs text-gray-400 mt-1">
-                    ID: {selectedConversation._id}
-                  </p>
                 </div>
               </div>
 
@@ -363,23 +372,25 @@ const Messages = () => {
                   </div>
                 ) : (
                   messages.map(msg => {
-                    if (!msg || !msg.sender) return null;
+                    if (!msg || !msg.senderId) return null;
+                    
+                    const isMyMessage = msg.senderId._id === user?._id;
                     
                     return (
                       <div
                         key={msg._id}
-                        className={`flex ${msg.sender._id === user?._id ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`
                             max-w-[70%] px-4 py-2 rounded-lg
-                            ${msg.sender._id === user?._id
+                            ${isMyMessage
                               ? 'bg-primary-600 text-white'
                               : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
                             }
                           `}
                         >
-                          <p>{msg.content}</p>
+                          <p className="break-words">{msg.content}</p>
                           <p className="text-xs mt-1 opacity-75">
                             {formatTime(msg.createdAt)}
                           </p>
@@ -397,9 +408,12 @@ const Messages = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Digite sua mensagem..."
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  disabled={sendingMessage}
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
                 />
-                <Button type="submit" disabled={!newMessage.trim()}>Enviar</Button>
+                <Button type="submit" disabled={!newMessage.trim() || sendingMessage}>
+                  {sendingMessage ? 'Enviando...' : 'Enviar'}
+                </Button>
               </form>
             </>
           ) : (

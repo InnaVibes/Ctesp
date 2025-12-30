@@ -1,86 +1,100 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
-    } catch (error) {
-      console.error('Erro ao verificar autenticação:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } finally {
-      setLoading(false);
     }
-  };
+    setLoading(false);
+  }, []);
 
   const login = async (username, password) => {
     try {
       const response = await api.post('/auth/login', { username, password });
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(user);
-      
-      return { success: true };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Credenciais inválidas' 
-      };
-    }
-  };
+      const { token, user: userData } = response.data;
 
-  const loginWithQRCode = async (qrData) => {
-    try {
-      const response = await api.post('/auth/qr-login', { qrToken: qrData });
-      const { token, user } = response.data;
-      
-      if (token && user) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setUser(user);
-        return { success: true };
+      if (userData.role === 'PT' && !userData.isValidated) {
+        throw new Error('Sua conta de PT ainda não foi validada pelo administrador.');
       }
-      
-      return { success: false, message: 'QR Code inválido' };
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      return userData;
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'QR Code inválido' 
-      };
+      const errorMessage = error.response?.data?.message || error.message || 'Erro ao fazer login';
+      throw new Error(errorMessage);
     }
   };
 
-  const register = async (userData) => {
+  const register = async (username, password, role, email) => {
     try {
-      await api.post('/auth/register', userData);
-      return { success: true, message: 'Registo realizado com sucesso!' };
+      const response = await api.post('/auth/register', {
+        username,
+        password,
+        role,
+        email,
+      });
+
+      if (role === 'PT') {
+        toast.info('Conta criada! Aguarde a validação do administrador para fazer login.');
+      }
+
+      return response.data;
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.error || 'Erro ao registar' 
-      };
+      const errorMessage = error.response?.data?.message || 'Erro ao registrar';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const loginWithQRCode = async (qrToken) => {
+    try {
+      const response = await api.post('/auth/qr-login', { qrToken });
+      const { token, user: userData } = response.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      return userData;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Erro ao fazer login com QR Code';
+      throw new Error(errorMessage);
     }
   };
 
@@ -89,40 +103,36 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
-    navigate('/login');
+    setIsAuthenticated(false);
   };
 
   const updateUser = (updatedData) => {
-    const newUser = { ...user, ...updatedData };
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  const isAdmin = user?.role === 'ADMIN';
+  const isTrainer = user?.role === 'PT';
+  const isClient = user?.role === 'CLIENT';
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      login,
-      loginWithQRCode,
-      register,
-      logout,
-      updateUser,
-      isAuthenticated: !!user,
-      isAdmin: user?.role === 'ADMIN',
-      isTrainer: user?.role === 'PT',
-      isClient: user?.role === 'CLIENT',
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated,
+        isAdmin,
+        isTrainer,
+        isClient,
+        login,
+        register,
+        loginWithQRCode,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth deve ser usado dentro de AuthProvider');
-  }
-  return context;
-};
-
-export default AuthContext;
