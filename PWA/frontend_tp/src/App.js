@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Admin from './pages/Admin';
+import AdminPTRequests from './pages/AdminPTRequests';
 import Workouts from './pages/Workouts';
 import MyWorkouts from './pages/MyWorkouts';
 import Messages from './pages/Messages';
@@ -76,6 +77,18 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Admin />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Pedidos de Mudança de PT - PÁGINA ADMIN */}
+            <Route
+              path="/admin/pt-requests"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AdminPTRequests />
                   </Layout>
                 </ProtectedRoute>
               }

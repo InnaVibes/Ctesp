@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erro ao registrar';
+      const errorMessage = error.response?.data?.message || 'Erro ao registar';
       throw new Error(errorMessage);
     }
   };
@@ -99,11 +99,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Limpar estado
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     delete api.defaults.headers.common['Authorization'];
+    
     setUser(null);
     setIsAuthenticated(false);
+
+    // Redirecionar após state ser atualizado
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 0);
   };
 
   const updateUser = (updatedData) => {

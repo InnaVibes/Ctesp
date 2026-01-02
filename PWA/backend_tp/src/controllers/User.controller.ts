@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { User } from '../models/User';
+import { User, IUser } from '../models/User';
 import bcrypt from 'bcryptjs';
 import { Types } from 'mongoose';
 
@@ -165,7 +165,19 @@ export const requestPT = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Cliente não encontrado' });
     }
 
-    client.ptId = new Types.ObjectId(req.user._id);
+    // Se cliente tinha um PT anterior, decrementar (mas não deixar negativo)
+    if (client.ptId && client.ptId.toString() !== '000000000000000000000000') {
+      const oldPT = await User.findById(client.ptId);
+      const newCount = Math.max(0, (oldPT?.clientCount || 0) - 1);
+      await User.findByIdAndUpdate(client.ptId, { clientCount: newCount });
+    }
+
+    // Incrementar novo PT
+    client.ptId = new Types.ObjectId(ptId);
+    const newPT = await User.findById(ptId);
+    const newClientCount = (newPT?.clientCount || 0) + 1;
+    await User.findByIdAndUpdate(ptId, { clientCount: newClientCount });
+
     await client.save();
 
     res.json({ message: 'PT atribuído com sucesso', client });
@@ -181,7 +193,7 @@ export const getAvailablePTs = async (req: AuthRequest, res: Response) => {
     const pts = await User.find({ 
       role: 'PT', 
       isValidated: true 
-    }).select('username email profileImage');
+    }).select('username email profileImage clientCount');
 
     res.json(pts);
   } catch (err) {
@@ -225,6 +237,11 @@ export const addClientByPT = async (req: AuthRequest, res: Response) => {
 
     await newClient.save();
 
+    // Incrementar clientCount do PT
+    const pt = await User.findById(req.user._id);
+    const newClientCount = (pt?.clientCount || 0) + 1;
+    await User.findByIdAndUpdate(req.user._id, { clientCount: newClientCount });
+
     const { password: _, ...clientResponse } = newClient.toObject();
 
     res.status(201).json(clientResponse);
@@ -252,7 +269,21 @@ export const assignExistingClient = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Este utilizador não é um cliente' });
     }
 
-    client.ptId = new Types.ObjectId(req.user._id);
+    // Se cliente tinha um PT anterior, decrementar (mas não deixar negativo)
+    if (client.ptId && client.ptId.toString() !== '000000000000000000000000') {
+      const oldPT = await User.findById(client.ptId);
+      const newCount = Math.max(0, (oldPT?.clientCount || 0) - 1);
+      await User.findByIdAndUpdate(client.ptId, { clientCount: newCount });
+    }
+
+    // Incrementar novo PT
+    const newPTId = new Types.ObjectId(req.user._id);
+    client.ptId = newPTId;
+    
+    const newPT = await User.findById(newPTId);
+    const newClientCount = (newPT?.clientCount || 0) + 1;
+    await User.findByIdAndUpdate(newPTId, { clientCount: newClientCount });
+
     await client.save();
 
     const { password: _, ...clientResponse } = client.toObject();
@@ -261,5 +292,358 @@ export const assignExistingClient = async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error('Erro ao atribuir cliente:', err);
     res.status(500).json({ error: 'Erro ao atribuir cliente' });
+  }
+};
+
+// ============================================================================
+// CLIENTE SOLICITA MUDANÇA DE PT
+// ============================================================================
+
+export const requestPTChange = async (req: AuthRequest, res: Response) => {
+  try {
+    const { newPtId } = req.body;
+    
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+    
+    const client = await User.findById(req.user._id);
+    if (!client) {
+      return res.status(404).json({ message: 'Cliente não encontrado' });
+    }
+
+    // newPtId pode ser undefined para "Nenhum PT"
+    if (newPtId) {
+      const newPt = await User.findById(newPtId);
+      if (!newPt || newPt.role !== 'PT') {
+        return res.status(404).json({ message: 'PT não encontrado' });
+      }
+    }
+
+    if (!client.ptChangeRequests) {
+      client.ptChangeRequests = [];
+    }
+
+    const existingPending = client.ptChangeRequests.some(
+      (r) => r.status === 'pending'
+    );
+    
+    if (existingPending) {
+      return res.status(400).json({
+        message: 'Você já tem um pedido pendente de aprovação. Aguarde a resposta.',
+      });
+    }
+
+    const fromPTId = client.ptId || new Types.ObjectId('000000000000000000000000');
+    
+    // Se newPtId é undefined, usar um ObjectId especial para "Nenhum PT"
+    const toPTId = newPtId 
+      ? new Types.ObjectId(newPtId)
+      : new Types.ObjectId('000000000000000000000000');
+
+    const ptChangeRequest: any = {
+      _id: new Types.ObjectId(),
+      fromPT: fromPTId,
+      toPT: toPTId,
+      status: 'pending',
+      requestedAt: new Date(),
+    };
+
+    client.ptChangeRequests.push(ptChangeRequest);
+
+    await client.save();
+
+    console.log(
+      `[PT CHANGE REQUEST] Cliente: ${client.username}, Novo PT: ${newPtId ? 'Outro PT' : 'Nenhum'}`
+    );
+
+    return res.status(201).json({
+      message: 'Solicitação de mudança de PT enviada para aprovação',
+      requestId: ptChangeRequest._id,
+    });
+  } catch (error) {
+    console.error('Erro em requestPTChange:', error);
+    res.status(500).json({ message: 'Erro ao solicitar mudança de PT', error });
+  }
+};
+
+// ============================================================================
+// ADMIN APROVA OU REJEITA PEDIDO
+// ============================================================================
+
+export const respondToPTChangeRequest = async (req: AuthRequest, res: Response) => {
+  try {
+    const { requestId } = req.params;
+    const { action, reason } = req.body;
+    
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+    
+    const adminId = req.user._id;
+
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Ação deve ser approve ou reject' });
+    }
+
+    const client = await User.findOne({
+      'ptChangeRequests._id': new Types.ObjectId(requestId),
+    });
+
+    if (!client) {
+      return res.status(404).json({ message: 'Pedido não encontrado' });
+    }
+
+    if (!client.ptChangeRequests) {
+      return res.status(404).json({ message: 'Pedido não encontrado' });
+    }
+
+    const requestIndex = client.ptChangeRequests.findIndex(
+      (r) => r._id?.toString() === requestId
+    );
+
+    if (requestIndex === -1) {
+      return res.status(404).json({ message: 'Pedido não encontrado' });
+    }
+
+    const ptRequest = client.ptChangeRequests[requestIndex];
+
+    if (ptRequest.status !== 'pending') {
+      return res.status(400).json({
+        message: 'Este pedido já foi respondido anteriormente',
+      });
+    }
+
+    if (action === 'approve') {
+      const oldPTId = client.ptId;
+      
+      // Se toPT é "000000000000000000000000", significa "Nenhum PT"
+      const isRemovingPT = ptRequest.toPT.toString() === '000000000000000000000000';
+      
+      if (!isRemovingPT) {
+        // Está a atribuir a um PT novo
+        client.ptId = ptRequest.toPT;
+        await User.findByIdAndUpdate(ptRequest.toPT, {
+          $inc: { clientCount: 1 },
+        });
+      } else {
+        // Está a remover o PT - usar undefined em vez de null
+        client.ptId = undefined;
+      }
+
+      ptRequest.status = 'approved';
+
+      // Decrementar PT anterior se existia
+      if (
+        oldPTId &&
+        oldPTId.toString() !== '000000000000000000000000'
+      ) {
+        const oldPT = await User.findById(oldPTId);
+        const newCount = Math.max(0, (oldPT?.clientCount || 0) - 1);
+        await User.findByIdAndUpdate(oldPTId, {
+          clientCount: newCount,
+        });
+      }
+
+      console.log(
+        `[PT CHANGE APPROVED] Cliente: ${client.username}, Novo PT: ${isRemovingPT ? 'Nenhum' : ptRequest.toPT}`
+      );
+    } else if (action === 'reject') {
+      ptRequest.status = 'rejected';
+
+      console.log(
+        `[PT CHANGE REJECTED] Cliente: ${client.username}, Razão: ${reason}`
+      );
+    }
+
+    ptRequest.respondedAt = new Date();
+    ptRequest.respondedBy = new Types.ObjectId(adminId);
+    if (reason) {
+      ptRequest.reason = reason;
+    }
+
+    client.pendingPTChange = undefined;
+
+    await client.save();
+
+    return res.json({
+      message: `Pedido ${
+        action === 'approve' ? 'aprovado' : 'rejeitado'
+      } com sucesso`,
+      requestId: ptRequest._id,
+      status: ptRequest.status,
+    });
+  } catch (error) {
+    console.error('Erro em respondToPTChangeRequest:', error);
+    res.status(500).json({ message: 'Erro ao responder pedido', error });
+  }
+};
+
+// ============================================================================
+// ADMIN LISTA TODOS OS PEDIDOS PENDENTES
+// ============================================================================
+
+export const getPendingPTChangeRequests = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const clientsWithRequests = await User.find({
+      'ptChangeRequests.status': 'pending',
+    })
+      .select('_id username email ptChangeRequests')
+      .lean();
+
+    const formattedRequests = [];
+
+    for (const client of clientsWithRequests) {
+      if (!client.ptChangeRequests) continue;
+      
+      const pendingReqs = client.ptChangeRequests.filter(
+        (r) => r.status === 'pending'
+      );
+
+      for (const req of pendingReqs) {
+        // Verificar se é "Nenhum PT"
+        const isNoPT = req.toPT.toString() === '000000000000000000000000';
+        
+        let newPt = null;
+        if (!isNoPT) {
+          newPt = await User.findById(req.toPT).select('username').lean();
+        }
+        
+        const oldPt =
+          req.fromPT && req.fromPT.toString() !== '000000000000000000000000'
+            ? await User.findById(req.fromPT).select('username').lean()
+            : null;
+
+        formattedRequests.push({
+          _id: req._id,
+          clientId: client._id,
+          clientName: client.username,
+          clientEmail: client.email,
+          fromPT: oldPt?.username || 'Sem PT (Novo cliente)',
+          toPT: isNoPT ? 'Nenhum PT' : (newPt?.username || 'PT desconhecido'),
+          requestedAt: req.requestedAt,
+          status: req.status,
+        });
+      }
+    }
+
+    return res.json(formattedRequests);
+  } catch (error) {
+    console.error('Erro em getPendingPTChangeRequests:', error);
+    res.status(500).json({ message: 'Erro ao listar pedidos', error });
+  }
+};
+
+// ============================================================================
+// CLIENTE CANCELA PEDIDO PENDENTE
+// ============================================================================
+
+export const cancelPTChangeRequest = async (req: AuthRequest, res: Response) => {
+  try {
+    const { requestId } = req.params;
+    
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+    
+    const clientId = req.user._id;
+
+    const client = await User.findById(clientId);
+
+    if (!client) {
+      return res.status(404).json({ message: 'Cliente não encontrado' });
+    }
+
+    if (!client.ptChangeRequests) {
+      return res.status(404).json({
+        message: 'Nenhum pedido encontrado',
+      });
+    }
+
+    const requestIndex = client.ptChangeRequests.findIndex(
+      (r) =>
+        r._id?.toString() === requestId && r.status === 'pending'
+    );
+
+    if (requestIndex === -1 || requestIndex === undefined) {
+      return res.status(404).json({
+        message: 'Pedido não encontrado ou já foi respondido',
+      });
+    }
+
+    client.ptChangeRequests.splice(requestIndex, 1);
+    client.pendingPTChange = undefined;
+
+    await client.save();
+
+    console.log(
+      `[PT CHANGE CANCELLED] Cliente: ${client.username}, RequestId: ${requestId}`
+    );
+
+    return res.json({ message: 'Solicitação de mudança cancelada' });
+  } catch (error) {
+    console.error('Erro em cancelPTChangeRequest:', error);
+    res.status(500).json({ message: 'Erro ao cancelar pedido', error });
+  }
+};
+
+// ============================================================================
+// CLIENTE VISUALIZA SEU HISTÓRICO DE PEDIDOS
+// ============================================================================
+
+export const getMyPTChangeHistory = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+    
+    const clientId = req.user._id;
+
+    const client = await User.findById(clientId).select('ptChangeRequests');
+
+    if (!client) {
+      return res.status(404).json({ message: 'Cliente não encontrado' });
+    }
+
+    if (!client.ptChangeRequests) {
+      return res.json([]);
+    }
+
+    const enrichedHistory = await Promise.all(
+      client.ptChangeRequests.map(async (req) => {
+        // Verificar se é "Nenhum PT"
+        const isNoPT = req.toPT.toString() === '000000000000000000000000';
+        
+        let newPt = null;
+        if (!isNoPT) {
+          newPt = await User.findById(req.toPT)
+            .select('username')
+            .lean();
+        }
+        
+        const oldPt =
+          req.fromPT && req.fromPT.toString() !== '000000000000000000000000'
+            ? await User.findById(req.fromPT).select('username').lean()
+            : null;
+
+        return {
+          _id: req._id,
+          fromPT: oldPt?.username || 'Sem PT',
+          toPT: isNoPT ? 'Nenhum PT' : (newPt?.username || 'PT desconhecido'),
+          status: req.status,
+          requestedAt: req.requestedAt,
+          respondedAt: req.respondedAt,
+          reason: req.reason,
+        };
+      })
+    );
+
+    return res.json(enrichedHistory);
+  } catch (error) {
+    console.error('Erro em getMyPTChangeHistory:', error);
+    res.status(500).json({ message: 'Erro ao buscar histórico', error });
   }
 };

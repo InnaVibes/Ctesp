@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Card from '../components/Card';
 import Loading from '../components/Loading';
 import Avatar from '../components/Avatar';
+import PTRequests from './PTRequests';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import {
@@ -60,7 +61,7 @@ const Dashboard = () => {
     if (status === 'late') {
       return (
         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-           Atrasado
+          ⏰ Atrasado
         </span>
       );
     }
@@ -222,6 +223,13 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* PT Requests - MOSTRAR PARA PT */}
+      {isTrainer && (
+        <div className="mb-8">
+          <PTRequests />
+        </div>
+      )}
+
       {/* Notificações de treinos concluídos - APENAS PT */}
       {isTrainer && recentCompletions.length > 0 && (
         <Card className="mb-8">
@@ -347,7 +355,7 @@ const Dashboard = () => {
               )}
               <Link to="/messages">
                 <button className="w-full text-left px-4 py-3 bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors">
-                 Mensagens
+                  💬 Mensagens
                 </button>
               </Link>
             </div>

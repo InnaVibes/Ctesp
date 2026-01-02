@@ -31,7 +31,12 @@ import {
     requestPT,
     getAvailablePTs,
     addClientByPT,
-    assignExistingClient
+    assignExistingClient,
+    requestPTChange,
+    respondToPTChangeRequest,
+    getPendingPTChangeRequests,
+    cancelPTChangeRequest,
+    getMyPTChangeHistory
 } from '../controllers/User.controller';
 import {
   getAdminDashboard,
@@ -67,6 +72,11 @@ router.post('/users/request-pt', authenticate, authorize(['CLIENT']), requestPT)
 router.post('/users/add-client', authenticate, authorize(['PT']), addClientByPT);
 router.post('/users/assign-client', authenticate, authorize(['PT']), assignExistingClient);
 
+// USERS - PT CHANGE REQUESTS
+router.post('/users/request-pt-change', authenticate, authorize(['CLIENT']), requestPTChange);
+router.delete('/users/pt-change-requests/:requestId', authenticate, authorize(['CLIENT']), cancelPTChangeRequest);
+router.get('/users/pt-change-history', authenticate, authorize(['CLIENT']), getMyPTChangeHistory);
+
 // MESSAGES
 router.post('/messages/conversations', authenticate, createConversation);
 router.get('/messages/conversations', authenticate, getConversations);
@@ -82,5 +92,9 @@ router.patch('/admin/users/:userId/validate', authenticate, authorize(['ADMIN'])
 router.patch('/admin/users/change-pt', authenticate, authorize(['ADMIN']), adminChangePt);
 router.delete('/admin/users/:userId', authenticate, authorize(['ADMIN']), deleteUser);
 router.get('/admin/users', authenticate, authorize(['ADMIN']), getAllUsers);
+
+// ADMIN - PT CHANGE REQUESTS
+router.get('/admin/pt-change-requests', authenticate, authorize(['ADMIN']), getPendingPTChangeRequests);
+router.put('/admin/pt-change-requests/:requestId', authenticate, authorize(['ADMIN']), respondToPTChangeRequest);
 
 export default router;

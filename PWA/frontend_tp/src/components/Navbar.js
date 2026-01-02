@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Avatar from './Avatar';
@@ -8,13 +8,13 @@ const Navbar = () => {
   const { user, logout, isAdmin, isTrainer, isClient } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
+    setIsProfileOpen(false);
+    setIsMenuOpen(false);
     logout();
-    navigate('/login');
   };
 
   const isActive = (path) => location.pathname === path;
@@ -25,7 +25,8 @@ const Navbar = () => {
   if (isAdmin) {
     navLinks.push(
       { path: '/admin-dashboard', label: 'Dashboard' },
-      { path: '/admin', label: 'Gestão de Utilizadores' }
+      { path: '/admin', label: 'Gestão de Utilizadores' },
+      { path: '/admin/pt-requests', label: 'Pedidos de PT' }
     );
   } else if (isTrainer) {
     navLinks.push(
@@ -219,7 +220,7 @@ const Navbar = () => {
               onClick={toggleTheme}
               className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-primary-100 dark:text-gray-300 hover:bg-primary-600 dark:hover:bg-gray-800"
             >
-              {theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
+              {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
             </button>
             
             <button
