@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 
 const ClientHistory = () => {
   const { clientId } = useParams();
-  const [data, setData] = useState(null);
+  const [data, setData] = useState({ stats: {}, history: [], client: {} });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedCompletion, setSelectedCompletion] = useState(null);
@@ -68,7 +68,7 @@ const ClientHistory = () => {
 
   if (loading) return <Loading />;
 
-  if (!data) {
+  if (!data || !data.history) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
@@ -96,16 +96,16 @@ const ClientHistory = () => {
         </Link>
         <div className="flex items-center gap-4 mb-4">
           <Avatar
-            src={data.client.profileImage}
-            name={data.client.username}
+            src={data.client?.profileImage}
+            name={data.client?.username || 'Cliente'}
             size="lg"
           />
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {data.client.username}
+              {data.client?.username || 'Cliente Desconhecido'}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {data.client.email}
+              {data.client?.email || ''}
             </p>
           </div>
         </div>
@@ -115,31 +115,31 @@ const ClientHistory = () => {
         <Card>
           <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {data.stats.totalCompletions}
+            {data.stats?.totalCompletions || 0}
           </p>
         </Card>
         <Card>
           <p className="text-sm text-gray-600 dark:text-gray-400">Concluídos</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {data.stats.completed}
+            {data.stats?.completed || 0}
           </p>
         </Card>
         <Card>
           <p className="text-sm text-gray-600 dark:text-gray-400">Falhados</p>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {data.stats.failed}
+            {data.stats?.failed || 0}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Com Feedback</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Atrasados</p>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            {data.stats?.late || 0}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Taxa</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {data.stats.withFeedback}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Com Prova</p>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {data.stats.withProof}
+            {data.stats?.completionRate || 0}%
           </p>
         </Card>
       </div>

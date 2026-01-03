@@ -26,7 +26,8 @@ const Navbar = () => {
     navLinks.push(
       { path: '/admin-dashboard', label: 'Dashboard' },
       { path: '/admin', label: 'Gestão de Utilizadores' },
-      { path: '/admin/pt-requests', label: 'Pedidos de PT' }
+      { path: '/admin/pt-requests', label: 'Pedidos de PT' },
+      { path: '/admin/client-requests', label: '📋 Pedidos de Cliente' }
     );
   } else if (isTrainer) {
     navLinks.push(

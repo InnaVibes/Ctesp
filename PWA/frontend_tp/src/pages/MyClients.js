@@ -12,7 +12,7 @@ const MyClients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('create'); // 'create' ou 'add'
+  const [modalMode, setModalMode] = useState('create'); // 'create', 'add' ou 'request'
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -23,9 +23,11 @@ const MyClients = () => {
   const [searchedUser, setSearchedUser] = useState(null);
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
 
   useEffect(() => {
     loadClients();
+    loadPendingRequests();
   }, []);
 
   const loadClients = async () => {
@@ -40,6 +42,17 @@ const MyClients = () => {
     }
   };
 
+  const loadPendingRequests = async () => {
+  try {
+    const response = await api.get('/users/my-client-requests');
+    const data = response.data?.data || [];
+    setPendingRequests(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error('Erro ao carregar pedidos:', error);
+    setPendingRequests([]);
+  }
+};
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -50,8 +63,8 @@ const MyClients = () => {
     resetForm();
   };
 
-  const openAddModal = () => {
-    setModalMode('add');
+  const openRequestModal = () => {
+    setModalMode('request');
     setShowModal(true);
     resetForm();
   };
@@ -88,9 +101,12 @@ const MyClients = () => {
           return;
         }
 
-        // Verificar se já tem outro PT
-        if (response.data.ptId) {
-          toast.warning('Este cliente já tem outro PT. Ao adicionar, você se tornará o novo PT dele.');
+        // Verificar se já tem um pedido pendente
+        const hasPendingRequest = pendingRequests.some(r => r.clientId?._id === response.data._id);
+        if (hasPendingRequest) {
+          toast.error('Já tem um pedido pendente para este cliente');
+          setSearchedUser(null);
+          return;
         }
 
         setSearchedUser(response.data);
@@ -107,7 +123,7 @@ const MyClients = () => {
     }
   };
 
-  const handleAddExistingClient = async () => {
+  const handleRequestClient = async () => {
     if (!searchedUser || !searchedUser._id) {
       toast.error('Selecione um utilizador válido');
       return;
@@ -115,18 +131,17 @@ const MyClients = () => {
 
     setSubmitting(true);
     try {
-      await api.post('/users/request-pt', { 
-        ptId: 'self',
+      await api.post('/users/request-client', { 
         clientId: searchedUser._id 
       });
 
-      toast.success('Cliente adicionado com sucesso!');
+      toast.success('Pedido enviado! Aguardando aprovação do administrador.');
       setShowModal(false);
       resetForm();
-      loadClients();
+      loadPendingRequests();
     } catch (error) {
-      console.error('Erro ao adicionar cliente:', error);
-      toast.error(error.response?.data?.message || 'Erro ao adicionar cliente');
+      console.error('Erro ao enviar pedido:', error);
+      toast.error(error.response?.data?.message || 'Erro ao enviar pedido');
     } finally {
       setSubmitting(false);
     }
@@ -207,17 +222,58 @@ const MyClients = () => {
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Total: {clients.length} {clients.length === 1 ? 'cliente' : 'clientes'}
+            {pendingRequests.length > 0 && (
+              <span className="ml-4 text-orange-600 dark:text-orange-400">
+                • {pendingRequests.length} pedido(s) pendente(s)
+              </span>
+            )}
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button onClick={openAddModal} variant="secondary">
-            Adicionar Cliente Existente
+        <div className="flex gap-3 flex-wrap">
+          <Button onClick={openRequestModal} variant="secondary">
+            📋 Pedir Cliente
           </Button>
           <Button onClick={openCreateModal}>
-            + Criar Novo Cliente
+            ✨ Criar Novo
           </Button>
         </div>
       </div>
+
+      {/* Mostrar pedidos pendentes */}
+      {pendingRequests.length > 0 && (
+        <div className="mb-8 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+          <h2 className="font-semibold text-orange-900 dark:text-orange-200 mb-3">
+            Pedidos Pendentes de Aprovação ({pendingRequests.length})
+          </h2>
+          <div className="space-y-2">
+            {pendingRequests.map(req => (
+              <div key={req._id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-3">
+                  <Avatar 
+                    src={req.clientId?.profileImage} 
+                    name={req.clientId?.username}
+                    size="sm"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {req.clientId?.username}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Solicitado em {new Date(req.requestedAt).toLocaleDateString('pt-PT')}
+                    </p>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-200 text-sm rounded-full">
+                  Aguardando Aprovação
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-orange-700 dark:text-orange-300 mt-3">
+            ℹ️ Os pedidos são revistos e aprovados pelo administrador.
+          </p>
+        </div>
+      )}
 
       {clients.length === 0 ? (
         <Card>
@@ -241,9 +297,9 @@ const MyClients = () => {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Comece adicionando ou criando seu primeiro cliente
             </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <Button onClick={openAddModal} variant="secondary">
-                Adicionar Existente
+            <div className="mt-6 flex justify-center gap-3 flex-wrap">
+              <Button onClick={openRequestModal} variant="secondary">
+                Pedir Cliente
               </Button>
               <Button onClick={openCreateModal}>
                 Criar Novo
@@ -298,14 +354,18 @@ const MyClients = () => {
         </div>
       )}
 
-      {/* Modal - Criar ou Adicionar Cliente */}
+      {/* Modal - Criar, Adicionar ou Pedir Cliente */}
       <Modal
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
           resetForm();
         }}
-        title={modalMode === 'create' ? 'Criar Novo Cliente' : 'Adicionar Cliente Existente'}
+        title={
+          modalMode === 'create' 
+            ? 'Criar Novo Cliente' 
+            : 'Pedir Cliente (com Aprovação Admin)'
+        }
       >
         {modalMode === 'create' ? (
           // Formulário de Criação
@@ -371,11 +431,11 @@ const MyClients = () => {
             </div>
           </form>
         ) : (
-          // Formulário de Adicionar Existente
+          // Formulário de Pedir Cliente (COM aprovação admin)
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                Procure por um cliente existente usando o username ou email.
+            <div className="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <p className="text-sm text-purple-800 dark:text-purple-200">
+                <strong>ℹ️ Com Aprovação Admin:</strong> Procure por um cliente. Seu pedido será enviado ao administrador para aprovação.
               </p>
             </div>
 
@@ -441,9 +501,9 @@ const MyClients = () => {
                 )}
 
                 {searchedUser.ptId && searchedUser.role === 'CLIENT' && (
-                  <div className="mt-3 bg-orange-50 dark:bg-orange-900 border border-orange-200 dark:border-orange-800 rounded p-3">
-                    <p className="text-sm text-orange-800 dark:text-orange-200">
-                      Este cliente já tem outro PT. Ao adicionar, você se tornará o novo PT dele.
+                  <div className="mt-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded p-3">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      ℹ️ Este cliente já tem outro PT. Se aprovado, você se tornará o novo PT dele.
                     </p>
                   </div>
                 )}
@@ -457,12 +517,12 @@ const MyClients = () => {
                     Cancelar
                   </Button>
                   <Button 
-                    onClick={handleAddExistingClient}
+                    onClick={handleRequestClient}
                     fullWidth
                     loading={submitting}
                     disabled={searchedUser.role === 'PT'}
                   >
-                    {submitting ? 'Adicionando...' : 'Adicionar Cliente'}
+                    {submitting ? 'Enviando Pedido...' : 'Enviar Pedido'}
                   </Button>
                 </div>
               </div>

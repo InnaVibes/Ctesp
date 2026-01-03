@@ -1,107 +1,240 @@
-import { Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { User } from '../models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import crypto from 'node:crypto';
 import { transporter, emailTemplates } from '../config/email';
 
-const SECRET_KEY = process.env.JWT_SECRET || "pwa_secret_key";
-const FRONTEND_URL = "http://localhost:3001";
+// ============ TYPES & INTERFACES ============
 
-export const register = async (req: AuthRequest, res: Response) => {
+export interface AuthRequest extends Request {
+  user?: {
+    _id: string;
+    role: string;
+    email?: string;
+    username?: string;
+    googleId?: string;
+  };
+  token?: string;
+  decodedToken?: any;
+}
+
+export interface LoginRequestBody {
+  username: string;
+  password: string;
+}
+
+export interface RegisterRequestBody {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  role?: 'CLIENT' | 'PT' | 'ADMIN';
+  profileImage?: string;
+}
+
+export interface ResetPasswordRequestBody {
+  token?: string;
+  password: string;
+  confirmPassword?: string;
+}
+
+export interface ForgotPasswordRequestBody {
+  identifier: string;
+}
+
+export interface AuthResponse {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  user?: any;
+  error?: string;
+}
+
+// ============ CONSTANTS ============
+
+const SECRET_KEY: string = process.env.JWT_SECRET || "pwa_secret_key";
+const FRONTEND_URL: string = process.env.FRONTEND_URL || "http://localhost:3001";
+
+// ============ HELPER FUNCTIONS ============
+
+const generateToken = (userId: string, role: string): string => {
+  return jwt.sign(
+    { _id: userId, role },
+    SECRET_KEY,
+    { expiresIn: '24h' }
+  );
+};
+
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error('Email inválido');
+  }
+  return true;
+};
+
+const validatePassword = (password: string, confirmPassword?: string): boolean => {
+  if (password.length < 6) {
+    throw new Error('Senha deve ter no mínimo 6 caracteres');
+  }
+  if (confirmPassword && password !== confirmPassword) {
+    throw new Error('Senhas não correspondem');
+  }
+  return true;
+};
+
+const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+const comparePassword = async (password: string, hash: string): Promise<boolean> => {
+  return bcrypt.compare(password, hash);
+};
+
+const generateResetToken = (): { token: string; hashed: string } => {
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashed = crypto.createHash('sha256').update(token).digest('hex');
+  return { token, hashed };
+};
+
+const sanitizeUser = (user: any) => {
+  const { password: _, ...userResponse } = user.toObject ? user.toObject() : user;
+  return userResponse;
+};
+
+// ============ AUTH CONTROLLER ============
+
+export const register = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
-    const { username, password, role, profileImage, email } = req.body;
+    const { username, email, password, confirmPassword, role, profileImage } = req.body as RegisterRequestBody;
 
-    if (!email || !email.trim()) {
-      return res.status(400).json({ message: "Email é obrigatório." });
-    }
-    
-    let assignedPtId = undefined;
-    let isValidated = false;
-
-    if (req.user && req.user.role === 'PT' && role === 'CLIENT') {
-        assignedPtId = req.user._id;
-        isValidated = true; 
-    } else {
-        isValidated = role === 'PT' ? false : true; 
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "Username, email e senha são obrigatórios." });
     }
 
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: "O nome de utilizador já existe." });
+    validateEmail(email);
+    validatePassword(password, confirmPassword);
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(409).json({ message: "O nome de utilizador já existe." });
     }
 
     const existingEmail = await User.findOne({ email: email.trim() });
     if (existingEmail) {
-      return res.status(400).json({ message: "O email já está registado." });
+      return res.status(409).json({ message: "O email já está registado." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    let assignedPtId = undefined;
+    let isValidated = false;
+    let assignedRole = role || 'CLIENT';
+
+    if (req.user && req.user.role === 'PT' && assignedRole === 'CLIENT') {
+      assignedPtId = req.user._id;
+      isValidated = true;
+    } else {
+      isValidated = assignedRole === 'PT' ? false : true;
+    }
+
+    const hashedPassword = await hashPassword(password);
 
     const newUser = new User({
       username,
-      password: hashedPassword,
-      role: role || 'CLIENT',
-      profileImage,
       email: email.trim(),
+      password: hashedPassword,
+      role: assignedRole,
+      profileImage,
       ptId: assignedPtId,
-      isValidated: isValidated
+      isValidated: isValidated,
     });
 
     await newUser.save();
 
-    const { password: _, ...userResponse } = newUser.toObject();
+    const token = generateToken(newUser._id.toString(), newUser.role);
+    const userResponse = sanitizeUser(newUser);
 
-    res.status(201).json(userResponse);
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao registar utilizador." });
+    return res.status(201).json({
+      success: true,
+      message: 'Utilizador registado com sucesso.',
+      token,
+      user: userResponse,
+    });
+  } catch (err: any) {
+    console.error('Erro no registro:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Erro ao registar utilizador.",
+    });
   }
 };
 
-export const login = async (req: AuthRequest, res: Response) => {
+export const login = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
-    const { username, password } = req.body;
+    const { username, password } = req.body as LoginRequestBody;
 
-    const user = await User.findOne({ username });
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username e senha são obrigatórios." });
+    }
+
+    const user = await User.findOne({
+      $or: [{ username }, { email: username }]
+    });
 
     if (!user) {
-      return res.status(400).json({ message: "Credenciais inválidas" });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if (!validPassword) {
-      return res.status(400).json({ message: "Credenciais inválidas" });
+    const isPasswordValid = await comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
-    const token = jwt.sign(
-      { _id: user._id, role: user.role }, 
-      SECRET_KEY, 
-      { expiresIn: '1h' }
-    );
+    const token = generateToken(user._id.toString(), user.role);
+    const userResponse = sanitizeUser(user);
 
-    const { password: _, ...userResponse } = user.toObject();
-
-    res.json({ token, user: userResponse });
-  } catch (err) {
-    res.status(500).json({ error: "Erro interno no servidor." });
+    return res.status(200).json({
+      success: true,
+      message: 'Login realizado com sucesso.',
+      token,
+      user: userResponse,
+    });
+  } catch (err: any) {
+    console.error('Erro no login:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Erro ao fazer login.",
+    });
   }
 };
 
-export const qrLogin = async (req: AuthRequest, res: Response) => {
-    const { qrToken } = req.body;
-    if(qrToken === "valid_qr_code") {
-        res.json({ message: "Login por QR Code realizado com sucesso", token: "mock_jwt_token" });
-    } else {
-        res.status(400).json({ message: "Código QR inválido" });
+export const googleCallback = async (req: AuthRequest, res: Response, next?: NextFunction) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Autenticação Google falhou" });
     }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilizador não encontrado" });
+    }
+
+    const token = generateToken(user._id.toString(), user.role);
+    const userResponse = sanitizeUser(user);
+
+    const redirectUrl = `${FRONTEND_URL}/auth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userResponse))}`;
+
+    return res.redirect(redirectUrl);
+  } catch (err: any) {
+    console.error('Erro no Google OAuth:', err);
+    return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);
+  }
 };
 
-export const forgotPassword = async (req: AuthRequest, res: Response) => {
+export const forgotPassword = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
-    const { identifier } = req.body;
+    const { identifier } = req.body as ForgotPasswordRequestBody;
 
     if (!identifier) {
       return res.status(400).json({ message: "Username ou email é obrigatório" });
@@ -114,31 +247,19 @@ export const forgotPassword = async (req: AuthRequest, res: Response) => {
       ]
     });
 
-    if (!user) {
-      return res.json({ 
-        message: "Se este utilizador existir, receberá um email com instruções para redefinir a senha." 
+    if (!user || !user.email) {
+      return res.status(200).json({
+        message: "Se este utilizador existir, receberá um email com instruções para redefinir a senha."
       });
     }
 
-    if (!user.email) {
-      return res.status(400).json({ 
-        message: "Este utilizador não tem email registado. Contacte o administrador." 
-      });
-    }
+    const { token, hashed } = generateResetToken();
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = new Date(Date.now() + 3600000);
+    (user as any).resetPasswordToken = hashed;
+    (user as any).resetPasswordExpires = new Date(Date.now() + 3600000);
     await user.save();
 
-    const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
-
+    const resetLink = `${FRONTEND_URL}/reset-password/${token}`;
     const emailContent = emailTemplates.passwordReset(user.username, resetLink);
 
     await transporter.sendMail({
@@ -149,18 +270,23 @@ export const forgotPassword = async (req: AuthRequest, res: Response) => {
       text: emailContent.text,
     });
 
-    res.json({ 
-      message: "Se este utilizador existir, receberá um email com instruções para redefinir a senha." 
+    return res.status(200).json({
+      message: "Se este utilizador existir, receberá um email com instruções para redefinir a senha."
     });
 
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao processar pedido." });
+  } catch (err: any) {
+    console.error('Erro no forgot password:', err);
+    return res.status(500).json({ error: "Erro ao processar pedido." });
   }
 };
 
-export const validateResetToken = async (req: AuthRequest, res: Response) => {
+export const validateResetToken = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
     const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token é obrigatório" });
+    }
 
     const hashedToken = crypto
       .createHash('sha256')
@@ -168,36 +294,44 @@ export const validateResetToken = async (req: AuthRequest, res: Response) => {
       .digest('hex');
 
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() }
+      $or: [
+        { resetPasswordToken: hashedToken },
+      ]
     });
 
-    if (!user) {
-      return res.status(400).json({ 
-        message: "Token inválido ou expirado. Solicite uma nova recuperação de senha." 
+    if (!user || !(user as any).resetPasswordExpires || new Date() > (user as any).resetPasswordExpires) {
+      return res.status(400).json({
+        valid: false,
+        message: "Token inválido ou expirado. Solicite uma nova recuperação de senha."
       });
     }
 
-    res.json({ 
+    return res.status(200).json({
       valid: true,
-      username: user.username 
+      username: user.username,
+      email: user.email
     });
 
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao validar token." });
+  } catch (err: any) {
+    console.error('Erro ao validar token:', err);
+    return res.status(500).json({ error: "Erro ao validar token." });
   }
 };
 
-export const resetPassword = async (req: AuthRequest, res: Response) => {
+export const resetPassword = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
     const { token } = req.params;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body as ResetPasswordRequestBody;
 
-    if (!password || password.length < 6) {
-      return res.status(400).json({ 
-        message: "A senha deve ter pelo menos 6 caracteres." 
-      });
+    if (!token) {
+      return res.status(400).json({ message: "Token é obrigatório" });
     }
+
+    if (!password) {
+      return res.status(400).json({ message: "Nova senha é obrigatória" });
+    }
+
+    validatePassword(password, confirmPassword);
 
     const hashedToken = crypto
       .createHash('sha256')
@@ -205,27 +339,25 @@ export const resetPassword = async (req: AuthRequest, res: Response) => {
       .digest('hex');
 
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() }
+      $or: [
+        { resetPasswordToken: hashedToken },
+      ]
     });
 
-    if (!user) {
-      return res.status(400).json({ 
-        message: "Token inválido ou expirado. Solicite uma nova recuperação de senha." 
+    if (!user || !(user as any).resetPasswordExpires || new Date() > (user as any).resetPasswordExpires) {
+      return res.status(400).json({
+        message: "Token inválido ou expirado. Solicite uma nova recuperação de senha."
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    user.password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
+    user.password = await hashPassword(password);
+    (user as any).resetPasswordToken = undefined;
+    (user as any).resetPasswordExpires = undefined;
     await user.save();
 
     if (user.email) {
       const emailContent = emailTemplates.passwordChanged(user.username);
-      
+
       await transporter.sendMail({
         from: process.env.EMAIL_FROM,
         to: user.email,
@@ -235,12 +367,88 @@ export const resetPassword = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    res.json({ 
-      message: "Senha redefinida com sucesso! Pode agora fazer login com a nova senha." 
+    return res.status(200).json({
+      success: true,
+      message: "Senha redefinida com sucesso! Pode agora fazer login com a nova senha."
     });
 
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao redefinir senha:', err);
-    res.status(500).json({ error: "Erro ao redefinir senha." });
+    return res.status(500).json({ error: err.message || "Erro ao redefinir senha." });
   }
+};
+
+export const verifyToken = async (req: AuthRequest, res: Response, next?: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Token não fornecido' });
+    }
+
+    const decoded = jwt.verify(token, SECRET_KEY);
+
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      data: decoded
+    });
+  } catch (err: any) {
+    return res.status(401).json({
+      success: false,
+      valid: false,
+      message: 'Token inválido ou expirado'
+    });
+  }
+};
+
+export const logout = async (req: AuthRequest, res: Response, next?: NextFunction) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: 'Logout realizado com sucesso'
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Erro ao fazer logout'
+    });
+  }
+};
+
+export const getCurrentUser = async (req: AuthRequest, res: Response, next?: NextFunction) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
+    }
+
+    const userResponse = sanitizeUser(user);
+
+    return res.status(200).json({
+      success: true,
+      user: userResponse
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Erro ao obter utilizador'
+    });
+  }
+};
+
+export default {
+  register,
+  login,
+  googleCallback,
+  forgotPassword,
+  validateResetToken,
+  resetPassword,
+  verifyToken,
+  logout,
+  getCurrentUser,
 };

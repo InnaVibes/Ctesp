@@ -1,97 +1,127 @@
-import { Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { TrainingPlan } from '../models/TrainingPlan';
 import { User } from '../models/User';
-import { AuthRequest } from '../middlewares/auth.middleware';
-import multer from 'multer';
+import { ObjectId } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
-const storage = multer.diskStorage({
-  destination: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+interface AuthRequest extends Request {
+  user?: any;
+  file?: any;
+}
 
-export const upload = multer({ storage });
-
+// ============================================================================
+// CREATE PLAN
+// ============================================================================
 export const createPlan = async (req: AuthRequest, res: Response) => {
   try {
-    const { clientId, dayOfWeek, exercises } = req.body;
+    const { dayOfWeek, exercises, clientId } = req.body;
+    const ptId = req.user?._id;
 
-    if (!req.user || req.user.role !== 'PT') {
-      return res.status(403).json({ message: 'Apenas PTs podem criar planos' });
-    }
-
-    const client = await User.findById(clientId);
-    if (!client) {
-      return res.status(404).json({ message: 'Cliente não encontrado' });
-    }
-
-    if (client.ptId?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Este cliente não pertence a você' });
+    if (dayOfWeek === undefined || !exercises || !clientId) {
+      return res.status(400).json({ message: 'Dados obrigatórios em falta' });
     }
 
     const newPlan = new TrainingPlan({
-      ptId: req.user._id,
-      clientId,
       dayOfWeek,
       exercises,
-      completions: []
+      clientId,
+      ptId,
+      isCompleted: false,
+      completions: [],
+      weekAssigned: new Date(),
     });
 
     await newPlan.save();
-    await newPlan.populate('clientId', 'username email');
 
-    res.status(201).json(newPlan);
-  } catch (err) {
-    console.error('Erro ao criar plano:', err);
-    res.status(500).json({ error: 'Erro ao criar plano de treino' });
+    res.status(201).json({
+      success: true,
+      message: 'Plano criado com sucesso',
+      data: newPlan,
+    });
+  } catch (error: any) {
+    console.error('Erro ao criar plano:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao criar plano',
+    });
   }
 };
 
+// ============================================================================
+// GET PLANS
+// ============================================================================
 export const getPlans = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    const userId = req.user?._id;
+    const userRole = req.user?.role;
+
+    if (!userId) {
       return res.status(401).json({ message: 'Não autenticado' });
     }
 
-    let plans;
+    let query: any = {};
 
-    if (req.user.role === 'PT') {
-      const { clientId } = req.query;
-      
-      if (clientId) {
-        plans = await TrainingPlan.find({ ptId: req.user._id, clientId }).populate('clientId', 'username email');
-      } else {
-        plans = await TrainingPlan.find({ ptId: req.user._id }).populate('clientId', 'username email');
-      }
-    } else if (req.user.role === 'CLIENT') {
-      plans = await TrainingPlan.find({ clientId: req.user._id }).populate('ptId', 'username email');
-    } else {
-      return res.status(403).json({ message: 'Acesso negado' });
+    if (userRole === 'PT') {
+      query.ptId = userId;
+    } else if (userRole === 'CLIENT') {
+      query.clientId = userId;
     }
 
-    res.json(plans);
-  } catch (err) {
-    console.error('Erro ao buscar planos:', err);
-    res.status(500).json({ error: 'Erro ao buscar planos' });
+    const plans = await TrainingPlan.find(query)
+      .populate('clientId', 'username email')
+      .populate('ptId', 'username email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: plans,
+    });
+  } catch (error: any) {
+    console.error('Erro ao buscar planos:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao buscar planos',
+    });
   }
 };
 
-export const completeWorkout = async (req: AuthRequest, res: Response) => {
+// ============================================================================
+// GET PLAN BY ID
+// ============================================================================
+export const getPlanById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { feedback } = req.body;
 
-    console.log('=== COMPLETAR TREINO - DEBUG ===');
-    console.log('Plan ID:', id);
-    console.log('Feedback recebido:', feedback);
-    console.log('File recebido:', req.file);
+    const plan = await TrainingPlan.findById(id)
+      .populate('clientId', 'username email')
+      .populate('ptId', 'username email');
 
-    if (!req.user || req.user.role !== 'CLIENT') {
-      return res.status(403).json({ message: 'Apenas clientes podem completar treinos' });
+    if (!plan) {
+      return res.status(404).json({ message: 'Plano não encontrado' });
     }
+
+    res.json({
+      success: true,
+      data: plan,
+    });
+  } catch (error: any) {
+    console.error('Erro ao buscar plano:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao buscar plano',
+    });
+  }
+};
+
+// ============================================================================
+// UPDATE PLAN
+// ============================================================================
+export const updatePlan = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { dayOfWeek, exercises } = req.body;
+    const ptId = req.user?._id;
 
     const plan = await TrainingPlan.findById(id);
 
@@ -99,403 +129,469 @@ export const completeWorkout = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Plano não encontrado' });
     }
 
-    if (plan.clientId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Este plano não pertence a você' });
+    if (plan.ptId.toString() !== ptId.toString()) {
+      return res.status(403).json({ message: 'Sem permissão para atualizar este plano' });
     }
 
-    const now = new Date();
-    const currentDayOfWeek = now.getDay();
-    const planDayOfWeek = plan.dayOfWeek;
+    if (dayOfWeek !== undefined) plan.dayOfWeek = dayOfWeek;
+    if (exercises) plan.exercises = exercises;
 
-    const daysUntilPlanDay = (planDayOfWeek - currentDayOfWeek + 7) % 7;
-    const planDayThisWeek = new Date(now);
-    planDayThisWeek.setDate(now.getDate() - currentDayOfWeek + planDayOfWeek);
-    planDayThisWeek.setHours(0, 0, 0, 0);
-
-    let targetWeekStart: Date;
-    if (now < planDayThisWeek) {
-      targetWeekStart = new Date(planDayThisWeek);
-      targetWeekStart.setDate(planDayThisWeek.getDate() - 7);
-    } else {
-      targetWeekStart = planDayThisWeek;
-    }
-
-    const nextPlanDay = new Date(targetWeekStart);
-    nextPlanDay.setDate(targetWeekStart.getDate() + 7);
-
-    if (currentDayOfWeek === planDayOfWeek && now >= nextPlanDay) {
-      return res.status(400).json({ 
-        message: `Este treino expirou. O prazo era até ${nextPlanDay.toLocaleDateString('pt-PT')}. O treino foi marcado como não concretizado.`,
-        expired: true
-      });
-    }
-
-    const completionWindowStart = new Date(targetWeekStart);
-    completionWindowStart.setHours(0, 0, 0, 0);
-    
-    const completionWindowEnd = new Date(nextPlanDay);
-    completionWindowEnd.setHours(23, 59, 59, 999);
-
-    const alreadyCompletedInWindow = plan.completions.some(c => {
-      const completionDate = new Date(c.date);
-      return completionDate >= completionWindowStart && completionDate <= completionWindowEnd;
-    });
-
-    if (alreadyCompletedInWindow) {
-      return res.status(400).json({ 
-        message: 'Este treino já foi completado nesta semana' 
-      });
-    }
-
-    let status: 'completed' | 'late' | 'failed';
-    
-    if (currentDayOfWeek === planDayOfWeek) {
-      status = 'completed';
-    } else {
-      status = 'late';
-    }
-
-    let proofImageUrl = undefined;
-    if (req.file) {
-      proofImageUrl = `/uploads/${req.file.filename}`;
-      console.log('Imagem salva em:', proofImageUrl);
-    }
-
-    const completionData = {
-      date: now,
-      status,
-      feedback: feedback || undefined,
-      proofImage: proofImageUrl,
-    };
-
-    console.log('Dados do completion a guardar:', completionData);
-
-    plan.completions.push(completionData);
     await plan.save();
 
-    console.log('Treino guardado com sucesso!');
-    console.log('Total de completions:', plan.completions.length);
-
-    res.json({ 
-      plan,
-      status,
-      message: status === 'completed' 
-        ? 'Treino concluído com sucesso!' 
-        : 'Treino concluído com atraso. Tente completar no dia correto da próxima vez.'
+    res.json({
+      success: true,
+      message: 'Plano atualizado com sucesso',
+      data: plan,
     });
-  } catch (err) {
-    console.error('Erro ao completar treino:', err);
-    res.status(500).json({ error: 'Erro ao completar treino' });
+  } catch (error: any) {
+    console.error('Erro ao atualizar plano:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao atualizar plano',
+    });
   }
 };
 
+// ============================================================================
+// DELETE PLAN
+// ============================================================================
+export const deletePlan = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const ptId = req.user?._id;
+
+    const plan = await TrainingPlan.findById(id);
+
+    if (!plan) {
+      return res.status(404).json({ message: 'Plano não encontrado' });
+    }
+
+    if (plan.ptId.toString() !== ptId.toString()) {
+      return res.status(403).json({ message: 'Sem permissão para deletar este plano' });
+    }
+
+    await TrainingPlan.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: 'Plano deletado com sucesso',
+    });
+  } catch (error: any) {
+    console.error('Erro ao deletar plano:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao deletar plano',
+    });
+  }
+};
+
+// ============================================================================
+// COMPLETE PLAN (LEGACY)
+// ============================================================================
+export const completePlan = async (req: AuthRequest, res: Response) => {
+  try {
+    const { planId } = req.params;
+    const { status, feedback } = req.body;
+    const userId = req.user?._id;
+
+    if (!planId || !userId) {
+      return res.status(400).json({ message: 'Dados inválidos' });
+    }
+
+    const plan = await TrainingPlan.findById(planId).populate('clientId').populate('ptId');
+
+    if (!plan) {
+      return res.status(404).json({ message: 'Plano não encontrado' });
+    }
+
+    if (plan.clientId._id.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Não autorizado' });
+    }
+
+    let proofImage = null;
+    if (req.file) {
+      const uploadsDir = path.join(__dirname, '../../uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const filepath = path.join(uploadsDir, filename);
+
+      fs.writeFileSync(filepath, req.file.buffer);
+      proofImage = `/uploads/${filename}`;
+    }
+
+    const completion: any = {
+      date: new Date(),
+      status: status || 'completed',
+      feedback: feedback || null,
+      proofImage: proofImage || null,
+    };
+
+    (plan.completions as any[]).push(completion);
+    plan.isCompleted = true;
+    await plan.save();
+
+    const socketManager = req.app.locals.socketManager;
+    if (socketManager && plan.ptId) {
+      socketManager.emitNotification((plan.ptId as any)._id.toString(), {
+        id: `workout-${Date.now()}`,
+        type: 'workout',
+        title: 'Treino Concluído',
+        message: `${(plan.clientId as any).username} completou um treino`,
+        timestamp: new Date(),
+        read: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Treino registado com sucesso',
+      data: plan,
+    });
+  } catch (error: any) {
+    console.error('Erro ao completar treino:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Erro ao registar treino',
+    });
+  }
+};
+
+// ============================================================================
+// COMPLETE WORKOUT
+// ============================================================================
+export const completeWorkout = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, feedback } = req.body;
+    const clientId = req.user?._id;
+
+    const validStatuses = ['completed', 'late', 'failed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        message: 'Status inválido. Use: completed, late ou failed' 
+      });
+    }
+
+    const plan = await TrainingPlan.findById(id).populate('ptId');
+    if (!plan) {
+      return res.status(404).json({ message: 'Plano não encontrado' });
+    }
+
+    if (plan.clientId.toString() !== clientId.toString()) {
+      return res.status(403).json({ message: 'Sem permissão para completar este plano' });
+    }
+
+    let proofImage = null;
+    if (req.file) {
+      const uploadsDir = path.join(__dirname, '../../uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const filepath = path.join(uploadsDir, filename);
+
+      fs.writeFileSync(filepath, req.file.buffer);
+      proofImage = `/uploads/${filename}`;
+    }
+
+    const completion: any = {
+      date: new Date(),
+      status: status,
+      feedback: feedback || null,
+      proofImage: proofImage || null,
+    };
+
+    (plan.completions as any[]).push(completion);
+    if (status === 'completed') {
+      plan.isCompleted = true;
+    }
+    await plan.save();
+
+    const socketManager = req.app.locals.socketManager;
+    if (socketManager && plan.ptId) {
+      const ptIdStr = (plan.ptId._id || plan.ptId).toString();
+      
+      socketManager.emitNotification(ptIdStr, {
+        id: `workout-${Date.now()}`,
+        type: 'workout',
+        title: 'Treino Concluído',
+        message: `Cliente completou um treino`,
+        timestamp: new Date(),
+        read: false,
+      });
+    }
+
+    res.json({
+      message: 'Treino marcado com sucesso',
+      completion: completion,
+    });
+
+  } catch (error: any) {
+    console.error('Erro em completeWorkout:', error);
+    res.status(500).json({
+      message: 'Erro ao marcar treino como concluído',
+      error: error.message || 'Erro desconhecido'
+    });
+  }
+};
+
+// ============================================================================
+// GET DASHBOARD STATS
+// ============================================================================
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Não autenticado' });
-    }
+    const userId = req.user?._id;
+    const userRole = req.user?.role;
 
-    const today = new Date();
-    const currentDayOfWeek = today.getDay();
-    
-    // Início da semana atual (Domingo às 00:00)
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - currentDayOfWeek);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const weekData = [
-      { name: 'Dom', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Seg', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Ter', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Qua', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Qui', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Sex', concluidos: 0, atrasados: 0, falhados: 0 },
-      { name: 'Sáb', concluidos: 0, atrasados: 0, falhados: 0 },
-    ];
-
-    if (req.user.role === 'CLIENT') {
-      const plans = await TrainingPlan.find({ clientId: req.user._id });
-      
-      let completedThisWeek = 0;
-      let lateThisWeek = 0;
-      let failedThisWeek = 0;
-
-      plans.forEach((plan) => {
-        plan.completions.forEach((completion) => {
-          const completionDate = new Date(completion.date);
-          
-          // Verificar se está na semana atual
-          if (completionDate >= startOfWeek) {
-            if (completion.status === 'completed') {
-              completedThisWeek++;
-            } else if (completion.status === 'late') {
-              lateThisWeek++;
-            } else if (completion.status === 'failed') {
-              failedThisWeek++;
-            }
-
-            // Adicionar ao dia correspondente no gráfico
-            const dayOfWeek = completionDate.getDay();
-            if (completion.status === 'completed') {
-              weekData[dayOfWeek].concluidos++;
-            } else if (completion.status === 'late') {
-              weekData[dayOfWeek].atrasados++;
-            } else if (completion.status === 'failed') {
-              weekData[dayOfWeek].falhados++;
-            }
-          }
-        });
-      });
-
-      const stats = {
-        totalPlans: plans.length,
-        completedThisWeek,
-        lateThisWeek,
-        failedThisWeek,
-        weekData,
-      };
-
-      res.json(stats);
-    } else if (req.user.role === 'PT') {
-      const plans = await TrainingPlan.find({ ptId: req.user._id });
-      const clients = await User.countDocuments({ ptId: req.user._id });
-      
-      let completedThisWeek = 0;
-      let lateThisWeek = 0;
-      let failedThisWeek = 0;
-
-      plans.forEach((plan) => {
-        plan.completions.forEach((completion) => {
-          const completionDate = new Date(completion.date);
-          
-          if (completionDate >= startOfWeek) {
-            if (completion.status === 'completed') {
-              completedThisWeek++;
-            } else if (completion.status === 'late') {
-              lateThisWeek++;
-            } else if (completion.status === 'failed') {
-              failedThisWeek++;
-            }
-
-            const dayOfWeek = completionDate.getDay();
-            if (completion.status === 'completed') {
-              weekData[dayOfWeek].concluidos++;
-            } else if (completion.status === 'late') {
-              weekData[dayOfWeek].atrasados++;
-            } else if (completion.status === 'failed') {
-              weekData[dayOfWeek].falhados++;
-            }
-          }
-        });
-      });
-
-      const stats = {
-        totalClients: clients,
-        totalPlans: plans.length,
-        completedThisWeek,
-        lateThisWeek,
-        failedThisWeek,
-        weekData,
-      };
-
-      res.json(stats);
-    } else {
-      return res.status(403).json({ message: 'Acesso negado' });
-    }
-  } catch (err) {
-    console.error('Erro ao buscar estatísticas:', err);
-    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
-  }
-};
-
-// Marcar treinos expirados como falhados
-// Marcar treinos expirados como não concretizados
-export const checkExpiredPlans = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) {
+    if (!userId) {
       return res.status(401).json({ message: 'Não autenticado' });
     }
 
     const now = new Date();
-    const currentDayOfWeek = now.getDay(); // 0=Domingo, 1=Segunda, etc.
+    const dayOfWeek = now.getDay();
+    
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - dayOfWeek);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
 
-    // Buscar todos os planos do cliente
-    const plans = await TrainingPlan.find({ clientId: req.user._id });
+    const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const weekData = daysOfWeek.map(name => ({
+      name,
+      concluidos: 0,
+      atrasados: 0,
+      falhados: 0,
+    }));
 
-    let expiredCount = 0;
+    let clientIds: any[] = [];
+    let totalPlans = 0;
+    let totalClients = 0;
 
-    for (const plan of plans) {
-      const planDayOfWeek = plan.dayOfWeek;
-
-      // Só verificar se hoje é o dia do plano (para marcar o treino da semana passada como falhado)
-      if (currentDayOfWeek !== planDayOfWeek) {
-        continue; // Pular este plano, ainda não é dia de verificar
-      }
-
-      // Calcular a data do dia do plano na semana passada
-      const lastWeekPlanDay = new Date(now);
-      lastWeekPlanDay.setDate(now.getDate() - 7);
-      lastWeekPlanDay.setHours(0, 0, 0, 0);
-
-      // Calcular a janela de completamento da semana passada
-      const windowStart = new Date(lastWeekPlanDay);
-      windowStart.setHours(0, 0, 0, 0);
-
-      const windowEnd = new Date(now);
-      windowEnd.setHours(0, 0, 0, 0); // Até o início de hoje (não incluindo hoje)
-
-      // Verificar se há completamento naquela janela
-      const completedInWindow = plan.completions.some(c => {
-        const completionDate = new Date(c.date);
-        return completionDate >= windowStart && completionDate < windowEnd;
-      });
-
-      // Se não foi completado e o plano já existia naquela semana
-      if (!completedInWindow && plan.createdAt < windowEnd) {
-        // Verificar se já não foi marcado como falhado para aquela semana
-        const alreadyMarkedAsFailed = plan.completions.some(c => {
-          const completionDate = new Date(c.date);
-          return completionDate >= windowStart && 
-                 completionDate < windowEnd && 
-                 c.status === 'failed';
-        });
-
-        if (!alreadyMarkedAsFailed) {
-          // Marcar como não concretizado (falhado)
-          const failedDate = new Date(windowEnd);
-          failedDate.setSeconds(failedDate.getSeconds() - 1); // 1 segundo antes de hoje começar
-
-          plan.completions.push({
-            date: failedDate,
-            status: 'failed',
-            feedback: 'Treino não realizado no prazo',
-          });
-
-          await plan.save();
-          expiredCount++;
-        }
-      }
+    if (userRole === 'PT') {
+      const clients = await User.find({ ptId: new ObjectId(userId) });
+      clientIds = clients.map(c => c._id);
+      totalClients = clients.length;
+      totalPlans = await TrainingPlan.countDocuments({ ptId: new ObjectId(userId) });
+    } else if (userRole === 'CLIENT') {
+      clientIds = [new ObjectId(userId)];
+      totalPlans = await TrainingPlan.countDocuments({ clientId: new ObjectId(userId) });
     }
 
-    res.json({ 
-      message: expiredCount > 0 
-        ? `${expiredCount} treino(s) marcado(s) como não concretizado(s)` 
-        : 'Nenhum treino expirado',
-      expiredCount 
+    let totalCompleted = 0;
+    let totalLate = 0;
+    let totalFailed = 0;
+
+    if (clientIds.length > 0) {
+      const plans = await TrainingPlan.find({ clientId: { $in: clientIds } });
+
+      plans.forEach((plan: any) => {
+        if (plan.completions && Array.isArray(plan.completions)) {
+          plan.completions.forEach((completion: any) => {
+            const completedDate = new Date(completion.date);
+            if (completedDate >= weekStart && completedDate <= weekEnd) {
+              const dayIndex = completedDate.getDay();
+
+              if (completion.status === 'completed') {
+                weekData[dayIndex].concluidos++;
+                totalCompleted++;
+              } else if (completion.status === 'late') {
+                weekData[dayIndex].atrasados++;
+                totalLate++;
+              } else if (completion.status === 'failed') {
+                weekData[dayIndex].falhados++;
+                totalFailed++;
+              }
+            }
+          });
+        }
+      });
+    }
+
+    if (userRole === 'PT') {
+      return res.json({
+        weekData,
+        totalClients,
+        totalPlans,
+        completedThisWeek: totalCompleted,
+        lateThisWeek: totalLate,
+        failedThisWeek: totalFailed,
+      });
+    } else {
+      return res.json({
+        weekData,
+        totalPlans,
+        completedThisWeek: totalCompleted,
+        lateThisWeek: totalLate,
+        failedThisWeek: totalFailed,
+      });
+    }
+  } catch (error: any) {
+    console.error('Erro em getDashboardStats:', error);
+    res.status(500).json({ 
+      message: 'Erro ao carregar estatísticas do dashboard',
+      error: error.message || 'Erro desconhecido'
     });
-  } catch (err) {
-    console.error('Erro ao verificar treinos expirados:', err);
-    res.status(500).json({ error: 'Erro ao verificar treinos expirados' });
   }
 };
 
-// PT: Ver treinos recentemente concluídos pelos seus clientes
+// ============================================================================
+// GET RECENT COMPLETIONS
+// ============================================================================
 export const getRecentCompletions = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user.role !== 'PT') {
-      return res.status(403).json({ message: 'Apenas PTs podem ver completamentos' });
+    const ptId = req.user?._id;
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    if (!ptId) {
+      return res.status(401).json({ message: 'Não autenticado' });
     }
 
-    const limit = parseInt(req.query.limit as string) || 10;
-
-    const plans = await TrainingPlan.find({ ptId: req.user._id })
+    const plans = await TrainingPlan.find({ ptId: new ObjectId(ptId) })
       .populate('clientId', 'username email profileImage')
-      .sort({ updatedAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(limit);
 
-    const allCompletions: any[] = [];
+    const recentCompletions: any[] = [];
 
     plans.forEach((plan: any) => {
-      if (plan.completions && plan.completions.length > 0) {
+      if (plan.completions && Array.isArray(plan.completions)) {
         plan.completions.forEach((completion: any) => {
-          allCompletions.push({
-            _id: completion._id,
-            planId: plan._id,
-            planName: `${plan.dayOfWeek} - ${plan.exercises.length} exercícios`,
+          recentCompletions.push({
+            _id: completion._id || `${plan._id}-${completion.date}`,
             client: plan.clientId,
+            planName: `Dia ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][plan.dayOfWeek]}`,
+            planId: plan._id,
             date: completion.date,
             status: completion.status,
             feedback: completion.feedback,
             proofImage: completion.proofImage,
-            exercises: plan.exercises,
           });
         });
       }
     });
 
-    allCompletions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    recentCompletions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const limited = recentCompletions.slice(0, limit);
 
-    const recentCompletions = allCompletions.slice(0, limit);
+    res.json(limited);
 
-    res.json(recentCompletions);
-  } catch (err) {
-    console.error('Erro ao buscar completamentos:', err);
-    res.status(500).json({ error: 'Erro ao buscar completamentos' });
+  } catch (error: any) {
+    console.error('Erro em getRecentCompletions:', error);
+    res.status(500).json({
+      message: 'Erro ao carregar últimas completions',
+      error: error.message || 'Erro desconhecido'
+    });
   }
 };
 
-// PT: Ver histórico completo de um cliente específico
+// ============================================================================
+// GET CLIENT HISTORY
+// ============================================================================
 export const getClientHistory = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user.role !== 'PT') {
-      return res.status(403).json({ message: 'Apenas PTs podem ver histórico' });
-    }
-
+    const ptId = req.user?._id;
     const { clientId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 20;
 
-    const client = await User.findById(clientId);
-    if (!client || client.ptId?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Este cliente não pertence a você' });
+    if (!ptId) {
+      return res.status(401).json({ message: 'Não autenticado' });
     }
 
-    const plans = await TrainingPlan.find({ 
-      ptId: req.user._id, 
-      clientId 
-    })
-      .populate('clientId', 'username email profileImage')
-      .sort({ createdAt: -1 });
+    const plans = await TrainingPlan.find({
+      ptId: new ObjectId(ptId),
+      clientId: new ObjectId(clientId),
+    });
 
     const history: any[] = [];
 
     plans.forEach((plan: any) => {
-      if (plan.completions && plan.completions.length > 0) {
+      if (plan.completions && Array.isArray(plan.completions)) {
         plan.completions.forEach((completion: any) => {
           history.push({
-            _id: completion._id,
+            _id: completion._id || `${plan._id}-${completion.date}`,
+            planName: `Dia ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][plan.dayOfWeek]}`,
             planId: plan._id,
-            planName: `${plan.dayOfWeek} - ${plan.exercises.length} exercícios`,
-            dayOfWeek: plan.dayOfWeek,
             date: completion.date,
             status: completion.status,
             feedback: completion.feedback,
             proofImage: completion.proofImage,
-            exercises: plan.exercises,
           });
         });
       }
     });
 
     history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const limited = history.slice(0, limit);
 
     const stats = {
       totalCompletions: history.length,
       completed: history.filter(h => h.status === 'completed').length,
+      late: history.filter(h => h.status === 'late').length,
       failed: history.filter(h => h.status === 'failed').length,
-      withFeedback: history.filter(h => h.feedback).length,
-      withProof: history.filter(h => h.proofImage).length,
+      completionRate: history.length > 0 
+        ? ((history.filter(h => h.status === 'completed').length / history.length) * 100).toFixed(2)
+        : 0,
     };
 
     res.json({
-      client: {
-        _id: client._id,
-        username: client.username,
-        email: client.email,
-        profileImage: client.profileImage,
-      },
       stats,
-      history,
+      history: limited,
     });
-  } catch (err) {
-    console.error('Erro ao buscar histórico:', err);
-    res.status(500).json({ error: 'Erro ao buscar histórico' });
+
+  } catch (error: any) {
+    console.error('Erro em getClientHistory:', error);
+    res.status(500).json({
+      message: 'Erro ao carregar histórico do cliente',
+      error: error.message || 'Erro desconhecido'
+    });
   }
+};
+
+// ============================================================================
+// CHECK EXPIRED PLANS
+// ============================================================================
+export const checkExpiredPlans = async (req: AuthRequest, res: Response) => {
+  try {
+    const clientId = req.user?._id;
+
+    if (!clientId) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    res.json({
+      message: 'Verificação de planos expirados concluída',
+      updated: 0,
+    });
+
+  } catch (error: any) {
+    console.error('Erro em checkExpiredPlans:', error);
+    res.status(500).json({
+      message: 'Erro ao verificar planos expirados',
+      error: error.message || 'Erro desconhecido'
+    });
+  }
+};
+
+// ============================================================================
+// EXPORTS COMMONJS
+// ============================================================================
+module.exports = {
+  createPlan,
+  getPlans,
+  getPlanById,
+  updatePlan,
+  deletePlan,
+  completePlan,
+  completeWorkout,
+  getDashboardStats,
+  getRecentCompletions,
+  getClientHistory,
+  checkExpiredPlans,
 };

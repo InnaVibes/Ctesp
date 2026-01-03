@@ -33,7 +33,7 @@ const Workouts = () => {
         workoutService.getAll(),
         api.get('/users/my-clients')
       ]);
-      
+      const workoutsArray = Array.isArray(workoutsData) ? workoutsData : workoutsData.data || [];
       setWorkouts(workoutsData);
       setClients(clientsData.data);
     } catch (error) {
@@ -170,8 +170,8 @@ const Workouts = () => {
                 {getDayName(workout.dayOfWeek)}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-2">
-                Cliente: {client?.username || 'Desconhecido'}
-              </p>
+  Cliente: {client?.username || workout.clientId?.username || 'Desconhecido'}
+</p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
                 {workout.exercises?.length || 0} exercícios
               </p>

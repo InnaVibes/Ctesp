@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -21,15 +22,15 @@ import SelectPT from './pages/SelectPT';
 import ClientHistory from './pages/ClientHistory';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AdminClientRequests from './pages/AdminClientRequests';
 
-// Componente para redirecionar admin do Dashboard normal
 const DashboardRouter = () => {
   const { isAdmin } = useAuth();
-  
+
   if (isAdmin) {
     return <Navigate to="/admin-dashboard" replace />;
   }
-  
+
   return <Dashboard />;
 };
 
@@ -37,144 +38,138 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <ToastContainer position="top-right" autoClose={3000} />
-          <Routes>
-            {/* Rotas públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <NotificationProvider>
+          <Router>
+            <ToastContainer position="top-right" autoClose={3000} />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+              <Route path="/admin/client-requests" element={<AdminClientRequests />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <DashboardRouter />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Dashboard principal - redireciona admin */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <DashboardRouter />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <AdminDashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Dashboard do Admin - APENAS ESTATÍSTICAS */}
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <AdminDashboard />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Admin />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Gestão de Utilizadores - PÁGINA ADMIN */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Admin />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/admin/pt-requests"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <AdminPTRequests />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Pedidos de Mudança de PT - PÁGINA ADMIN */}
-            <Route
-              path="/admin/pt-requests"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <AdminPTRequests />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/workouts"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Workouts />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Rotas do PT */}
-            <Route
-              path="/workouts"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Workouts />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/my-clients"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MyClients />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/my-clients"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <MyClients />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/client-history/:clientId"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ClientHistory />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/client-history/:clientId"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ClientHistory />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/my-workouts"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MyWorkouts />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Rotas do Cliente */}
-            <Route
-              path="/my-workouts"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <MyWorkouts />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/select-pt"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <SelectPT />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/select-pt"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <SelectPT />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Messages />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Rotas comuns */}
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Messages />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Profile />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Profile />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Router>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

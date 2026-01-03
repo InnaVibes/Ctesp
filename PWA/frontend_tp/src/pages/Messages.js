@@ -7,6 +7,7 @@ import Input from '../components/Input';
 import Loading from '../components/Loading';
 import Modal from '../components/Modal';
 import messageService from '../services/messageService';
+import socketService from '../services/socketService';
 import { toast } from 'react-toastify';
 import { formatTime } from '../utils/helpers';
 import api from '../services/api';
@@ -23,9 +24,10 @@ const Messages = () => {
   const [searchEmail, setSearchEmail] = useState('');
   const [searchedUser, setSearchedUser] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
   const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
-  // Função helper para gerar conversationId consistente com backend
   const generateConversationId = useCallback((userId1, userId2) => {
     const sortedIds = [userId1, userId2].sort();
     return `${sortedIds[0]}_${sortedIds[1]}`;
@@ -34,11 +36,9 @@ const Messages = () => {
   const loadConversations = useCallback(async () => {
     try {
       const data = await messageService.getConversations();
-      // Filtrar conversas válidas (com otherUser definido)
       const validConversations = (data || []).filter(
         (conv) => conv && conv.otherUser && conv.otherUser._id
       );
-      
       setConversations(validConversations);
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
@@ -55,8 +55,52 @@ const Messages = () => {
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation._id);
+      socketService.joinConversation(selectedConversation._id);
     }
+
+    return () => {
+      if (selectedConversation) {
+        socketService.leaveConversation(selectedConversation._id);
+      }
+    };
   }, [selectedConversation]);
+
+  useEffect(() => {
+    socketService.onNewMessage((messageData) => {
+      if (messageData.conversationId === selectedConversation?._id) {
+        setMessages(prev => [...prev, messageData]);
+        socketService.emit('message:read', { conversationId: selectedConversation._id });
+      }
+      loadConversations();
+    });
+
+    socketService.onUserTyping((data) => {
+      if (data.conversationId === selectedConversation?._id && data.userId !== user?._id) {
+        setTypingUsers(prev => ({
+          ...prev,
+          [data.userId]: data.username
+        }));
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypingUsers(prev => {
+            const updated = { ...prev };
+            delete updated[data.userId];
+            return updated;
+          });
+        }, 3000);
+      }
+    });
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [selectedConversation, user?._id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -66,14 +110,12 @@ const Messages = () => {
     try {
       const data = await messageService.getMessages(conversationId);
       setMessages(data || []);
-      
-      // Marcar como lido apenas se há mensagens
+
       if (data && data.length > 0) {
         await messageService.markAsRead(conversationId);
       }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
-      // Não mostrar erro ao usuário, apenas log
     }
   };
 
@@ -111,12 +153,10 @@ const Messages = () => {
     }
 
     try {
-      // Primeiro, tentar criar/obter conversa no backend
       const response = await api.post('/messages/conversations', {
         userId: searchedUser._id
       });
 
-      // Usar o conversationId retornado pelo backend
       const conversationId = response.data._id;
 
       const newConversation = {
@@ -132,7 +172,6 @@ const Messages = () => {
         unreadCount: 0
       };
 
-      // Verificar se conversa já existe na lista
       const exists = conversations.find(c => c._id === conversationId);
       if (exists) {
         setSelectedConversation(exists);
@@ -149,14 +188,12 @@ const Messages = () => {
       setShowNewChatModal(false);
       setSearchEmail('');
       setSearchedUser(null);
-      
-      toast.success('Conversa iniciada! Envie sua primeira mensagem.');
+
+      toast.success('Conversa iniciada!');
     } catch (error) {
       console.error('Erro ao iniciar conversa:', error);
-      
-      // Fallback: gerar conversationId localmente se backend falhar
       const conversationId = generateConversationId(user._id, searchedUser._id);
-      
+
       const newConversation = {
         _id: conversationId,
         otherUser: {
@@ -169,34 +206,32 @@ const Messages = () => {
         lastMessage: null,
         unreadCount: 0
       };
-      
+
       setConversations([newConversation, ...conversations]);
       setSelectedConversation(newConversation);
       setMessages([]);
       setShowNewChatModal(false);
       setSearchEmail('');
       setSearchedUser(null);
-      
-      toast.success('Conversa iniciada! Envie sua primeira mensagem.');
+
+      toast.success('Conversa iniciada!');
     }
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!newMessage.trim()) return;
     if (!selectedConversation?.otherUser?._id || !user?._id) {
       toast.error('Conversa inválida');
       return;
     }
 
-    // Prevenir envios múltiplos
     if (sendingMessage) return;
 
     const messageContent = newMessage.trim();
     const tempMessageId = `temp-${Date.now()}`;
 
-    // Criar mensagem temporária para UI otimista
     const tempMessage = {
       _id: tempMessageId,
       conversationId: selectedConversation._id,
@@ -214,49 +249,49 @@ const Messages = () => {
       read: false
     };
 
-    // Adicionar mensagem temporariamente à lista
     setMessages(prevMessages => [...prevMessages, tempMessage]);
     setNewMessage('');
     setSendingMessage(true);
 
     try {
-      console.log('📤 Enviando mensagem:', {
-        conversationId: selectedConversation._id,
-        receiverId: selectedConversation.otherUser._id,
-        content: messageContent
-      });
-
       const sentMessage = await messageService.sendMessage({
         conversationId: selectedConversation._id,
         receiverId: selectedConversation.otherUser._id,
         content: messageContent,
       });
 
-      console.log('✅ Mensagem enviada com sucesso:', sentMessage);
+      socketService.emit('message:send', {
+        conversationId: selectedConversation._id,
+        content: messageContent,
+        receiverId: selectedConversation.otherUser._id
+      });
 
-      // Substituir mensagem temporária pela mensagem real
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
           msg._id === tempMessageId ? sentMessage : msg
         )
       );
 
-      // Atualizar a lista de conversas em background (sem recarregar as mensagens)
       loadConversations();
-      
     } catch (error) {
-      console.error('❌ Erro ao enviar mensagem:', error);
+      console.error('Erro ao enviar mensagem:', error);
       toast.error('Erro ao enviar mensagem');
-      
-      // Remover mensagem temporária em caso de erro
-      setMessages(prevMessages => 
+
+      setMessages(prevMessages =>
         prevMessages.filter(msg => msg._id !== tempMessageId)
       );
-      
-      // Restaurar texto da mensagem
+
       setNewMessage(messageContent);
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+
+    if (selectedConversation) {
+      socketService.setTyping(selectedConversation._id);
     }
   };
 
@@ -278,12 +313,11 @@ const Messages = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Lista de conversas */}
         <Card className="md:col-span-1">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Conversas
           </h2>
-          
+
           {conversations.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -299,7 +333,7 @@ const Messages = () => {
                 if (!conv || !conv.otherUser || !conv.otherUser._id) {
                   return null;
                 }
-                
+
                 return (
                   <div
                     key={conv._id}
@@ -313,10 +347,10 @@ const Messages = () => {
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar 
-                        src={conv.otherUser.profileImage} 
-                        name={conv.otherUser.username || conv.otherUser.name || conv.otherUser.email || 'Usuário'} 
-                        size="sm" 
+                      <Avatar
+                        src={conv.otherUser.profileImage}
+                        name={conv.otherUser.username || conv.otherUser.name || conv.otherUser.email || 'Usuário'}
+                        size="sm"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 dark:text-white truncate">
@@ -344,7 +378,6 @@ const Messages = () => {
           )}
         </Card>
 
-        {/* Área de mensagens */}
         <Card className="md:col-span-2 h-[600px] flex flex-col">
           {selectedConversation && selectedConversation.otherUser ? (
             <>
@@ -353,7 +386,7 @@ const Messages = () => {
                   src={selectedConversation.otherUser.profileImage}
                   name={selectedConversation.otherUser.username || selectedConversation.otherUser.name || selectedConversation.otherUser.email || 'Usuário'}
                 />
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 dark:text-white">
                     {selectedConversation.otherUser.username || selectedConversation.otherUser.name || selectedConversation.otherUser.email}
                   </h3>
@@ -373,9 +406,9 @@ const Messages = () => {
                 ) : (
                   messages.map(msg => {
                     if (!msg || !msg.senderId) return null;
-                    
+
                     const isMyMessage = msg.senderId._id === user?._id;
-                    
+
                     return (
                       <div
                         key={msg._id}
@@ -399,6 +432,18 @@ const Messages = () => {
                     );
                   })
                 )}
+
+                {Object.keys(typingUsers).length > 0 && (
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                    </div>
+                    {Object.values(typingUsers)[0]} está digitando...
+                  </div>
+                )}
+
                 <div ref={messagesEndRef} />
               </div>
 
@@ -406,7 +451,7 @@ const Messages = () => {
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={handleInputChange}
                   placeholder="Digite sua mensagem..."
                   disabled={sendingMessage}
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
@@ -429,7 +474,6 @@ const Messages = () => {
         </Card>
       </div>
 
-      {/* Modal de Nova Conversa */}
       <Modal
         isOpen={showNewChatModal}
         onClose={() => {
@@ -458,7 +502,7 @@ const Messages = () => {
                   }
                 }}
               />
-              <Button 
+              <Button
                 onClick={handleSearchUser}
                 loading={searching}
               >
@@ -474,9 +518,9 @@ const Messages = () => {
               </h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar 
-                    src={searchedUser.profileImage} 
-                    name={searchedUser.username || searchedUser.name || searchedUser.email || 'Usuário'} 
+                  <Avatar
+                    src={searchedUser.profileImage}
+                    name={searchedUser.username || searchedUser.name || searchedUser.email || 'Usuário'}
                   />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">

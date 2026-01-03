@@ -11,6 +11,15 @@ export interface IPTChangeRequest {
   reason?: string;
 }
 
+export interface IClientRequestFromPT {
+  _id?: Types.ObjectId;
+  ptId: Types.ObjectId;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: Date;
+  respondedAt?: Date;
+  rejectionReason?: string;
+}
+
 export interface IUser extends Document {
   username: string;
   password: string;
@@ -27,6 +36,7 @@ export interface IUser extends Document {
     toPT: Types.ObjectId;
     requestedAt: Date;
   };
+  clientRequestsFromPTs?: IClientRequestFromPT[];
   clientCount?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -54,10 +64,20 @@ const UserSchema = new Schema<IUser>({
     respondedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     reason: { type: String }
   }],
+  
   pendingPTChange: {
     toPT: { type: Schema.Types.ObjectId, ref: 'User' },
     requestedAt: { type: Date }
-  }
+  },
+
+  clientRequestsFromPTs: [{
+    _id: { type: Schema.Types.ObjectId, auto: true },
+    ptId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    requestedAt: { type: Date, default: Date.now },
+    respondedAt: { type: Date },
+    rejectionReason: { type: String }
+  }]
 }, { timestamps: true });
 
 export const User = model<IUser>('User', UserSchema);

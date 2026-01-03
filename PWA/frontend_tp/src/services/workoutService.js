@@ -2,14 +2,16 @@ import api from './api';
 
 const workoutService = {
   getAll: async (params = {}) => {
-    try {
-      const response = await api.get('/plans', { params });
-      return response.data || [];
-    } catch (error) {
-      console.error('Erro ao buscar planos:', error);
-      return [];
-    }
-  },
+  try {
+    const response = await api.get('/plans', { params });
+    // Backend retorna { success: true, data: [...] }
+    const data = response.data;
+    return Array.isArray(data) ? data : (data.data || []);
+  } catch (error) {
+    console.error('Erro ao buscar planos:', error);
+    return [];
+  }
+},
 
   getById: async (id) => {
     const response = await api.get(`/plans/${id}`);
