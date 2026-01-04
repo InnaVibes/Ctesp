@@ -192,19 +192,7 @@ router.get('/auth/generate-qr-token', authenticate as any, generateQrToken as an
 router.post('/auth/qr-login', qrLogin as any);
 
 // OAuth Routes
-if (passport) {
-  router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-  router.get('/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login' }), 
-    authController.googleCallback as any
-  );
 
-  router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['public_profile', 'email'] }));
-  router.get('/auth/facebook/callback', 
-    passport.authenticate('facebook', { failureRedirect: '/login' }), 
-    oauthFacebookCallback as any
-  );
-}
 
 // ============================================================================
 // PLANS ROUTES

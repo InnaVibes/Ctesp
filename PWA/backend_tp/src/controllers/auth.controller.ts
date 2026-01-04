@@ -13,7 +13,7 @@ export interface AuthRequest extends Request {
     role: string;
     email?: string;
     username?: string;
-    googleId?: string;
+
   };
   token?: string;
   decodedToken?: any;
@@ -209,28 +209,7 @@ export const login = async (req: AuthRequest, res: Response, next?: NextFunction
   }
 };
 
-export const googleCallback = async (req: AuthRequest, res: Response, next?: NextFunction) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Autenticação Google falhou" });
-    }
 
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: "Utilizador não encontrado" });
-    }
-
-    const token = generateToken(user._id.toString(), user.role);
-    const userResponse = sanitizeUser(user);
-
-    const redirectUrl = `${FRONTEND_URL}/auth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userResponse))}`;
-
-    return res.redirect(redirectUrl);
-  } catch (err: any) {
-    console.error('Erro no Google OAuth:', err);
-    return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);
-  }
-};
 
 export const forgotPassword = async (req: AuthRequest, res: Response, next?: NextFunction) => {
   try {
@@ -535,7 +514,6 @@ export const qrLogin = async (req: AuthRequest, res: Response) => {
 export default {
   register,
   login,
-  googleCallback,
   forgotPassword,
   validateResetToken,
   resetPassword,

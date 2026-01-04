@@ -6,12 +6,14 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import path from 'path';
 import { createServer } from 'http';
-import passport from 'passport';
+
 import apiRoutes from './routes/api.routes';
 import { createDefaultAdmin } from './utils/createDefaultAdmin';
 import SocketManager from './socket/SocketManager';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 
-import './config/oauth.config';
+
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,7 +24,8 @@ app.use(cors());
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
-app.use(passport.initialize());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Servir ficheiros estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

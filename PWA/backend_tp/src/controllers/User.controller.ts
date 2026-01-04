@@ -254,41 +254,51 @@ export const addClientByPT = async (req: AuthRequest, res: Response) => {
 // PT atribui cliente existente a si mesmo
 export const assignExistingClient = async (req: AuthRequest, res: Response) => {
   try {
-    const { clientId } = req.body;
+    const { email } = req.body; // Mudar de clientId para email é mais fácil para o PT encontrar
 
     if (!req.user || req.user.role !== 'PT') {
       return res.status(403).json({ message: 'Apenas PTs podem atribuir clientes' });
     }
 
-    const client = await User.findById(clientId);
+    // Procura por email (mais seguro que ID vindo do front)
+    const client = await User.findOne({ email });
+
     if (!client) {
-      return res.status(404).json({ message: 'Cliente não encontrado' });
+      return res.status(404).json({ message: 'Cliente não encontrado com esse email.' });
     }
 
     if (client.role !== 'CLIENT') {
-      return res.status(400).json({ message: 'Este utilizador não é um cliente' });
+      return res.status(400).json({ message: 'Este utilizador não é um cliente.' });
     }
 
-    // Se cliente tinha um PT anterior, decrementar (mas não deixar negativo)
+    // Se já for meu cliente, ignora
+    if (client.ptId && client.ptId.toString() === req.user._id.toString()) {
+       return res.status(400).json({ message: 'Utilizador já é seu cliente.' });
+    }
+
+    // Decrementa do PT antigo se existir
     if (client.ptId && client.ptId.toString() !== '000000000000000000000000') {
       const oldPT = await User.findById(client.ptId);
-      const newCount = Math.max(0, (oldPT?.clientCount || 0) - 1);
-      await User.findByIdAndUpdate(client.ptId, { clientCount: newCount });
+      if (oldPT) {
+          const newCount = Math.max(0, (oldPT.clientCount || 0) - 1);
+          await User.findByIdAndUpdate(client.ptId, { clientCount: newCount });
+      }
     }
 
-    // Incrementar novo PT
+    // Atribui ao novo PT
     const newPTId = new Types.ObjectId(req.user._id);
     client.ptId = newPTId;
     
-    const newPT = await User.findById(newPTId);
-    const newClientCount = (newPT?.clientCount || 0) + 1;
+    // Incrementa contador do PT atual
+    const pt = await User.findById(newPTId);
+    const newClientCount = (pt?.clientCount || 0) + 1;
     await User.findByIdAndUpdate(newPTId, { clientCount: newClientCount });
 
     await client.save();
 
     const { password: _, ...clientResponse } = client.toObject();
+    res.json({ message: 'Cliente adicionado com sucesso', client: clientResponse });
 
-    res.json({ message: 'Cliente atribuído com sucesso', client: clientResponse });
   } catch (err) {
     console.error('Erro ao atribuir cliente:', err);
     res.status(500).json({ error: 'Erro ao atribuir cliente' });
