@@ -440,6 +440,97 @@ export const getCurrentUser = async (req: AuthRequest, res: Response, next?: Nex
     });
   }
 };
+export const generateQrToken = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    // Gerar token JWT que é válido por 5 minutos
+    const qrToken = jwt.sign(
+      { _id: userId },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '5m' }
+    );
+
+    console.log('✓ QR Token gerado para:', userId);
+
+    res.json({
+      success: true,
+      qrToken
+    });
+  } catch (error: any) {
+    console.error('Erro ao gerar QR token:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro ao gerar QR Code' 
+    });
+  }
+};
+
+export const qrLogin = async (req: AuthRequest, res: Response) => {
+  try {
+    const { qrToken } = req.body;
+
+    if (!qrToken) {
+      return res.status(400).json({ message: 'Token QR inválido' });
+    }
+
+    console.log('QR Login tentando com token:', qrToken.substring(0, 20) + '...');
+
+    try {
+      // Verificar o token JWT
+      const decoded: any = jwt.verify(
+        qrToken, 
+        process.env.JWT_SECRET || 'your-secret-key'
+      );
+      
+      console.log('Token decodificado para user:', decoded._id);
+
+      // Buscar o utilizador
+      const user = await User.findById(decoded._id);
+      if (!user) {
+        return res.status(401).json({ message: 'Utilizador não encontrado' });
+      }
+
+      // Gerar novo token de sessão (24h)
+      const newToken = jwt.sign(
+        { _id: user._id, role: user.role },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+
+      console.log('✓ Login QR bem-sucedido para:', user.username);
+
+      res.json({
+        success: true,
+        token: newToken,
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage || null,
+          themePreference: user.themePreference || 'dark',
+          isValidated: user.isValidated,
+          ptId: user.ptId || null
+        }
+      });
+    } catch (tokenError: any) {
+      console.error('Erro ao verificar token QR:', tokenError.message);
+      return res.status(401).json({ message: 'Token QR inválido ou expirado' });
+    }
+  } catch (error: any) {
+    console.error('✗ Erro em qrLogin:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro ao fazer login com QR Code',
+      error: error.message 
+    });
+  }
+};
 
 export default {
   register,

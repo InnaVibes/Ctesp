@@ -1,20 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, authorize } from '../middlewares/auth.middleware';
-
 // Auth Controllers - Import como named exports
 import * as authController from '../controllers/auth.controller';
+import { parseFormDataSingle } from '../middlewares/parseFormData';
+import { qrLogin, generateQrToken } from '../controllers/auth.controller';
 
 // Multer - importar com try/catch
 let uploadSingle: any = (req: any, res: any, next: any) => next();
 let uploadMultiple: any = (req: any, res: any, next: any) => next();
-
-try {
-  const multerConfig = require('../config/multer.config');
-  uploadSingle = multerConfig.uploadSingle;
-  uploadMultiple = multerConfig.uploadMultiple;
-} catch (e) {
-  console.log('Multer não configurado');
-}
 
 // Plan Controllers - Com fallback
 let createPlan: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
@@ -24,6 +17,9 @@ let getDashboardStats: any = (req: any, res: any) => res.status(500).json({ mess
 let getRecentCompletions: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
 let getClientHistory: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
 let checkExpiredPlans: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
+let getPlanById: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
+let updatePlan: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
+let deletePlan: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
 
 try {
   const planController = require('../controllers/plan.controller');
@@ -34,6 +30,9 @@ try {
   getRecentCompletions = planController.getRecentCompletions;
   getClientHistory = planController.getClientHistory;
   checkExpiredPlans = planController.checkExpiredPlans;
+  getPlanById = planController.getPlanById;
+  updatePlan = planController.updatePlan;
+  deletePlan = planController.deletePlan;
 } catch (e) {
   console.log('Plan controller não configurado');
 }
@@ -56,22 +55,11 @@ let getPendingPTChangeRequests: any = (req: any, res: any) => res.status(500).js
 let getPTChangeRequestsForMe: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
 let cancelPTChangeRequest: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
 let getMyPTChangeHistory: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
-let getPlanById: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
-let updatePlan: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
-let deletePlan: any = (req: any, res: any) => res.status(500).json({ message: 'Plan controller não configurado' });
+let requestClient: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
+let respondToClientRequest: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
+let getPendingClientRequests: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
+let getMyClientRequests: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
 
-try {
-  const planController = require('../controllers/plan.controller');
-  createPlan = planController.createPlan;
-  getPlans = planController.getPlans;
-  getPlanById = planController.getPlanById;        // ADICIONAR
-  updatePlan = planController.updatePlan;          // ADICIONAR
-  deletePlan = planController.deletePlan;          // ADICIONAR
-  completeWorkout = planController.completeWorkout;
-  // ... resto
-} catch (e) {
-  console.log('Plan controller não configurado');
-}
 try {
   const userController = require('../controllers/User.controller');
   searchUser = userController.searchUser;
@@ -91,6 +79,10 @@ try {
   getPTChangeRequestsForMe = userController.getPTChangeRequestsForMe;
   cancelPTChangeRequest = userController.cancelPTChangeRequest;
   getMyPTChangeHistory = userController.getMyPTChangeHistory;
+  requestClient = userController.requestClient;
+  respondToClientRequest = userController.respondToClientRequest;
+  getPendingClientRequests = userController.getPendingClientRequests;
+  getMyClientRequests = userController.getMyClientRequests;
 } catch (e) {
   console.log('User controller não configurado');
 }
@@ -144,9 +136,9 @@ try {
 }
 
 // OAuth Controllers - Com fallback
-let oauthGoogleCallback: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth não configurado' });
-let oauthFacebookCallback: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth não configurado' });
-let oauthLogout: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth não configurado' });
+let oauthGoogleCallback: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth controller não configurado' });
+let oauthFacebookCallback: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth controller não configurado' });
+let oauthLogout: any = (req: any, res: any) => res.status(500).json({ message: 'OAuth controller não configurado' });
 
 try {
   const oauthController = require('../controllers/oauth.controller');
@@ -177,10 +169,6 @@ try {
   console.log('Passport não instalado');
 }
 
-let requestClient: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
-let respondToClientRequest: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
-let getPendingClientRequests: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
-let getMyClientRequests: any = (req: any, res: any) => res.status(500).json({ message: 'User controller não configurado' });
 const router = Router();
 
 // ============================================================================
@@ -198,6 +186,10 @@ router.post('/auth/reset-password-handler', resetPasswordHandler as any);
 router.get('/auth/verify-token', authController.verifyToken as any);
 router.post('/auth/logout', authController.logout as any);
 router.get('/auth/me', authenticate as any, authController.getCurrentUser as any);
+
+// QR Code Login Routes
+router.get('/auth/generate-qr-token', authenticate as any, generateQrToken as any);
+router.post('/auth/qr-login', qrLogin as any);
 
 // OAuth Routes
 if (passport) {
@@ -220,14 +212,14 @@ if (passport) {
 
 router.post('/plans', authenticate as any, authorize(['PT']) as any, createPlan as any);
 router.get('/plans', authenticate as any, getPlans as any);
-router.post('/plans/:id/complete', authenticate as any, completeWorkout as any);
+router.get('/plans/:id', authenticate as any, getPlanById as any);
+router.put('/plans/:id', authenticate as any, authorize(['PT']) as any, updatePlan as any);
+router.delete('/plans/:id', authenticate as any, authorize(['PT']) as any, deletePlan as any);
+router.post('/plans/:id/complete', authenticate as any, parseFormDataSingle, completeWorkout as any);
 router.get('/plans/stats', authenticate as any, getDashboardStats as any);
 router.get('/plans/recent-completions', authenticate as any, authorize(['PT']) as any, getRecentCompletions as any);
 router.get('/plans/client-history/:clientId', authenticate as any, authorize(['PT']) as any, getClientHistory as any);
 router.post('/plans/check-expired', authenticate as any, authorize(['CLIENT']) as any, checkExpiredPlans as any);
-router.get('/plans/:id', authenticate as any, getPlanById as any);
-router.put('/plans/:id', authenticate as any, authorize(['PT']) as any, updatePlan as any);
-router.delete('/plans/:id', authenticate as any, authorize(['PT']) as any, deletePlan as any);
 
 // ============================================================================
 // USERS ROUTES
@@ -258,6 +250,7 @@ router.get('/users/my-client-requests', authenticate as any, authorize(['PT']) a
 // ADMIN gerencia pedidos
 router.get('/admin/client-requests', authenticate as any, authorize(['ADMIN']) as any, getPendingClientRequests as any);
 router.put('/admin/client-requests/:requestId', authenticate as any, authorize(['ADMIN']) as any, respondToClientRequest as any);
+
 // ============================================================================
 // MESSAGES ROUTES
 // ============================================================================

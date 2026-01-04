@@ -17,13 +17,17 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(cors());
+
+// IMPORTANTE: body parser ANTES das rotas
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
 app.use(passport.initialize());
 
+// Servir ficheiros estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Rotas
 app.use('/api', apiRoutes);
 
 let socketManager: any = null;

@@ -13,6 +13,7 @@ import { formatDate } from '../utils/helpers';
 const MyWorkouts = () => {
   const { user } = useAuth();
   const [workouts, setWorkouts] = useState([]);
+  const workoutsList = Array.isArray(workouts) ? workouts : [];
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,9 +26,12 @@ const MyWorkouts = () => {
 
   const loadWorkouts = useCallback(async () => {
     try {
-      const data = await workoutService.getByClient(user._id);
-      setWorkouts(data);
+      const response = await workoutService.getByClient(user._id);
+      const data = response.data || response || [];
+      setWorkouts(Array.isArray(data) ? data : []);
     } catch (error) {
+      console.error('Erro ao carregar treinos:', error);
+      setWorkouts([]);
       toast.error('Erro ao carregar treinos');
     } finally {
       setLoading(false);
@@ -45,12 +49,11 @@ const MyWorkouts = () => {
 
   const handleSubmitCompletion = async (e) => {
   e.preventDefault();
-  
+
   try {
     const formData = new FormData();
     formData.append('status', completionData.status);
     
-    // Só adiciona feedback se não estiver vazio
     if (completionData.feedback && completionData.feedback.trim()) {
       formData.append('feedback', completionData.feedback.trim());
     }
@@ -59,13 +62,14 @@ const MyWorkouts = () => {
       formData.append('image', completionData.image);
     }
 
-    // Debug - verificar o que está a ser enviado
     console.log('=== FRONTEND DEBUG ===');
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    console.log('Status sendo enviado:', completionData.status);
+    console.log('Feedback sendo enviado:', completionData.feedback);
+    console.log('Imagem:', completionData.image ? 'Sim' : 'Não');
 
-    await workoutService.completeWorkout(selectedWorkout._id, formData);
+    const response = await workoutService.completeWorkout(selectedWorkout._id, formData);
+    
+    console.log('Response:', response);
 
     toast.success('Treino registado com sucesso');
     setShowModal(false);
@@ -73,10 +77,10 @@ const MyWorkouts = () => {
     setCompletionData({ status: 'completed', feedback: '', image: null });
   } catch (error) {
     console.error('Erro ao registar treino:', error);
-    toast.error('Erro ao registar treino');
+    const message = error.response?.data?.message || 'Erro ao registar treino';
+    toast.error(message);
   }
 };
-  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -94,7 +98,6 @@ const MyWorkouts = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendário */}
         <Card className="lg:col-span-1">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Calendário
@@ -106,10 +109,9 @@ const MyWorkouts = () => {
           />
         </Card>
 
-        {/* Lista de treinos */}
         <Card className="lg:col-span-2" title={`Treinos para ${formatDate(selectedDate)}`}>
           <div className="space-y-4">
-            {workouts
+            {workoutsList
               .filter(w => {
                 const workoutDay = w.dayOfWeek;
                 const selectedDay = selectedDate.getDay();
@@ -142,7 +144,6 @@ const MyWorkouts = () => {
                     </span>
                   </div>
 
-                  {/* Lista de exercícios */}
                   <div className="mb-4 space-y-2">
                     {workout.exercises?.map((exercise, idx) => (
                       <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
@@ -174,7 +175,7 @@ const MyWorkouts = () => {
                       Registar Treino
                     </Button>
                   )}
-                  
+
                   {workout.feedback && (
                     <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -185,7 +186,7 @@ const MyWorkouts = () => {
                 </div>
               ))}
 
-            {workouts.filter(w => w.dayOfWeek === selectedDate.getDay()).length === 0 && (
+            {workoutsList.filter(w => w.dayOfWeek === selectedDate.getDay()).length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-500 dark:text-gray-400">
                   Nenhum treino agendado para este dia
@@ -196,7 +197,6 @@ const MyWorkouts = () => {
         </Card>
       </div>
 
-      {/* Modal de registro de treino */}
       <Modal
         isOpen={showModal}
         onClose={() => {

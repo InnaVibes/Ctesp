@@ -12,6 +12,17 @@ export const useAuth = () => {
   return context;
 };
 
+const applyTheme = (theme) => {
+  const html = document.documentElement;
+  const preferredTheme = theme || 'dark'; // Default é dark
+  
+  if (preferredTheme === 'dark') {
+    html.classList.add('dark');
+  } else {
+    html.classList.remove('dark');
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,11 +38,19 @@ export const AuthProvider = ({ children }) => {
         setUser(parsedUser);
         setIsAuthenticated(true);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Aplicar tema do utilizador
+        applyTheme(parsedUser.themePreference);
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Aplicar tema default (dark)
+        applyTheme('dark');
       }
+    } else {
+      // Sem utilizador, aplicar tema default (dark)
+      applyTheme('dark');
     }
     setLoading(false);
   }, []);
@@ -48,6 +67,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Aplicar tema do utilizador ao fazer login
+      applyTheme(userData.themePreference);
 
       setUser(userData);
       setIsAuthenticated(true);
@@ -88,6 +110,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
+      // Aplicar tema do utilizador ao fazer login com QR
+      applyTheme(userData.themePreference);
+
       setUser(userData);
       setIsAuthenticated(true);
 
@@ -106,6 +131,9 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
 
+    // Aplicar tema default ao fazer logout
+    applyTheme('dark');
+
     setTimeout(() => {
       window.location.href = '/login';
     }, 0);
@@ -115,6 +143,11 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+    
+    // Se mudou o tema, aplicar
+    if (updatedData.themePreference) {
+      applyTheme(updatedData.themePreference);
+    }
   };
 
   const isAdmin = user?.role === 'ADMIN';

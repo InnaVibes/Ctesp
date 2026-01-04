@@ -2,35 +2,54 @@ import api from './api';
 
 const workoutService = {
   getAll: async (params = {}) => {
-  try {
-    const response = await api.get('/plans', { params });
-    // Backend retorna { success: true, data: [...] }
-    const data = response.data;
-    return Array.isArray(data) ? data : (data.data || []);
-  } catch (error) {
-    console.error('Erro ao buscar planos:', error);
-    return [];
-  }
-},
+    try {
+      const response = await api.get('/plans', { params });
+      const data = response.data;
+      return Array.isArray(data) ? data : (data.data || []);
+    } catch (error) {
+      console.error('Erro ao buscar planos:', error);
+      return [];
+    }
+  },
 
   getById: async (id) => {
-    const response = await api.get(`/plans/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/plans/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar plano:', error);
+      return null;
+    }
   },
 
   create: async (workoutData) => {
-    const response = await api.post('/plans', workoutData);
-    return response.data;
+    try {
+      const response = await api.post('/plans', workoutData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar plano:', error);
+      throw error;
+    }
   },
 
   update: async (id, workoutData) => {
-    const response = await api.put(`/plans/${id}`, workoutData);
-    return response.data;
+    try {
+      const response = await api.put(`/plans/${id}`, workoutData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar plano:', error);
+      throw error;
+    }
   },
 
   delete: async (id) => {
-    const response = await api.delete(`/plans/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/plans/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao deletar plano:', error);
+      throw error;
+    }
   },
 
   getByClient: async (clientId) => {
@@ -38,30 +57,40 @@ const workoutService = {
       const response = await api.get('/plans', { 
         params: { clientId } 
       });
-      return response.data || [];
+      return response.data?.data || [];
     } catch (error) {
-      console.error('Erro ao buscar planos do cliente:', error);
+      console.error('Erro ao buscar treinos:', error);
       return [];
     }
   },
 
-  // Método para completar treino com imagem
-  completeWorkout: async (planId, formData) => {
-    const response = await api.post(`/plans/${planId}/complete`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+  completeWorkout: async (workoutId, formData) => {
+    try {
+      console.log('Enviando para:', `/plans/${workoutId}/complete`);
+      console.log('FormData entries:');
+      
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+      }
+
+      const response = await api.post(`/plans/${workoutId}/complete`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao completar treino:', error);
+      throw error;
+    }
   },
 
-  // Obter estatísticas do dashboard
   getStats: async (clientId) => {
     try {
       const params = clientId ? { clientId } : {};
       const response = await api.get('/plans/stats', { params });
       
-      // Transformar dados para o formato esperado pelo gráfico
       const weeklyData = response.data.map(item => ({
         day: item.date,
         workouts: item.totalCompleted
@@ -71,7 +100,7 @@ const workoutService = {
       
       return {
         completedWorkouts: totalCompleted,
-        completionRate: 75, // Calcular baseado nos dados reais
+        completionRate: 75,
         activeDays: weeklyData.filter(item => item.workouts > 0).length,
         weeklyData
       };

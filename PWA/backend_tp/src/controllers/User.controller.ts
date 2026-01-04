@@ -700,49 +700,77 @@ export const getMyPTChangeHistory = async (req: AuthRequest, res: Response) => {
   }
 };
 // ============================================================================
-// REQUEST CLIENT (PT pede cliente existente - usando padrão ptChangeRequests)
+// REQUEST CLIENT (PT pede cliente existente - usando padrão clientRequestsFromPTs)
 // ============================================================================
 export const requestClient = async (req: AuthRequest, res: Response) => {
   try {
     const ptId = req.user?._id;
     const { clientId } = req.body;
 
+    console.log(`[requestClient] PT ${ptId} está pedindo cliente ${clientId}`);
+
+    // Validação 1: PT autenticado
     if (!ptId) {
-      return res.status(401).json({ message: 'Não autenticado' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Não autenticado' 
+      });
     }
 
+    // Validação 2: ClientId fornecido
     if (!clientId) {
-      return res.status(400).json({ message: 'ID do cliente é obrigatório' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID do cliente é obrigatório' 
+      });
     }
 
-    // Verificar se o cliente existe
+    // Validação 3: Verificar se o cliente existe
     const client = await User.findById(clientId);
     if (!client) {
-      return res.status(404).json({ message: 'Cliente não encontrado' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Cliente não encontrado' 
+      });
     }
 
+    // Validação 4: Verificar se é realmente um cliente
     if (client.role !== 'CLIENT') {
-      return res.status(400).json({ message: 'Este utilizador não é um cliente' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Este utilizador não é um cliente' 
+      });
     }
 
-    // Verificar se o PT já tem este cliente
+    console.log(`[requestClient] Cliente ${client.username} encontrado`);
+
+    // Validação 5: PT não pode pedir a si mesmo
     if (client.ptId && client.ptId.toString() === ptId.toString()) {
-      return res.status(400).json({ message: 'Já é o treinador deste cliente' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Já é o treinador deste cliente' 
+      });
     }
 
-    // Inicializar array se não existir
+    // Validação 6: Inicializar array se não existir
     if (!client.clientRequestsFromPTs) {
       client.clientRequestsFromPTs = [];
+      console.log(`[requestClient] Array clientRequestsFromPTs inicializado para ${client.username}`);
     }
 
-    // Verificar se já existe um pedido pendente deste PT
-    const existingRequest = client.clientRequestsFromPTs.some(
-      (r) => r.ptId.toString() === ptId.toString() && r.status === 'pending'
+    // Validação 7: Verificar se já existe um pedido pendente deste PT
+    const existingRequest = client.clientRequestsFromPTs.find(
+      (r: any) => r && r.ptId && r.ptId.toString() === ptId.toString() && r.status === 'pending'
     );
 
     if (existingRequest) {
-      return res.status(400).json({ message: 'Já existe um pedido pendente para este cliente' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Já existe um pedido pendente para este cliente' 
+      });
     }
+
+    console.log(`[requestClient] Criando novo pedido para ${client.username}`);
 
     // Criar novo pedido
     const clientRequest: any = {
@@ -752,8 +780,13 @@ export const requestClient = async (req: AuthRequest, res: Response) => {
       requestedAt: new Date(),
     };
 
+    // Adicionar o pedido ao array do cliente
     client.clientRequestsFromPTs.push(clientRequest);
+
+    // Salvar o cliente com o novo pedido
     await client.save();
+
+    console.log(`[requestClient] ✓ Pedido criado com sucesso para ${client.username}`);
 
     res.status(201).json({
       success: true,
@@ -762,7 +795,7 @@ export const requestClient = async (req: AuthRequest, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error('Erro ao pedir cliente:', error);
+    console.error('[requestClient] Erro ao pedir cliente:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao enviar pedido',
@@ -771,12 +804,15 @@ export const requestClient = async (req: AuthRequest, res: Response) => {
   }
 };
 
+
 // ============================================================================
 // GET MY CLIENT REQUESTS (PT vê seus pedidos)
 // ============================================================================
 export const getMyClientRequests = async (req: AuthRequest, res: Response) => {
   try {
     const ptId = req.user?._id;
+
+    console.log(`[getMyClientRequests] PT ${ptId} consultando seus pedidos`);
 
     if (!ptId) {
       return res.json({
@@ -793,13 +829,15 @@ export const getMyClientRequests = async (req: AuthRequest, res: Response) => {
       .select('_id username email profileImage clientRequestsFromPTs')
       .lean();
 
+    console.log(`[getMyClientRequests] Encontrados ${clientsWithRequests.length} clientes com pedidos deste PT`);
+
     const requests = [];
 
     for (const client of clientsWithRequests) {
       if (!client.clientRequestsFromPTs) continue;
 
       const myRequests = client.clientRequestsFromPTs.filter(
-        (r) => r.ptId.toString() === ptId.toString()
+        (r: any) => r && r.ptId && r.ptId.toString() === ptId.toString()
       );
 
       for (const req of myRequests) {
@@ -823,6 +861,8 @@ export const getMyClientRequests = async (req: AuthRequest, res: Response) => {
       rejected: requests.filter(r => r.status === 'rejected').length
     };
 
+    console.log(`[getMyClientRequests] Stats:`, stats);
+
     return res.json({
       success: true,
       stats,
@@ -830,7 +870,7 @@ export const getMyClientRequests = async (req: AuthRequest, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error('Erro ao buscar meus pedidos:', error);
+    console.error('[getMyClientRequests] Erro ao procurarr meus pedidos:', error);
     return res.json({
       success: true,
       stats: { total: 0, pending: 0, approved: 0, rejected: 0 },
@@ -839,48 +879,85 @@ export const getMyClientRequests = async (req: AuthRequest, res: Response) => {
   }
 };
 
+
+
+
+
+
 // ============================================================================
 // GET PENDING CLIENT REQUESTS (ADMIN vê todos os pedidos pendentes)
 // ============================================================================
 export const getPendingClientRequests = async (req: AuthRequest, res: Response) => {
   try {
-    // Buscar todos os clientes que têm pedidos pendentes
-    const clientsWithRequests = await User.find({
-      'clientRequestsFromPTs.status': 'pending'
-    })
+    console.log('[getPendingClientRequests] Iniciando busca...');
+
+    // Buscar todos os clientes
+    const allUsers = await User.find({})
       .select('_id username email profileImage clientRequestsFromPTs')
       .lean();
 
-    const requests = [];
+    console.log(`[getPendingClientRequests] Total de utilizadores: ${allUsers.length}`);
 
-    for (const client of clientsWithRequests) {
-      if (!client.clientRequestsFromPTs) continue;
+    const requests: any[] = [];
 
-      const pendingReqs = client.clientRequestsFromPTs.filter(
-        (r) => r.status === 'pending'
+    // Iterar através de cada utilizador
+    for (const user of allUsers) {
+      // Verificar se tem pedidos de cliente
+      if (!user.clientRequestsFromPTs || user.clientRequestsFromPTs.length === 0) {
+        continue;
+      }
+
+      console.log(`[getPendingClientRequests] Utilizador ${user.username} tem ${user.clientRequestsFromPTs.length} pedido(s)`);
+
+      // Filtrar apenas os pendentes
+      const pendingRequests = user.clientRequestsFromPTs.filter(
+        (req: any) => req && req.status === 'pending'
       );
 
-      for (const req of pendingReqs) {
-        // Buscar dados do PT que fez o pedido
-        const pt = await User.findById(req.ptId)
-          .select('username email profileImage')
-          .lean();
+      if (pendingRequests.length === 0) {
+        continue;
+      }
 
-        requests.push({
-          _id: req._id,
-          clientId: client._id,
-          clientName: client.username,
-          clientEmail: client.email,
-          clientImage: client.profileImage,
-          ptId: req.ptId,
-          ptName: pt?.username || 'PT desconhecido',
-          ptEmail: pt?.email,
-          ptImage: pt?.profileImage,
-          requestedAt: req.requestedAt,
-          status: req.status
-        });
+      console.log(`[getPendingClientRequests] ${pendingRequests.length} pendente(s) para ${user.username}`);
+
+      // Processar cada pedido pendente
+      for (const clientRequest of pendingRequests) {
+        try {
+          // Buscar o PT que fez o pedido
+          const pt = await User.findById(clientRequest.ptId)
+            .select('username email profileImage')
+            .lean();
+
+          if (!pt) {
+            console.warn(`[getPendingClientRequests] PT ${clientRequest.ptId} não encontrado`);
+            continue;
+          }
+
+          // Construir objeto de resposta
+          const requestData = {
+            _id: clientRequest._id || new Types.ObjectId(),
+            clientId: user._id,
+            clientName: user.username || 'Desconhecido',
+            clientEmail: user.email || '',
+            clientImage: user.profileImage || null,
+            ptId: clientRequest.ptId,
+            ptName: pt.username || 'PT Desconhecido',
+            ptEmail: pt.email || '',
+            ptImage: pt.profileImage || null,
+            requestedAt: clientRequest.requestedAt || new Date(),
+            status: clientRequest.status || 'pending'
+          };
+
+          requests.push(requestData);
+          console.log(`[getPendingClientRequests] ✓ Pedido adicionado: ${pt.username} → ${user.username}`);
+        } catch (innerError) {
+          console.error(`[getPendingClientRequests] Erro ao processar pedido:`, innerError);
+          continue;
+        }
       }
     }
+
+    console.log(`[getPendingClientRequests] Total de pedidos processados: ${requests.length}`);
 
     return res.json({
       success: true,
@@ -889,15 +966,17 @@ export const getPendingClientRequests = async (req: AuthRequest, res: Response) 
     });
 
   } catch (error: any) {
-    console.error('Erro ao buscar pedidos de cliente:', error);
-    res.status(500).json({
+    console.error('[getPendingClientRequests] Erro fatal:', error);
+    
+    // Retornar erro com mais contexto
+    return res.status(500).json({
       success: false,
-      message: 'Erro ao buscar pedidos',
-      error: error.message
+      message: 'Erro ao buscar pedidos de cliente',
+      error: error.message || 'Erro desconhecido',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
-
 // ============================================================================
 // RESPOND TO CLIENT REQUEST (ADMIN aprova ou rejeita)
 // ============================================================================
@@ -906,47 +985,75 @@ export const respondToClientRequest = async (req: AuthRequest, res: Response) =>
     const { requestId } = req.params;
     const { status, rejectionReason } = req.body;
 
+    console.log(`[respondToClientRequest] Respondendo ao pedido ${requestId} com status ${status}`);
+
+    // Validação 1: Status válido
     if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Status inválido. Use: approved ou rejected' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Status inválido. Use: approved ou rejected' 
+      });
     }
 
-    // Encontrar o cliente que tem este pedido
+    // Validação 2: Encontrar o cliente com este pedido
     const client = await User.findOne({
       'clientRequestsFromPTs._id': new Types.ObjectId(requestId)
     });
 
     if (!client) {
-      return res.status(404).json({ message: 'Pedido não encontrado' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Pedido não encontrado' 
+      });
     }
 
     if (!client.clientRequestsFromPTs) {
-      return res.status(404).json({ message: 'Pedido não encontrado' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Pedido não encontrado' 
+      });
     }
 
+    console.log(`[respondToClientRequest] Cliente encontrado: ${client.username}`);
+
+    // Encontrar o índice do pedido
     const requestIndex = client.clientRequestsFromPTs.findIndex(
-      (r) => r._id?.toString() === requestId
+      (r: any) => r && r._id && r._id.toString() === requestId
     );
 
     if (requestIndex === -1) {
-      return res.status(404).json({ message: 'Pedido não encontrado' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Pedido não encontrado' 
+      });
     }
 
     const clientRequest = client.clientRequestsFromPTs[requestIndex];
 
+    // Validação 3: Pedido já respondido?
     if (clientRequest.status !== 'pending') {
-      return res.status(400).json({ message: 'Este pedido já foi respondido' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Este pedido já foi respondido anteriormente' 
+      });
     }
 
-    clientRequest.status = status;
-    clientRequest.respondedAt = new Date();
-
-    if (status === 'rejected' && rejectionReason) {
-      clientRequest.rejectionReason = rejectionReason;
+    // Buscar o PT que fez o pedido
+    const pt = await User.findById(clientRequest.ptId);
+    if (!pt) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'PT do pedido não encontrado' 
+      });
     }
 
-    // Se aprovado, atualizar o cliente para ter este PT
+    console.log(`[respondToClientRequest] PT: ${pt.username}, Ação: ${status}`);
+
+    // Processar a resposta
     if (status === 'approved') {
       const oldPtId = client.ptId;
+
+      // Atualizar cliente para ter este PT
       client.ptId = new Types.ObjectId(clientRequest.ptId);
 
       // Decrementar PT anterior se existia
@@ -954,22 +1061,32 @@ export const respondToClientRequest = async (req: AuthRequest, res: Response) =>
         const oldPT = await User.findById(oldPtId);
         const newCount = Math.max(0, (oldPT?.clientCount || 0) - 1);
         await User.findByIdAndUpdate(oldPtId, { clientCount: newCount });
+        console.log(`[respondToClientRequest] PT anterior decrmentado`);
       }
 
       // Incrementar novo PT
-      const newPT = await User.findById(clientRequest.ptId);
-      const newClientCount = (newPT?.clientCount || 0) + 1;
+      const newClientCount = (pt.clientCount || 0) + 1;
       await User.findByIdAndUpdate(clientRequest.ptId, { clientCount: newClientCount });
+      console.log(`[respondToClientRequest] PT novo incrementado`);
 
-      console.log(
-        `[CLIENT REQUEST APPROVED] Cliente: ${client.username}, PT: ${clientRequest.ptId}`
-      );
-    } else {
-      console.log(
-        `[CLIENT REQUEST REJECTED] Cliente: ${client.username}, Razão: ${rejectionReason}`
-      );
+      // Atualizar status do pedido
+      clientRequest.status = 'approved';
+      clientRequest.respondedAt = new Date();
+
+      console.log(`[respondToClientRequest] ✓ Pedido aprovado! ${client.username} agora é cliente de ${pt.username}`);
+
+    } else if (status === 'rejected') {
+      // Rejeitar pedido
+      clientRequest.status = 'rejected';
+      clientRequest.respondedAt = new Date();
+      if (rejectionReason) {
+        clientRequest.rejectionReason = rejectionReason;
+      }
+
+      console.log(`[respondToClientRequest] ✓ Pedido rejeitado!`);
     }
 
+    // Salvar o cliente
     await client.save();
 
     res.json({
@@ -981,7 +1098,7 @@ export const respondToClientRequest = async (req: AuthRequest, res: Response) =>
     });
 
   } catch (error: any) {
-    console.error('Erro ao responder pedido:', error);
+    console.error('[respondToClientRequest] Erro ao responder pedido:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao responder pedido',

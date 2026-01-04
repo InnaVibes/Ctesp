@@ -343,7 +343,7 @@ const Dashboard = () => {
             <div className="space-y-2">
               <Link to="/my-workouts">
                 <button className="w-full text-left px-4 py-3 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
-                  📋 Ver Meus Treinos
+                   Ver Meus Treinos
                 </button>
               </Link>
               {!user?.ptId && (
@@ -355,7 +355,7 @@ const Dashboard = () => {
               )}
               <Link to="/messages">
                 <button className="w-full text-left px-4 py-3 bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors">
-                  💬 Mensagens
+                   Mensagens
                 </button>
               </Link>
             </div>

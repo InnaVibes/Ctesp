@@ -265,13 +265,30 @@ export const completePlan = async (req: AuthRequest, res: Response) => {
 export const completeWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, feedback } = req.body;
+    const status = req.body.status;
+    const feedback = req.body.feedback;
     const clientId = req.user?._id;
+
+    console.log('=== DEBUG completeWorkout ===');
+    console.log('ID:', id);
+    console.log('Status:', status);
+    console.log('Feedback:', feedback);
+    console.log('ClientId:', clientId);
+    console.log('req.file:', req.file ? 'Ficheiro presente' : 'Sem ficheiro');
+    console.log('req.body keys:', Object.keys(req.body));
+
+    if (!status) {
+      return res.status(400).json({ 
+        message: 'Status é obrigatório',
+        received: { status, feedback, bodyKeys: Object.keys(req.body) }
+      });
+    }
 
     const validStatuses = ['completed', 'late', 'failed'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ 
-        message: 'Status inválido. Use: completed, late ou failed' 
+        message: 'Status inválido. Use: completed, late ou failed',
+        received: status
       });
     }
 
@@ -319,13 +336,14 @@ export const completeWorkout = async (req: AuthRequest, res: Response) => {
         id: `workout-${Date.now()}`,
         type: 'workout',
         title: 'Treino Concluído',
-        message: `Cliente completou um treino`,
+        message: 'Cliente completou um treino',
         timestamp: new Date(),
         read: false,
       });
     }
 
     res.json({
+      success: true,
       message: 'Treino marcado com sucesso',
       completion: completion,
     });
@@ -333,6 +351,7 @@ export const completeWorkout = async (req: AuthRequest, res: Response) => {
   } catch (error: any) {
     console.error('Erro em completeWorkout:', error);
     res.status(500).json({
+      success: false,
       message: 'Erro ao marcar treino como concluído',
       error: error.message || 'Erro desconhecido'
     });
@@ -507,7 +526,10 @@ export const getClientHistory = async (req: AuthRequest, res: Response) => {
     const plans = await TrainingPlan.find({
       ptId: new ObjectId(ptId),
       clientId: new ObjectId(clientId),
-    });
+    }).populate('clientId', 'username email profileImage');
+
+    // Buscar dados do cliente
+    const client = await User.findById(clientId).select('username email profileImage');
 
     const history: any[] = [];
 
@@ -543,6 +565,12 @@ export const getClientHistory = async (req: AuthRequest, res: Response) => {
     res.json({
       stats,
       history: limited,
+      client: client ? {
+        _id: client._id,
+        username: client.username,
+        email: client.email,
+        profileImage: client.profileImage
+      } : null
     });
 
   } catch (error: any) {

@@ -69,10 +69,26 @@ const AdminClientRequests = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-        Pedidos de Cliente (PT)
-      </h1>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Pedidos de Cliente (PT)
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Aprove ou rejeite os pedidos de Personal Trainers para adicionar clientes
+        </p>
+      </div>
 
+      {/* Badge com contagem */}
+      {requests.length > 0 && (
+        <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <p className="text-blue-900 dark:text-blue-100 font-semibold">
+            Total de pedidos pendentes: <span className="text-2xl ml-2">{requests.length}</span>
+          </p>
+        </div>
+      )}
+
+      {/* Lista de Pedidos */}
       {requests.length === 0 ? (
         <Card>
           <div className="text-center py-12">
@@ -89,98 +105,103 @@ const AdminClientRequests = () => {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="mt-4 text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-gray-500 dark:text-gray-400 text-lg">
               Nenhum pedido pendente no momento
             </p>
           </div>
         </Card>
       ) : (
         <div className="space-y-4">
-          {requests.map(request => (
-            <Card key={request._id} hover>
-              <div className="flex items-start justify-between">
+          {requests.map((request) => (
+            <Card
+              key={request._id}
+              className="hover:shadow-lg transition-shadow border-l-4 border-blue-500"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 p-2">
+                {/* Informações do Pedido */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-6 mb-4">
-                    {/* PT Info */}
+                  {/* PT que está pedindo */}
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
+                      Personal Trainer Solicitando
+                    </h3>
                     <div className="flex items-center gap-3">
                       <Avatar
-                        src={request.ptId?.profileImage}
-                        name={request.ptId?.username}
+                        src={request.ptImage}
+                        name={request.ptName}
                         size="md"
                       />
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">
-                          {request.ptId?.username}
+                          {request.ptName}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Personal Trainer
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Seta */}
-                    <div className="text-2xl text-gray-400">→</div>
-
-                    {/* Cliente Info */}
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        src={request.clientId?.profileImage}
-                        name={request.clientId?.username}
-                        size="md"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {request.clientId?.username}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Cliente
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {request.ptEmail}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                    Solicitado em: {new Date(request.requestedAt).toLocaleString('pt-PT')}
+                  {/* Seta de transição */}
+                  <div className="flex items-center gap-3 py-3 px-3 bg-gray-50 dark:bg-gray-800 rounded my-3">
+                    <div className="text-2xl">→</div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      quer adicionar como cliente
+                    </p>
+                  </div>
+
+                  {/* Cliente sendo solicitado */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">
+                      Cliente
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        src={request.clientImage}
+                        name={request.clientName}
+                        size="md"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {request.clientName}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {request.clientEmail}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data do pedido */}
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                    Solicitado em{' '}
+                    {new Date(request.requestedAt).toLocaleString('pt-PT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </p>
-
-                  <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded space-y-2">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        Email PT:
-                      </p>
-                      <p className="text-sm text-gray-900 dark:text-white">
-                        {request.ptId?.email}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        Email Cliente:
-                      </p>
-                      <p className="text-sm text-gray-900 dark:text-white">
-                        {request.clientId?.email}
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2 ml-4">
+                {/* Botões de Ação */}
+                <div className="flex flex-col sm:flex-row gap-2 lg:flex-col lg:min-w-fit">
                   <Button
-                    size="sm"
                     onClick={() => handleApprove(request._id)}
                     disabled={actionLoading}
-                    className="whitespace-nowrap"
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                   >
                     ✓ Aprovar
                   </Button>
                   <Button
-                    size="sm"
-                    variant="danger"
                     onClick={() => {
                       setSelectedRequest(request);
                       setShowRejectModal(true);
                     }}
                     disabled={actionLoading}
-                    className="whitespace-nowrap"
+                    variant="danger"
+                    className="font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                   >
                     ✕ Rejeitar
                   </Button>
@@ -191,7 +212,7 @@ const AdminClientRequests = () => {
         </div>
       )}
 
-      {/* Modal para rejeição com motivo */}
+      {/* Modal para Rejeição com Motivo */}
       <Modal
         isOpen={showRejectModal}
         onClose={() => {
@@ -200,17 +221,22 @@ const AdminClientRequests = () => {
           setSelectedRequest(null);
         }}
         title="Rejeitar Pedido"
+        size="md"
       >
         <div className="space-y-4">
+          {/* Resumo do Pedido */}
           {selectedRequest && (
-            <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded">
+            <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                <strong>{selectedRequest.ptName}</strong> (PT) quer adicionar
+              </p>
               <p className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>{selectedRequest.ptId?.username}</strong> quer adicionar{' '}
-                <strong>{selectedRequest.clientId?.username}</strong> como cliente.
+                <strong>{selectedRequest.clientName}</strong> (Cliente)
               </p>
             </div>
           )}
 
+          {/* Campo de Motivo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Motivo da Rejeição (opcional)
@@ -219,19 +245,21 @@ const AdminClientRequests = () => {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Por que está rejeitando este pedido?"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
               rows="4"
             />
           </div>
 
-          <div className="flex gap-2">
+          {/* Botões */}
+          <div className="flex gap-2 pt-4">
             <Button
               variant="danger"
               fullWidth
               onClick={handleReject}
               disabled={actionLoading}
+              loading={actionLoading}
             >
-              {actionLoading ? 'Rejeitando...' : 'Confirmar Rejeição'}
+              Confirmar Rejeição
             </Button>
             <Button
               variant="secondary"

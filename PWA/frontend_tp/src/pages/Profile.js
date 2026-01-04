@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Loading from '../components/Loading';
+import QRCodeGenerator from '../components/QRCodeGenerator';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
@@ -16,8 +17,25 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     username: user?.username || '',
     email: user?.email || '',
-    themePreference: user?.themePreference || 'light',
+    themePreference: user?.themePreference || 'dark',
   });
+
+  // Aplicar tema ao carregar e quando user muda
+  React.useEffect(() => {
+    const theme = user?.themePreference || 'dark';
+    applyTheme(theme);
+  }, [user?.themePreference]);
+
+  const applyTheme = (theme) => {
+    const html = document.documentElement;
+    if (theme === 'dark') {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +43,11 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
+
+    // Se mudou o tema, aplicar imediatamente
+    if (name === 'themePreference') {
+      applyTheme(value);
+    }
   };
 
   const handlePhotoClick = () => {
@@ -35,13 +58,11 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de ficheiro
     if (!file.type.startsWith('image/')) {
       toast.error('Por favor selecione uma imagem');
       return;
     }
 
-    // Validar tamanho (máx 100MB)
     if (file.size > 100 * 1024 * 1024) {
       toast.error('Imagem muito grande (máximo 100MB)');
       return;
@@ -49,18 +70,15 @@ const Profile = () => {
 
     setUploading(true);
     try {
-      // Converter para base64
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
           const base64Image = event.target?.result;
           
-          // Enviar ao backend
           const response = await api.put('/users/profile', {
             profileImage: base64Image,
           });
 
-          // Atualizar contexto com resposta do servidor
           updateUser(response.data);
           toast.success('Foto atualizada com sucesso!');
           setUploading(false);
@@ -128,7 +146,6 @@ const Profile = () => {
       <Card className="mb-6">
         <div className="p-8">
           <div className="flex flex-col items-center">
-            {/* Avatar com overlay para upload */}
             <div className="relative mb-4">
               {user.profileImage ? (
                 <img
@@ -159,7 +176,6 @@ const Profile = () => {
                 )}
               </button>
               
-              {/* Input de ficheiro escondido */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -190,7 +206,6 @@ const Profile = () => {
       {/* Seção de Informações */}
       <Card>
         <form onSubmit={handleSaveProfile} className="p-6 space-y-6">
-          {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome de Utilizador
@@ -208,7 +223,6 @@ const Profile = () => {
             </p>
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email
@@ -222,7 +236,6 @@ const Profile = () => {
             />
           </div>
 
-          {/* Role */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tipo de Conta
@@ -234,7 +247,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Theme Preference */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tema
@@ -250,7 +262,6 @@ const Profile = () => {
             </select>
           </div>
 
-          {/* Botão Save */}
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
@@ -298,6 +309,16 @@ const Profile = () => {
               </div>
             )}
           </div>
+        </div>
+      </Card>
+
+      {/* QR Code Generator */}
+      <Card className="mt-6">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Gerar QR Code para Login
+          </h3>
+          <QRCodeGenerator />
         </div>
       </Card>
     </div>

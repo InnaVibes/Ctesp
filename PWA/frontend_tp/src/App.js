@@ -23,6 +23,7 @@ import ClientHistory from './pages/ClientHistory';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AdminClientRequests from './pages/AdminClientRequests';
+import QRCodeLogin from './pages/QRCodeLogin';
 
 const DashboardRouter = () => {
   const { isAdmin } = useAuth();
@@ -43,10 +44,11 @@ function App() {
             <ToastContainer position="top-right" autoClose={3000} />
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/qr-login" element={<QRCodeLogin />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
-              <Route path="/admin/client-requests" element={<AdminClientRequests />} />
+
               <Route
                 path="/"
                 element={
@@ -92,11 +94,33 @@ function App() {
               />
 
               <Route
+                path="/admin/client-requests"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <AdminClientRequests />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/workouts"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Workouts />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/my-workouts"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MyWorkouts />
                     </Layout>
                   </ProtectedRoute>
                 }
@@ -119,17 +143,6 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <ClientHistory />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/my-workouts"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <MyWorkouts />
                     </Layout>
                   </ProtectedRoute>
                 }
