@@ -1,0 +1,282 @@
+# Instalação e Configuração BaseX
+
+## 1. Download e Instalação
+
+### Windows
+1. Aceder a https://basex.org/download/
+2. Download "BaseX Windows Installer"
+3. Executar o instalador
+4. Seguir as instruções do wizard
+5. Instalação típica em: C:\Program Files\BaseX
+
+### Linux
+```bash
+# Download
+wget https://files.basex.org/releases/latest/BaseX.zip
+
+# Extrair
+unzip BaseX.zip
+
+# Mover para /opt (opcional)
+sudo mv basex /opt/
+
+# Adicionar ao PATH
+export PATH=$PATH:/opt/basex/bin
+```
+
+### macOS
+```bash
+# Via Homebrew
+brew install basex
+
+# Ou download manual
+wget https://files.basex.org/releases/latest/BaseX.zip
+unzip BaseX.zip
+```
+
+## 2. Iniciar BaseX GUI
+
+### Windows
+- Menu Iniciar > BaseX > BaseX GUI
+- Ou executar: basexgui.bat
+
+### Linux/macOS
+```bash
+basexgui
+```
+
+## 3. Criar Base de Dados
+
+### Via GUI:
+1. Menu "Database" > "New..."
+2. Nome da base de dados: hotel
+3. Selecionar o ficheiro: hotel_reservas.xml
+4. Clicar em "OK"
+
+### Via Linha de Comandos:
+```bash
+basex
+CREATE DB hotel hotel_reservas.xml
+```
+
+## 4. Validar XML com Schema
+
+### Via GUI:
+1. Menu "Database" > "Open & Manage..."
+2. Selecionar a base de dados "hotel"
+3. No editor, abrir hotel_reservas.xml
+4. Menu "Tools" > "Validate"
+5. Escolher o ficheiro hotel_reservas.xsd
+
+### Via XQuery:
+```xquery
+validate:xsd(doc("hotel"), doc("hotel_reservas.xsd"))
+```
+
+## 5. Executar Consultas XQuery
+
+### Via GUI:
+1. Abrir a base de dados "hotel"
+2. No painel de editor (parte inferior), colar a consulta XQuery
+3. Clicar no botão "Execute" (ícone play) ou F5
+4. Resultados aparecem no painel de resultados
+
+### Exemplos:
+
+#### Consulta 1: Reservas de um hóspede
+```xquery
+for $reserva in doc("hotel")//reserva
+where $reserva/hospede/numero_cliente = "CLI123"
+return $reserva
+```
+
+#### Consulta 2: Reservas por unidade
+```xquery
+for $unidade in distinct-values(doc("hotel")//unidade)
+let $total := count(doc("hotel")//reserva[unidade = $unidade])
+return <unidade sigla="{$unidade}" total="{$total}"/>
+```
+
+#### Consulta 3: Total de serviços
+```xquery
+for $nome in distinct-values(doc("hotel")//servico/nome)
+let $total := sum(doc("hotel")//servico[nome = $nome]/quantidade)
+return <servico nome="{$nome}" total="{$total}"/>
+```
+
+## 6. Configurar REST API (RESTXQ)
+
+### 6.1 Iniciar Servidor HTTP
+
+#### Windows:
+```cmd
+basexhttp.bat
+```
+
+#### Linux/macOS:
+```bash
+basexhttp
+```
+
+O servidor inicia em: http://localhost:8984
+
+### 6.2 Instalar Módulo API
+
+1. Localizar pasta webapp do BaseX:
+   - Windows: C:\Program Files\BaseX\webapp
+   - Linux: /opt/basex/webapp ou ~/basex/webapp
+   - macOS: /usr/local/Cellar/basex/[versão]/webapp
+
+2. Copiar o ficheiro api.xqm para a pasta webapp:
+   - Windows: copiar para C:\Program Files\BaseX\webapp\
+   - Linux/macOS: cp api.xqm /opt/basex/webapp/
+
+### 6.3 Verificar Instalação
+
+Aceder no browser:
+```
+http://localhost:8984/
+```
+
+Deve aparecer a página inicial do BaseX.
+
+## 7. Testar API
+
+### Via Browser:
+
+```
+http://localhost:8984/api/reservas/hospede/CLI123
+http://localhost:8984/api/reservas/por-unidade
+http://localhost:8984/api/servicos/total
+```
+
+### Via curl:
+
+```bash
+# Reservas de hóspede
+curl http://localhost:8984/api/reservas/hospede/CLI123
+
+# Reservas por unidade
+curl http://localhost:8984/api/reservas/por-unidade
+
+# Total de serviços
+curl http://localhost:8984/api/servicos/total
+```
+
+### Via Postman:
+
+1. Abrir Postman
+2. Criar novo Request
+3. Method: GET
+4. URL: http://localhost:8984/api/reservas/hospede/CLI123
+5. Clicar em "Send"
+
+## 8. Configurações do Servidor
+
+### Ficheiro de Configuração
+Localização: basex/webapp/WEB-INF/web.xml
+
+### Alterar Porta (se necessário):
+1. Parar o servidor
+2. Editar .basex (ficheiro de configuração)
+3. Adicionar: SERVERPORT = 8985
+4. Reiniciar servidor
+
+### Ativar CORS (se necessário):
+Adicionar ao api.xqm:
+```xquery
+declare
+  %rest:GET
+  %rest:path("/api/test")
+  %output:method("xml")
+  %rest:header("Access-Control-Allow-Origin", "*")
+function api:test() {
+  <test>OK</test>
+};
+```
+
+## 9. Gestão da Base de Dados
+
+### Ver todas as bases de dados:
+```xquery
+db:list()
+```
+
+### Ver estatísticas:
+```xquery
+db:info("hotel")
+```
+
+### Adicionar documentos:
+```xquery
+db:add("hotel", "novo_documento.xml")
+```
+
+### Remover base de dados:
+```xquery
+db:drop("hotel")
+```
+
+### Backup:
+```xquery
+db:export("hotel", "backup/")
+```
+
+## 10. Logs e Debugging
+
+### Ver logs:
+- Windows: C:\Program Files\BaseX\.logs
+- Linux/macOS: ~/.basex/.logs
+
+### Ativar modo debug no servidor:
+```bash
+basexhttp -d
+```
+
+## 11. Comandos Úteis
+
+### Via BaseX Client:
+```bash
+basex -c "OPEN hotel; XQUERY //reserva[1]"
+```
+
+### Ver ajuda:
+```bash
+basex -h
+```
+
+### Parar servidor:
+- Ctrl+C no terminal
+- Ou: basexhttp stop
+
+## 12. Troubleshooting
+
+### Problema: Porta já em uso
+Solução: Alterar porta ou matar processo:
+```bash
+# Linux/macOS
+lsof -ti:8984 | xargs kill -9
+
+# Windows
+netstat -ano | findstr :8984
+taskkill /PID [PID] /F
+```
+
+### Problema: Módulo RESTXQ não encontrado
+Solução:
+1. Verificar se api.xqm está na pasta webapp
+2. Verificar permissões do ficheiro
+3. Reiniciar servidor
+
+### Problema: XML não valida
+Solução:
+1. Verificar encoding (UTF-8)
+2. Verificar namespace no Schema
+3. Usar ferramenta de validação online
+
+## 13. Recursos Adicionais
+
+- Documentação oficial: https://docs.basex.org
+- Tutorial RESTXQ: https://docs.basex.org/wiki/RESTXQ
+- XQuery tutorial: https://www.w3schools.com/xml/xquery_intro.asp
+- BaseX Community: https://basex.org/community/

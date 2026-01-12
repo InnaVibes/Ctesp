@@ -1,0 +1,113 @@
+# Pedidos HTTP para API REST do Hotel Inteligente
+
+## Configuração BaseX
+
+1. Criar base de dados:
+   - Abrir BaseX
+   - Criar nova base de dados chamada "hotel"
+   - Adicionar o ficheiro hotel_reservas.xml
+
+2. Instalar módulo RESTXQ:
+   - Copiar o ficheiro api.xqm para a pasta webapp do BaseX
+   - Caminho típico: [BaseX]/webapp/
+
+3. Iniciar servidor BaseX:
+   - Executar: basexhttp
+
+## Endpoints da API
+
+Base URL: http://localhost:8984
+
+---
+
+### 1. Reservas de um dado hóspede
+
+**Endpoint:** GET /api/reservas/hospede/{numero_cliente}
+
+**Exemplo:**
+```
+GET http://localhost:8984/api/reservas/hospede/CLI123
+```
+
+**Teste com curl:**
+```bash
+curl -X GET "http://localhost:8984/api/reservas/hospede/CLI123"
+```
+
+**Teste com Postman:**
+- Method: GET
+- URL: http://localhost:8984/api/reservas/hospede/CLI123
+- Headers: Accept: application/xml
+
+**Outros exemplos:**
+```
+GET http://localhost:8984/api/reservas/hospede/CLI456
+GET http://localhost:8984/api/reservas/hospede/CLI789
+```
+
+---
+
+### 2. Quantidade de reservas por unidade
+
+**Endpoint:** GET /api/reservas/por-unidade
+
+**Exemplo:**
+```
+GET http://localhost:8984/api/reservas/por-unidade
+```
+
+**Teste com curl:**
+```bash
+curl -X GET "http://localhost:8984/api/reservas/por-unidade"
+```
+
+**Teste com Postman:**
+- Method: GET
+- URL: http://localhost:8984/api/reservas/por-unidade
+- Headers: Accept: application/xml
+
+---
+
+### 3. Total de serviços adicionais vendidos
+
+**Endpoint:** GET /api/servicos/total
+
+**Exemplo:**
+```
+GET http://localhost:8984/api/servicos/total
+```
+
+**Teste com curl:**
+```bash
+curl -X GET "http://localhost:8984/api/servicos/total"
+```
+
+**Teste com Postman:**
+- Method: GET
+- URL: http://localhost:8984/api/servicos/total
+- Headers: Accept: application/xml
+
+---
+
+### 4. Listar todas as reservas (extra)
+
+**Endpoint:** GET /api/reservas
+
+**Exemplo:**
+```
+GET http://localhost:8984/api/reservas
+```
+
+**Teste com curl:**
+```bash
+curl -X GET "http://localhost:8984/api/reservas"
+```
+
+---
+
+## Notas
+
+- O servidor BaseX HTTP deve estar a correr na porta 8984 (porta padrão)
+- Todos os endpoints retornam XML
+- Certificar que o ficheiro api.xqm está na pasta webapp do BaseX
+- A base de dados "hotel" deve estar criada e conter o ficheiro hotel_reservas.xml

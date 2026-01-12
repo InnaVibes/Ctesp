@@ -1,0 +1,256 @@
+[
+  {
+    "numero_reserva": "RES001",
+    "hospede": {
+      "numero_cliente": "CLI123",
+      "nome": "João Silva",
+      "nif": "123456789",
+      "email": "joao.silva@email.com",
+      "telefone": "912345678"
+    },
+    "check_in": "2026-02-10",
+    "check_out": "2026-02-15",
+    "valor_total": 750.00,
+    "unidade": "LS",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 2
+      },
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 3
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES002",
+    "hospede": {
+      "numero_cliente": "CLI456",
+      "nome": "Maria Santos",
+      "nif": "987654321",
+      "email": "maria.santos@email.com",
+      "telefone": "923456789"
+    },
+    "check_in": "2026-02-12",
+    "check_out": "2026-02-14",
+    "valor_total": 420.00,
+    "unidade": "PO",
+    "servicos_adicionais": [
+      {
+        "nome": "Transporte",
+        "preco": 25.00,
+        "quantidade": 1
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES003",
+    "hospede": {
+      "numero_cliente": "CLI123",
+      "nome": "João Silva",
+      "nif": "123456789",
+      "email": "joao.silva@email.com",
+      "telefone": "912345678"
+    },
+    "check_in": "2026-03-01",
+    "check_out": "2026-03-05",
+    "valor_total": 980.00,
+    "unidade": "CB",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 1
+      },
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 4
+      },
+      {
+        "nome": "Transporte",
+        "preco": 25.00,
+        "quantidade": 2
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES004",
+    "hospede": {
+      "numero_cliente": "CLI789",
+      "nome": "Pedro Costa",
+      "nif": "456789123",
+      "email": "pedro.costa@email.com",
+      "telefone": "934567890"
+    },
+    "check_in": "2026-02-20",
+    "check_out": "2026-02-25",
+    "valor_total": 1200.00,
+    "unidade": "FR",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 3
+      },
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 5
+      },
+      {
+        "nome": "Transporte",
+        "preco": 25.00,
+        "quantidade": 2
+      },
+      {
+        "nome": "Lavandaria",
+        "preco": 15.00,
+        "quantidade": 1
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES005",
+    "hospede": {
+      "numero_cliente": "CLI456",
+      "nome": "Maria Santos",
+      "nif": "987654321",
+      "email": "maria.santos@email.com",
+      "telefone": "923456789"
+    },
+    "check_in": "2026-03-10",
+    "check_out": "2026-03-12",
+    "valor_total": 350.00,
+    "unidade": "BR",
+    "servicos_adicionais": []
+  },
+  {
+    "numero_reserva": "RES006",
+    "hospede": {
+      "numero_cliente": "CLI321",
+      "nome": "Ana Ferreira",
+      "nif": "321654987",
+      "email": "ana.ferreira@email.com",
+      "telefone": "945678901"
+    },
+    "check_in": "2026-02-15",
+    "check_out": "2026-02-18",
+    "valor_total": 580.00,
+    "unidade": "LS",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 2
+      },
+      {
+        "nome": "Transporte",
+        "preco": 25.00,
+        "quantidade": 1
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES007",
+    "hospede": {
+      "numero_cliente": "CLI654",
+      "nome": "Carlos Oliveira",
+      "nif": "654987321",
+      "email": "carlos.oliveira@email.com",
+      "telefone": "956789012"
+    },
+    "check_in": "2026-03-05",
+    "check_out": "2026-03-08",
+    "valor_total": 640.00,
+    "unidade": "PO",
+    "servicos_adicionais": [
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 4
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES008",
+    "hospede": {
+      "numero_cliente": "CLI987",
+      "nome": "Rita Pereira",
+      "nif": "147258369",
+      "email": "rita.pereira@email.com",
+      "telefone": "967890123"
+    },
+    "check_in": "2026-02-25",
+    "check_out": "2026-02-28",
+    "valor_total": 890.00,
+    "unidade": "CB",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 2
+      },
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 2
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES009",
+    "hospede": {
+      "numero_cliente": "CLI111",
+      "nome": "Rui Almeida",
+      "nif": "258369147",
+      "email": "rui.almeida@email.com",
+      "telefone": "978901234"
+    },
+    "check_in": "2026-03-15",
+    "check_out": "2026-03-20",
+    "valor_total": 1350.00,
+    "unidade": "FR",
+    "servicos_adicionais": [
+      {
+        "nome": "Spa",
+        "preco": 50.00,
+        "quantidade": 4
+      },
+      {
+        "nome": "Transporte",
+        "preco": 25.00,
+        "quantidade": 3
+      },
+      {
+        "nome": "Lavandaria",
+        "preco": 15.00,
+        "quantidade": 2
+      }
+    ]
+  },
+  {
+    "numero_reserva": "RES010",
+    "hospede": {
+      "numero_cliente": "CLI222",
+      "nome": "Sofia Rodrigues",
+      "nif": "369147258",
+      "email": "sofia.rodrigues@email.com",
+      "telefone": "989012345"
+    },
+    "check_in": "2026-03-12",
+    "check_out": "2026-03-14",
+    "valor_total": 480.00,
+    "unidade": "BR",
+    "servicos_adicionais": [
+      {
+        "nome": "Restaurante",
+        "preco": 30.00,
+        "quantidade": 3
+      }
+    ]
+  }
+]

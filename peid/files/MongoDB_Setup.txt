@@ -1,0 +1,203 @@
+# Configuração MongoDB Atlas e Importação de Dados
+
+## 1. Criar Conta no MongoDB Atlas
+
+1. Aceder a https://www.mongodb.com/cloud/atlas
+2. Criar conta gratuita (Free Tier - M0)
+3. Criar novo cluster (escolher região próxima, ex: Frankfurt)
+4. Aguardar criação do cluster (pode demorar alguns minutos)
+
+## 2. Configurar Acesso
+
+### 2.1 Criar Utilizador da Base de Dados
+
+1. No menu lateral, ir a "Database Access"
+2. Clicar em "Add New Database User"
+3. Escolher "Password" como método de autenticação
+4. Definir username e password (guardar estas credenciais)
+5. Em "Database User Privileges", escolher "Read and write to any database"
+6. Clicar em "Add User"
+
+### 2.2 Configurar Network Access
+
+1. No menu lateral, ir a "Network Access"
+2. Clicar em "Add IP Address"
+3. Escolher "Allow Access from Anywhere" (0.0.0.0/0)
+   - Nota: Para produção, usar IP específico
+4. Clicar em "Confirm"
+
+## 3. Conectar à Base de Dados
+
+1. No menu lateral, ir a "Database"
+2. No cluster, clicar em "Connect"
+3. Escolher "Connect with MongoDB Compass" ou "Connect your application"
+4. Copiar a connection string
+   - Formato: mongodb+srv://username:<password>@cluster.mongodb.net/
+
+## 4. Criar Base de Dados e Collection
+
+### Opção A: Via MongoDB Compass (recomendado)
+
+1. Instalar MongoDB Compass: https://www.mongodb.com/products/compass
+2. Abrir MongoDB Compass
+3. Colar a connection string (substituir <password> pela password real)
+4. Clicar em "Connect"
+5. Clicar em "Create Database"
+   - Database Name: hotel_inteligente
+   - Collection Name: reservas
+6. Clicar em "Create Database"
+
+### Opção B: Via MongoDB Shell
+
+```bash
+mongosh "mongodb+srv://cluster.mongodb.net/" --username <username>
+
+use hotel_inteligente
+db.createCollection("reservas")
+```
+
+## 5. Importar Dados
+
+### Opção A: Via MongoDB Compass
+
+1. Na base de dados "hotel_inteligente", selecionar collection "reservas"
+2. Clicar no tab "Documents"
+3. Clicar em "Add Data" > "Import JSON or CSV file"
+4. Selecionar o ficheiro hotel_reservas.json
+5. Clicar em "Import"
+
+### Opção B: Via mongoimport (linha de comandos)
+
+```bash
+mongoimport --uri "mongodb+srv://username:<password>@cluster.mongodb.net/hotel_inteligente" \
+  --collection reservas \
+  --file hotel_reservas.json \
+  --jsonArray
+```
+
+## 6. Verificar Importação
+
+Executar consulta para verificar:
+
+```javascript
+db.reservas.countDocuments()
+// Deve retornar 10
+
+db.reservas.findOne()
+// Deve mostrar uma reserva
+```
+
+## 7. Executar Consultas
+
+Copiar as consultas do ficheiro consultas_mongodb.js e executar no MongoDB Compass ou Shell.
+
+### Via MongoDB Compass:
+1. Ir ao tab "Aggregations"
+2. Colar a consulta aggregate
+3. Clicar em "Run"
+
+### Via MongoDB Shell:
+1. Conectar ao shell
+2. Executar: `use hotel_inteligente`
+3. Copiar e colar as consultas
+
+## 8. Criar Dashboard com MongoDB Charts
+
+### 8.1 Ativar Charts
+
+1. No MongoDB Atlas, ir ao menu lateral "Charts"
+2. Clicar em "Activate MongoDB Charts"
+3. Escolher a região (mesma do cluster)
+4. Clicar em "Activate"
+
+### 8.2 Criar Dashboard
+
+1. Clicar em "Add Dashboard"
+2. Nome: "Hotel Inteligente - Dashboard"
+3. Clicar em "Create"
+
+### 8.3 Adicionar Gráficos
+
+#### Gráfico 1: Reservas por Unidade
+
+1. Clicar em "Add Chart"
+2. Data Source: hotel_inteligente.reservas
+3. Chart Type: "Bar Chart" ou "Column Chart"
+4. Configurar:
+   - X Axis: unidade
+   - Y Axis: COUNT
+5. Título: "Reservas por Unidade"
+6. Clicar em "Save and Close"
+
+#### Gráfico 2: Serviços Adicionais Vendidos
+
+1. Clicar em "Add Chart"
+2. Data Source: hotel_inteligente.reservas
+3. Chart Type: "Bar Chart"
+4. Em "Aggregation Pipeline":
+   - Clicar em "Use Aggregation Pipeline"
+   - Colar:
+```javascript
+[
+  { $unwind: "$servicos_adicionais" },
+  {
+    $group: {
+      _id: "$servicos_adicionais.nome",
+      total: { $sum: "$servicos_adicionais.quantidade" }
+    }
+  },
+  { $sort: { total: -1 } }
+]
+```
+5. Configurar:
+   - X Axis: _id
+   - Y Axis: total
+6. Título: "Serviços Adicionais Vendidos"
+7. Clicar em "Save and Close"
+
+#### Gráfico 3: Valor Total por Unidade
+
+1. Clicar em "Add Chart"
+2. Chart Type: "Pie Chart"
+3. Configurar:
+   - Label: unidade
+   - Arc: SUM(valor_total)
+4. Título: "Distribuição de Valor por Unidade"
+5. Clicar em "Save and Close"
+
+#### Gráfico 4: Estatísticas Gerais (número)
+
+1. Clicar em "Add Chart"
+2. Chart Type: "Number"
+3. Para cada métrica, criar um gráfico:
+   - Total de Reservas: COUNT
+   - Valor Médio: AVG(valor_total)
+   - Valor Total: SUM(valor_total)
+
+## 9. Partilhar Dashboard
+
+1. Clicar em "Share" no dashboard
+2. Escolher "Embed Dashboard"
+3. Copiar o código de embedding (se necessário)
+4. Ou criar link público para partilha
+
+## 10. Connection String para Aplicações
+
+Para conectar aplicações à base de dados:
+
+```
+mongodb+srv://username:<password>@cluster.mongodb.net/hotel_inteligente?retryWrites=true&w=majority
+```
+
+Substituir:
+- username: nome do utilizador criado
+- <password>: password do utilizador
+- cluster: nome do cluster (aparece na connection string)
+
+## Notas Importantes
+
+- Guardar as credenciais de acesso em local seguro
+- O cluster gratuito (M0) tem limitações de armazenamento (512MB)
+- Para ambiente de produção, configurar IP whitelisting específico
+- Fazer backup regular dos dados
+- MongoDB Charts pode demorar alguns minutos a carregar dados após importação

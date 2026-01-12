@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="hotel">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reserva" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="numero_reserva" type="xs:string"/>
+                            
+                            <xs:element name="unidade">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="LS"/> <xs:enumeration value="PO"/> <xs:enumeration value="CB"/> <xs:enumeration value="FR"/> <xs:enumeration value="BR"/> </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+
+                            <xs:element name="hospede">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="id_cliente">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="[A-Z]{3}[0-9]{3}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="nome" type="xs:string"/>
+                                        <xs:element name="nif" type="xs:string"/> <xs:element name="email" type="xs:string"/>
+                                        <xs:element name="telefone" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="datas">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="check_in" type="xs:date"/>
+                                        <xs:element name="check_out" type="xs:date"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="servicos_adicionais">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="servico" minOccurs="0" maxOccurs="4">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="nome" type="xs:string"/>
+                                                    <xs:element name="preco" type="xs:decimal"/>
+                                                    <xs:element name="quantidade" type="xs:integer"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="valor_total" type="xs:decimal"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

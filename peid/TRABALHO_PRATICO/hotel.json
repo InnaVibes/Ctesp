@@ -1,0 +1,58 @@
+[
+    {
+      "numero_reserva": "RES1001",
+      "unidade": "PO",
+      "hospede": { "id_cliente": "CLI001", "nome": "Ana Silva" },
+      "servicos_adicionais": [
+        { "nome": "Spa", "preco": 50.00, "quantidade": 2 },
+        { "nome": "Jantar", "preco": 30.00, "quantidade": 1 }
+      ],
+      "valor_total": 450.00
+    },
+    {
+      "numero_reserva": "RES1002",
+      "unidade": "LS",
+      "hospede": { "id_cliente": "HOS999", "nome": "Carlos Sousa" },
+      "servicos_adicionais": [],
+      "valor_total": 200.00
+    },
+    {
+      "numero_reserva": "RES1003",
+      "unidade": "FR",
+      "hospede": { "id_cliente": "TUR555", "nome": "John Smith" },
+      "servicos_adicionais": [
+        { "nome": "Transporte", "preco": 25.00, "quantidade": 2 }
+      ],
+      "valor_total": 1250.00
+    },
+    {
+      "numero_reserva": "RES1004",
+      "unidade": "CB",
+      "hospede": { "id_cliente": "CLI001", "nome": "Ana Silva" },
+      "servicos_adicionais": [
+        { "nome": "Spa", "preco": 40.00, "quantidade": 1 },
+        { "nome": "Bar", "preco": 15.50, "quantidade": 4 }
+      ],
+      "valor_total": 180.50
+    },
+    {
+      "numero_reserva": "RES1005",
+      "unidade": "BR",
+      "hospede": { "id_cliente": "EMP010", "nome": "Maria Ferreira" },
+      "servicos_adicionais": [
+        { "nome": "Jantar", "preco": 35.00, "quantidade": 2 }
+      ],
+      "valor_total": 270.00
+    },
+    {
+      "numero_reserva": "RES1006",
+      "unidade": "PO",
+      "hospede": { "id_cliente": "VIP777", "nome": "Roberto Lima" },
+      "servicos_adicionais": [
+        { "nome": "Spa", "preco": 60.00, "quantidade": 1 },
+        { "nome": "Transporte", "preco": 20.00, "quantidade": 1 },
+        { "nome": "Jantar", "preco": 40.00, "quantidade": 3 }
+      ],
+      "valor_total": 980.00
+    }
+  ]

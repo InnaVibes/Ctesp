@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    
+    <!-- Elemento raiz -->
+    <xs:element name="hotel">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reservas">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="reserva" type="ReservaType" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <!-- Tipo Reserva -->
+    <xs:complexType name="ReservaType">
+        <xs:sequence>
+            <xs:element name="numero_reserva" type="xs:string"/>
+            <xs:element name="hospede" type="HospedeType"/>
+            <xs:element name="check_in" type="xs:date"/>
+            <xs:element name="check_out" type="xs:date"/>
+            <xs:element name="valor_total" type="xs:decimal"/>
+            <xs:element name="unidade" type="UnidadeType"/>
+            <xs:element name="servicos_adicionais" type="ServicosType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!-- Tipo Hóspede -->
+    <xs:complexType name="HospedeType">
+        <xs:sequence>
+            <xs:element name="numero_cliente" type="NumeroClienteType"/>
+            <xs:element name="nome" type="xs:string"/>
+            <xs:element name="nif" type="NIFType"/>
+            <xs:element name="email" type="xs:string"/>
+            <xs:element name="telefone" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!-- Tipo Número Cliente (3 letras + 3 números) -->
+    <xs:simpleType name="NumeroClienteType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{3}[0-9]{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- Tipo NIF (9 dígitos) -->
+    <xs:simpleType name="NIFType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{9}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- Tipo Unidade (siglas) -->
+    <xs:simpleType name="UnidadeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LS"/>
+            <xs:enumeration value="PO"/>
+            <xs:enumeration value="CB"/>
+            <xs:enumeration value="FR"/>
+            <xs:enumeration value="BR"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- Tipo Serviços Adicionais (máximo 4) -->
+    <xs:complexType name="ServicosType">
+        <xs:sequence>
+            <xs:element name="servico" type="ServicoType" minOccurs="0" maxOccurs="4"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!-- Tipo Serviço -->
+    <xs:complexType name="ServicoType">
+        <xs:sequence>
+            <xs:element name="nome" type="xs:string"/>
+            <xs:element name="preco" type="xs:decimal"/>
+            <xs:element name="quantidade" type="xs:positiveInteger"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+</xs:schema>
